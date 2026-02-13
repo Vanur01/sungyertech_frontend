@@ -147,8 +147,8 @@ import { useNavigate } from "react-router-dom";
 import AlertTitle from "@mui/material/AlertTitle";
 
 // ========== CONSTANTS & CONFIGURATION ==========
-const PRIMARY = "#ff6d00";
-const SECONDARY = "#1a237e";
+const PRIMARY = "#3a5ac8";
+const SECONDARY = "#2c489e";
 const ITEMS_PER_PAGE_OPTIONS = [5, 10, 25, 50];
 const DEFAULT_ITEMS_PER_PAGE = 10;
 const ALLOWED_ROLES = ["Head_office", "ZSM", "ASM", "TEAM"];
@@ -165,15 +165,15 @@ const LOAN_STATUS_OPTIONS = ["pending", "submitted"];
 
 const LOAN_STATUS_CONFIG = {
   pending: {
-    bg: "#fff3e0",
-    color: "#ef6c00",
+    bg: alpha("#3a5ac8", 0.1),
+    color: "#3a5ac8",
     icon: <HourglassEmpty sx={{ fontSize: 16 }} />,
     label: "Pending",
     description: "Loan application is pending submission",
   },
   submitted: {
-    bg: "#e3f2fd",
-    color: "#1976d2",
+    bg: alpha("#3a5ac8", 0.1),
+    color: "#3a5ac8",
     icon: <Send sx={{ fontSize: 16 }} />,
     label: "Submitted",
     description: "Loan application submitted to bank",
@@ -185,20 +185,20 @@ const LEAD_STATUS_OPTIONS = ["Bank Loan Apply", "Document Submission", "Missed L
 
 const LEAD_STATUS_CONFIG = {
   "Bank Loan Apply": {
-    bg: "#e3f2fd",
-    color: "#1976d2",
+    bg: alpha("#3a5ac8", 0.1),
+    color: "#3a5ac8",
     icon: <AccountBalanceWallet sx={{ fontSize: 16 }} />,
     description: "Bank loan application in progress",
   },
   "Document Submission": {
-    bg: "#fff3e0",
-    color: "#f57c00",
+    bg: alpha("#3a5ac8", 0.1),
+    color: "#3a5ac8",
     icon: <Description sx={{ fontSize: 16 }} />,
     description: "Documents submitted for verification",
   },
   "Missed Leads": {
-    bg: "#ffebee",
-    color: "#c62828",
+    bg: alpha("#3a5ac8", 0.1),
+    color: "#3a5ac8",
     icon: <Cancel sx={{ fontSize: 16 }} />,
     description: "Lead lost or not converted",
   },
@@ -226,22 +226,22 @@ const BANK_LIST = [
 const ROLE_CONFIG = {
   Head_office: {
     label: "Head Office",
-    color: "#ff6d00",
+    color: "#3a5ac8",
     icon: <AdminPanelSettings sx={{ fontSize: 16 }} />,
   },
   ZSM: {
     label: "Zone Sales Manager",
-    color: "#9c27b0",
+    color: "#3a5ac8",
     icon: <WorkspacePremium sx={{ fontSize: 16 }} />,
   },
   ASM: {
     label: "Area Sales Manager",
-    color: "#00bcd4",
+    color: "#3a5ac8",
     icon: <SupervisorAccount sx={{ fontSize: 16 }} />,
   },
   TEAM: {
     label: "Team Member",
-    color: "#4caf50",
+    color: "#3a5ac8",
     icon: <Groups sx={{ fontSize: 16 }} />,
   },
 };
@@ -263,8 +263,8 @@ const getLoanStatusColor = (status) => {
   const normalizedStatus = status?.toLowerCase();
   return (
     LOAN_STATUS_CONFIG[normalizedStatus] || {
-      bg: "#f5f5f5",
-      color: "#757575",
+      bg: alpha("#3a5ac8", 0.1),
+      color: "#3a5ac8",
       label: "Unknown",
       icon: <Warning sx={{ fontSize: 16 }} />,
       description: "Status unknown",
@@ -275,8 +275,8 @@ const getLoanStatusColor = (status) => {
 const getLeadStatusConfig = (status) => {
   return (
     LEAD_STATUS_CONFIG[status] || {
-      bg: "#f5f5f5",
-      color: "#616161",
+      bg: alpha("#3a5ac8", 0.1),
+      color: "#3a5ac8",
       icon: <Warning sx={{ fontSize: 16 }} />,
       description: "Unknown status",
     }
@@ -287,7 +287,7 @@ const getRoleConfig = (role) => {
   return (
     ROLE_CONFIG[role] || {
       label: "Unknown",
-      color: "#757575",
+      color: "#3a5ac8",
       icon: <Person sx={{ fontSize: 16 }} />,
     }
   );
@@ -489,7 +489,7 @@ const ImageViewerModal = React.memo(({ open, onClose, imageUrl, title }) => {
               variant="contained"
               startIcon={<GetApp />}
               onClick={handleDownload}
-              sx={{ mt: 2 }}
+              sx={{ mt: 2, bgcolor: PRIMARY, '&:hover': { bgcolor: SECONDARY } }}
             >
               Download Document
             </Button>
@@ -597,9 +597,9 @@ const FileUploadField = React.memo(
             >
               <Stack direction="row" alignItems="center" spacing={2}>
                 {value.preview ? (
-                  <ImageIcon sx={{ color: "#1976d2" }} />
+                  <ImageIcon sx={{ color: PRIMARY }} />
                 ) : (
-                  <DescriptionOutlined sx={{ color: "#1976d2" }} />
+                  <DescriptionOutlined sx={{ color: PRIMARY }} />
                 )}
                 <Box>
                   <Typography variant="body2" noWrap>
@@ -719,7 +719,7 @@ const DocumentCard = React.memo(
             variant="contained"
             startIcon={<GetApp />}
             onClick={handleDownload}
-            sx={{ bgcolor: PRIMARY }}
+            sx={{ bgcolor: PRIMARY, '&:hover': { bgcolor: SECONDARY } }}
           >
             Download
           </Button>
@@ -1094,7 +1094,7 @@ const ViewLoanModal = React.memo(
                   <DocumentCard
                     title="Aadhaar Card"
                     url={displayData.aadhaar.url}
-                    icon={<BadgeIcon sx={{ color: "#f57c00" }} />}
+                    icon={<BadgeIcon sx={{ color: PRIMARY }} />}
                     filename="aadhaar-card"
                     onView={handleViewDocument}
                     onDownload={handleDownload}
@@ -1106,7 +1106,7 @@ const ViewLoanModal = React.memo(
                   <DocumentCard
                     title="PAN Card"
                     url={displayData.panCard.url}
-                    icon={<CreditCard sx={{ color: "#1976d2" }} />}
+                    icon={<CreditCard sx={{ color: PRIMARY }} />}
                     filename="pan-card"
                     onView={handleViewDocument}
                     onDownload={handleDownload}
@@ -1118,7 +1118,7 @@ const ViewLoanModal = React.memo(
                   <DocumentCard
                     title="Bank Passbook"
                     url={displayData.passbook.url}
-                    icon={<ReceiptLong sx={{ color: "#388e3c" }} />}
+                    icon={<ReceiptLong sx={{ color: PRIMARY }} />}
                     filename="passbook"
                     onView={handleViewDocument}
                     onDownload={handleDownload}
@@ -1130,7 +1130,7 @@ const ViewLoanModal = React.memo(
                   <DocumentCard
                     title={doc.name || `Document ${index + 1}`}
                     url={doc.url}
-                    icon={<InsertDriveFile sx={{ color: "#9c27b0" }} />}
+                    icon={<InsertDriveFile sx={{ color: PRIMARY }} />}
                     filename={doc.name}
                     onView={handleViewDocument}
                     onDownload={handleDownload}
@@ -1301,15 +1301,15 @@ const ViewLoanModal = React.memo(
               icon={userRoleConfig.icon}
               size="small"
               sx={{
-                bgcolor: `${userRoleConfig.color}15`,
-                color: userRoleConfig.color,
+                bgcolor: alpha(PRIMARY, 0.15),
+                color: PRIMARY,
                 fontWeight: 600,
               }}
             />
             <Button
               onClick={onClose}
               variant="contained"
-              sx={{ borderRadius: 2, mt: 2 }}
+              sx={{ borderRadius: 2, mt: 2, bgcolor: PRIMARY, '&:hover': { bgcolor: SECONDARY } }}
             >
               Close
             </Button>
@@ -1439,7 +1439,7 @@ const EditLoanModal = React.memo(
                   width: 48,
                   height: 48,
                   borderRadius: 2,
-                  bgcolor: `${PRIMARY}15`,
+                  bgcolor: alpha(PRIMARY, 0.15),
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
@@ -1639,7 +1639,7 @@ const EditLoanModal = React.memo(
             size="large"
             disabled={loading}
             startIcon={loading ? <CircularProgress size={20} /> : <Save />}
-            sx={{ bgcolor: PRIMARY, px: 4, "&:hover": { bgcolor: "#e65c00" } }}
+            sx={{ bgcolor: PRIMARY, px: 4, "&:hover": { bgcolor: SECONDARY } }}
           >
             {loading ? "Saving..." : "Save Changes"}
           </Button>
@@ -2121,21 +2121,21 @@ export default function BankLoanApply() {
       {
         label: "Pending",
         value: loansData.summary.pendingLoans,
-        color: "#ef6c00",
+        color: PRIMARY,
         icon: <HourglassEmpty />,
         subText: "Pending applications",
       },
       {
         label: "Submitted",
         value: loansData.summary.submittedLoans,
-        color: "#1976d2",
+        color: PRIMARY,
         icon: <Send />,
         subText: "Submitted to bank",
       },
       {
         label: "Rejected",
         value: loansData.summary.rejectedLoans,
-        color: "#d32f2f",
+        color: PRIMARY,
         icon: <Cancel />,
         subText: "Rejected loans",
       },
@@ -2334,7 +2334,7 @@ export default function BankLoanApply() {
                           width: 40,
                           height: 40,
                           borderRadius: 2,
-                          bgcolor: `${card.color}15`,
+                          bgcolor: alpha(PRIMARY, 0.15),
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "center",
@@ -2554,7 +2554,7 @@ export default function BankLoanApply() {
                     <Button
                       variant="contained"
                       onClick={() => setShowFilterPanel(false)}
-                      sx={{ bgcolor: PRIMARY }}
+                      sx={{ bgcolor: PRIMARY, '&:hover': { bgcolor: SECONDARY } }}
                     >
                       Apply Filters
                     </Button>
@@ -2921,10 +2921,10 @@ export default function BankLoanApply() {
                                   size="small"
                                   onClick={() => handleViewClick(loan)}
                                   sx={{
-                                    bgcolor: alpha("#1976d2", 0.1),
-                                    color: "#1976d2",
+                                    bgcolor: alpha(PRIMARY, 0.1),
+                                    color: PRIMARY,
                                     "&:hover": {
-                                      bgcolor: alpha("#1976d2", 0.2),
+                                      bgcolor: alpha(PRIMARY, 0.2),
                                     },
                                   }}
                                 >

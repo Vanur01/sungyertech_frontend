@@ -148,7 +148,7 @@ import { useNavigate } from "react-router-dom";
 import AlertTitle from "@mui/material/AlertTitle";
 
 // ========== CONSTANTS & CONFIGURATION ==========
-const PRIMARY = "#ff6d00";
+const PRIMARY = "#3a5ac8"; // Changed from #ff6d00 to #3a5ac8
 const SECONDARY = "#1a237e";
 const ITEMS_PER_PAGE_OPTIONS = [5, 10, 25, 50];
 const DEFAULT_ITEMS_PER_PAGE = 10;
@@ -167,8 +167,8 @@ const DISBURSEMENT_STATUS_OPTIONS = ["pending", "completed", "cancelled"];
 const DISBURSEMENT_STATUS_CONFIG = {
   pending: {
     label: "Pending",
-    bg: "#fff3e0",
-    color: "#f57c00",
+    bg: "#e3f2fd",
+    color: "#1976d2",
     icon: <PendingActions sx={{ fontSize: 16 }} />,
     description: "Disbursement is pending",
   },
@@ -197,8 +197,8 @@ const LEAD_STATUS_OPTIONS = [
 
 const LEAD_STATUS_CONFIG = {
   Disbursement: {
-    bg: "#fff3e0",
-    color: "#f57c00",
+    bg: "#e3f2fd",
+    color: "#1976d2",
     icon: <Payment sx={{ fontSize: 16 }} />,
     description: "Loan disbursement in progress",
   },
@@ -239,22 +239,22 @@ const BANK_LIST = [
 const ROLE_CONFIG = {
   Head_office: {
     label: "Head Office",
-    color: "#ff6d00",
+    color: "#3a5ac8",
     icon: <AdminPanelSettings sx={{ fontSize: 16 }} />,
   },
   ZSM: {
     label: "Zone Sales Manager",
-    color: "#9c27b0",
+    color: "#3a5ac8",
     icon: <WorkspacePremium sx={{ fontSize: 16 }} />,
   },
   ASM: {
     label: "Area Sales Manager",
-    color: "#00bcd4",
+    color: "#3a5ac8",
     icon: <SupervisorAccount sx={{ fontSize: 16 }} />,
   },
   TEAM: {
     label: "Team Member",
-    color: "#4caf50",
+    color: "#3a5ac8",
     icon: <Groups sx={{ fontSize: 16 }} />,
   },
 };
@@ -302,7 +302,7 @@ const getRoleConfig = (role) => {
   return (
     ROLE_CONFIG[role] || {
       label: "Unknown",
-      color: "#757575",
+      color: "#3a5ac8",
       icon: <Person sx={{ fontSize: 16 }} />,
     }
   );
@@ -615,7 +615,9 @@ const DocumentCard = React.memo(
 
 DocumentCard.displayName = "DocumentCard";
 
-// Disbursement Status Update Modal - ONLY FOR Head_office, ZSM, ASM
+// ────────────────────────────────────────────────
+// Component
+// ────────────────────────────────────────────────
 const DisbursementStatusUpdateModal = React.memo(
   ({ open, onClose, lead, onStatusUpdate, showSnackbar, userRole }) => {
     const { fetchAPI, user } = useAuth();
@@ -627,81 +629,70 @@ const DisbursementStatusUpdateModal = React.memo(
     const [selectedLeadStatus, setSelectedLeadStatus] = useState("");
     const [disbursementAmount, setDisbursementAmount] = useState("");
     const [disbursementDate, setDisbursementDate] = useState(null);
-    const [transactionId, setTransactionId] = useState("");
     const [notes, setNotes] = useState("");
     const [errors, setErrors] = useState({});
 
-    const disbursementStatusConfig = useMemo(
-      () => getDisbursementStatusColor(lead?.disbursementStatus),
-      [lead?.disbursementStatus]
-    );
-
-    const leadStatusConfig = useMemo(
-      () => getLeadStatusConfig(lead?.status),
-      [lead?.status]
-    );
-
     useEffect(() => {
       if (open && lead) {
-        setSelectedDisbursementStatus(lead.disbursementStatus || "");
+        setSelectedDisbursementStatus(lead.disbursementStatus || "pending");
         setSelectedLeadStatus(lead.status || "Disbursement");
         setDisbursementAmount(lead.disbursementAmount?.toString() || "");
         setDisbursementDate(
           lead.disbursementDate ? parseISO(lead.disbursementDate) : null
         );
-        setTransactionId(lead.disbursementTransactionId || "");
         setNotes(lead.disbursementNotes || "");
         setErrors({});
       }
     }, [open, lead]);
 
     const handleSubmit = useCallback(async () => {
-      const errors = {};
+      const newErrors = {};
 
       if (!selectedDisbursementStatus) {
-        errors.disbursementStatus = "Please select disbursement status";
+        newErrors.disbursementStatus = "Please select disbursement status";
       }
 
       if (!selectedLeadStatus) {
-        errors.leadStatus = "Please select lead status";
+        newErrors.leadStatus = "Please select lead status";
       }
 
       if (selectedDisbursementStatus === "completed") {
         if (!disbursementAmount.trim()) {
-          errors.disbursementAmount = "Disbursement amount is required";
+          newErrors.disbursementAmount = "Disbursement amount is required";
         } else {
           const numAmount = parseFloat(disbursementAmount);
-          if (isNaN(numAmount)) {
-            errors.disbursementAmount = "Please enter a valid amount";
-          } else if (numAmount <= 0) {
-            errors.disbursementAmount = "Amount must be greater than 0";
+          if (isNaN(numAmount) || numAmount <= 0) {
+            newErrors.disbursementAmount = "Enter a valid amount > 0";
           }
         }
 
         if (!disbursementDate) {
-          errors.disbursementDate = "Disbursement date is required";
+          newErrors.disbursementDate = "Disbursement date is required";
         }
       }
 
-      if (Object.keys(errors).length > 0) {
-        setErrors(errors);
+      if (Object.keys(newErrors).length > 0) {
+        setErrors(newErrors);
         return;
       }
 
+      // No change → just close
       if (
         selectedDisbursementStatus === lead?.disbursementStatus &&
-        selectedLeadStatus === lead?.status
+        selectedLeadStatus === lead?.status &&
+        notes === (lead?.disbursementNotes || "")
       ) {
         onClose();
         return;
       }
 
       setLoading(true);
+
       try {
         const updateData = {
           disbursementStatus: selectedDisbursementStatus,
           status: selectedLeadStatus,
-          disbursementNotes: notes,
+          disbursementNotes: notes.trim() || undefined,
           updatedBy: user?._id,
           updatedByRole: user?.role,
           updatedAt: new Date().toISOString(),
@@ -723,12 +714,13 @@ const DisbursementStatusUpdateModal = React.memo(
           onStatusUpdate(response.result);
           onClose();
         } else {
-          throw new Error(response.message || "Failed to update status");
+          throw new Error(response.message || "Update failed");
         }
-      } catch (error) {
-        console.error("Error updating disbursement status:", error);
-        setErrors({ submit: error.message });
-        showSnackbar(error.message || "Failed to update status", "error");
+      } catch (err) {
+        console.error("Disbursement update error:", err);
+        const msg = err.message || "Failed to update status";
+        setErrors({ submit: msg });
+        showSnackbar(msg, "error");
       } finally {
         setLoading(false);
       }
@@ -737,7 +729,6 @@ const DisbursementStatusUpdateModal = React.memo(
       selectedLeadStatus,
       disbursementAmount,
       disbursementDate,
-      transactionId,
       notes,
       lead,
       user,
@@ -752,15 +743,10 @@ const DisbursementStatusUpdateModal = React.memo(
       setSelectedLeadStatus("");
       setDisbursementAmount("");
       setDisbursementDate(null);
-      setTransactionId("");
       setNotes("");
       setErrors({});
       onClose();
     }, [onClose]);
-
-    const availableDisbursementStatuses = useMemo(() => {
-      return DISBURSEMENT_STATUS_OPTIONS;
-    }, []);
 
     const getLeadStatusOptions = useMemo(() => {
       switch (selectedDisbursementStatus) {
@@ -771,7 +757,7 @@ const DisbursementStatusUpdateModal = React.memo(
         case "pending":
           return ["Disbursement"];
         default:
-          return LEAD_STATUS_OPTIONS;
+          return ["Disbursement", "Installation Completion", "Missed Leads"];
       }
     }, [selectedDisbursementStatus]);
 
@@ -786,19 +772,15 @@ const DisbursementStatusUpdateModal = React.memo(
         fullScreen={isMobile}
         PaperProps={{ sx: { borderRadius: 3 } }}
       >
-        <DialogTitle sx={{ bgcolor: alpha(PRIMARY, 0.05), pb: 2 }}>
-          <Stack
-            direction="row"
-            alignItems="center"
-            justifyContent="space-between"
-          >
+        <DialogTitle sx={{ bgcolor: alpha(PRIMARY, 0.06), pb: 2 }}>
+          <Stack direction="row" alignItems="center" justifyContent="space-between">
             <Box display="flex" alignItems="center" gap={2}>
               <Box
                 sx={{
                   width: 48,
                   height: 48,
                   borderRadius: 2,
-                  bgcolor: `${PRIMARY}15`,
+                  bgcolor: alpha(PRIMARY, 0.12),
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
@@ -807,6 +789,7 @@ const DisbursementStatusUpdateModal = React.memo(
               >
                 <Payment sx={{ fontSize: 28 }} />
               </Box>
+
               <Box>
                 <Typography variant="h6" fontWeight={700}>
                   Update Disbursement Status
@@ -819,14 +802,15 @@ const DisbursementStatusUpdateModal = React.memo(
                   icon={getRoleConfig(userRole).icon}
                   size="small"
                   sx={{
-                    bgcolor: `${getRoleConfig(userRole).color}15`,
+                    mt: 1,
+                    bgcolor: alpha(getRoleConfig(userRole).color, 0.12),
                     color: getRoleConfig(userRole).color,
                     fontWeight: 600,
-                    mt: 1,
                   }}
                 />
               </Box>
             </Box>
+
             <IconButton onClick={handleClose} size="medium">
               <Close />
             </IconButton>
@@ -841,59 +825,38 @@ const DisbursementStatusUpdateModal = React.memo(
               </Alert>
             )}
 
-            <Box>
-              <Typography
-                variant="subtitle2"
-                fontWeight={600}
-                gutterBottom
-                sx={{ mt: 2 }}
-              >
-                Current Disbursement Status
-              </Typography>
-              <Chip
-                label={disbursementStatusConfig.label}
-                icon={disbursementStatusConfig.icon}
-                sx={{
-                  bgcolor: disbursementStatusConfig.bg,
-                  color: disbursementStatusConfig.color,
-                  fontWeight: 600,
-                  fontSize: "0.875rem",
-                  px: 1,
-                }}
-              />
-              <Typography
-                variant="caption"
-                color="text.secondary"
-                sx={{ mt: 1, display: "block" }}
-              >
-                {disbursementStatusConfig.description}
-              </Typography>
-            </Box>
+            {/* Current statuses */}
+            <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
+              <Box flex={1}>
+                <Typography variant="subtitle2" fontWeight={600} gutterBottom>
+                  Current Disbursement Status
+                </Typography>
+                <Chip
+                  label={getDisbursementStatusColor(lead.disbursementStatus).label}
+                  icon={getDisbursementStatusColor(lead.disbursementStatus).icon}
+                  sx={{
+                    bgcolor: getDisbursementStatusColor(lead.disbursementStatus).bg,
+                    color: getDisbursementStatusColor(lead.disbursementStatus).color,
+                  }}
+                />
+              </Box>
 
-            <Box>
-              <Typography variant="subtitle2" fontWeight={600} gutterBottom>
-                Current Lead Status
-              </Typography>
-              <Chip
-                label={lead.status}
-                icon={leadStatusConfig.icon}
-                sx={{
-                  bgcolor: leadStatusConfig.bg,
-                  color: leadStatusConfig.color,
-                  fontWeight: 600,
-                  fontSize: "0.875rem",
-                  px: 1,
-                }}
-              />
-              <Typography
-                variant="caption"
-                color="text.secondary"
-                sx={{ mt: 1, display: "block" }}
-              >
-                {leadStatusConfig.description}
-              </Typography>
-            </Box>
+              <Box flex={1}>
+                <Typography variant="subtitle2" fontWeight={600} gutterBottom>
+                  Current Lead Status
+                </Typography>
+                <Chip
+                  label={lead.status}
+                  icon={getLeadStatusConfig(lead.status).icon}
+                  sx={{
+                    bgcolor: getLeadStatusConfig(lead.status).bg,
+                    color: getLeadStatusConfig(lead.status).color,
+                  }}
+                />
+              </Box>
+            </Stack>
 
+            {/* New Disbursement Status */}
             <Box>
               <Typography variant="subtitle2" fontWeight={600} gutterBottom>
                 New Disbursement Status *
@@ -902,46 +865,27 @@ const DisbursementStatusUpdateModal = React.memo(
                 <Select
                   value={selectedDisbursementStatus}
                   onChange={(e) => {
-                    setSelectedDisbursementStatus(e.target.value);
-                    // Auto-set lead status based on disbursement status
-                    switch (e.target.value) {
-                      case "completed":
-                        setSelectedLeadStatus("Installation Completion");
-                        break;
-                      case "cancelled":
-                        setSelectedLeadStatus("Missed Leads");
-                        break;
-                      case "pending":
-                        setSelectedLeadStatus("Disbursement");
-                        break;
-                      default:
-                        setSelectedLeadStatus("Disbursement");
-                    }
+                    const val = e.target.value;
+                    setSelectedDisbursementStatus(val);
+                    // Auto-sync lead status
+                    if (val === "completed") setSelectedLeadStatus("Installation Completion");
+                    else if (val === "cancelled") setSelectedLeadStatus("Missed Leads");
+                    else if (val === "pending") setSelectedLeadStatus("Disbursement");
                   }}
-                  displayEmpty
                 >
                   <MenuItem value="" disabled>
-                    Select disbursement status
+                    Select status
                   </MenuItem>
-                  {availableDisbursementStatuses.map((status) => {
-                    const config = getDisbursementStatusColor(status);
+                  {DISBURSEMENT_STATUS_OPTIONS.map((status) => {
+                    const cfg = getDisbursementStatusColor(status);
                     return (
                       <MenuItem key={status} value={status}>
-                        <Stack
-                          direction="row"
-                          alignItems="center"
-                          spacing={1.5}
-                        >
-                          {config.icon}
+                        <Stack direction="row" alignItems="center" spacing={1.5}>
+                          {cfg.icon}
                           <Box>
-                            <Typography variant="body2">
-                              {config.label}
-                            </Typography>
-                            <Typography
-                              variant="caption"
-                              color="text.secondary"
-                            >
-                              {config.description}
+                            <Typography variant="body2">{cfg.label}</Typography>
+                            <Typography variant="caption" color="text.secondary">
+                              {cfg.description}
                             </Typography>
                           </Box>
                         </Stack>
@@ -955,6 +899,7 @@ const DisbursementStatusUpdateModal = React.memo(
               </FormControl>
             </Box>
 
+            {/* Lead Status */}
             <Box>
               <Typography variant="subtitle2" fontWeight={600} gutterBottom>
                 Lead Status *
@@ -963,29 +908,21 @@ const DisbursementStatusUpdateModal = React.memo(
                 <Select
                   value={selectedLeadStatus}
                   onChange={(e) => setSelectedLeadStatus(e.target.value)}
-                  displayEmpty
                   disabled={!selectedDisbursementStatus}
                 >
                   <MenuItem value="" disabled>
-                    Select lead status
+                    Select status
                   </MenuItem>
                   {getLeadStatusOptions.map((status) => {
-                    const config = getLeadStatusConfig(status);
+                    const cfg = getLeadStatusConfig(status);
                     return (
                       <MenuItem key={status} value={status}>
-                        <Stack
-                          direction="row"
-                          alignItems="center"
-                          spacing={1.5}
-                        >
-                          {config.icon}
+                        <Stack direction="row" alignItems="center" spacing={1.5}>
+                          {cfg.icon}
                           <Box>
                             <Typography variant="body2">{status}</Typography>
-                            <Typography
-                              variant="caption"
-                              color="text.secondary"
-                            >
-                              {config.description}
+                            <Typography variant="caption" color="text.secondary">
+                              {cfg.description}
                             </Typography>
                           </Box>
                         </Stack>
@@ -993,14 +930,13 @@ const DisbursementStatusUpdateModal = React.memo(
                     );
                   })}
                 </Select>
-                {errors.leadStatus && (
-                  <FormHelperText>{errors.leadStatus}</FormHelperText>
-                )}
+                {errors.leadStatus && <FormHelperText>{errors.leadStatus}</FormHelperText>}
               </FormControl>
             </Box>
 
+            {/* Completed fields */}
             {selectedDisbursementStatus === "completed" && (
-              <>
+              <Stack spacing={2}>
                 <TextField
                   label="Disbursement Amount *"
                   value={disbursementAmount}
@@ -1011,19 +947,18 @@ const DisbursementStatusUpdateModal = React.memo(
                   InputProps={{
                     startAdornment: (
                       <InputAdornment position="start">
-                        <CurrencyRupee />
+                        <CurrencyRupee fontSize="small" />
                       </InputAdornment>
                     ),
                   }}
                   error={!!errors.disbursementAmount}
                   helperText={errors.disbursementAmount}
-                  placeholder="Enter disbursement amount"
                 />
 
                 <DatePicker
                   label="Disbursement Date *"
                   value={disbursementDate}
-                  onChange={(newValue) => setDisbursementDate(newValue)}
+                  onChange={setDisbursementDate}
                   slotProps={{
                     textField: {
                       fullWidth: true,
@@ -1033,12 +968,13 @@ const DisbursementStatusUpdateModal = React.memo(
                     },
                   }}
                 />
-              </>
+              </Stack>
             )}
 
+            {/* Notes */}
             <Box>
               <Typography variant="subtitle2" fontWeight={600} gutterBottom>
-                Disbursement Notes
+                Notes
               </Typography>
               <TextField
                 value={notes}
@@ -1046,28 +982,24 @@ const DisbursementStatusUpdateModal = React.memo(
                 fullWidth
                 multiline
                 rows={3}
-                placeholder="Add notes about this disbursement..."
+                placeholder="Add any remarks or internal notes..."
                 size="small"
               />
             </Box>
 
             {selectedDisbursementStatus && (
-              <Alert severity="info" sx={{ mt: 1 }}>
-                <Typography variant="body2">
-                  {selectedDisbursementStatus === "completed"
-                    ? "When completed, lead will move to Installation Completion stage."
-                    : selectedDisbursementStatus === "cancelled"
-                    ? "When cancelled, lead will move to Missed Leads stage."
-                    : "When pending, lead will stay in Disbursement stage."}
-                </Typography>
+              <Alert severity="info" sx={{ borderRadius: 2 }}>
+                {selectedDisbursementStatus === "completed"
+                  ? "Lead will move to → Installation Completion"
+                  : selectedDisbursementStatus === "cancelled"
+                  ? "Lead will move to → Missed Leads"
+                  : "Lead remains in → Disbursement stage"}
               </Alert>
             )}
           </Stack>
         </DialogContent>
 
-        <DialogActions
-          sx={{ p: 3, pt: 2, borderTop: 1, borderColor: "divider", gap: 2 }}
-        >
+        <DialogActions sx={{ p: 3, pt: 2, borderTop: 1, borderColor: "divider", gap: 2 }}>
           <Button onClick={handleClose} variant="outlined" size="large">
             Cancel
           </Button>
@@ -1080,10 +1012,11 @@ const DisbursementStatusUpdateModal = React.memo(
               !selectedDisbursementStatus ||
               !selectedLeadStatus ||
               (selectedDisbursementStatus === lead?.disbursementStatus &&
-                selectedLeadStatus === lead?.status)
+                selectedLeadStatus === lead?.status &&
+                notes.trim() === (lead?.disbursementNotes || ""))
             }
             startIcon={loading ? <CircularProgress size={20} /> : <Save />}
-            sx={{ bgcolor: PRIMARY, px: 4, "&:hover": { bgcolor: "#e65c00" } }}
+            sx={{ px: 4 }}
           >
             {loading ? "Updating..." : "Update Status"}
           </Button>
@@ -1991,21 +1924,21 @@ export default function DisbursementPage() {
       {
         label: "Pending",
         value: disbursementData.summary.pendingLeads,
-        color: "#ef6c00",
+        color: "#3a5ac8",
         icon: <PendingActions />,
         subText: "Pending disbursement",
       },
       {
         label: "Completed",
         value: disbursementData.summary.completedLeads,
-        color: "#2e7d32",
+           color: "#3a5ac8",
         icon: <CheckCircle />,
         subText: "Disbursement completed",
       },
       {
         label: "Cancelled",
         value: disbursementData.summary.cancelledLeads,
-        color: "#d32f2f",
+           color: "#3a5ac8",
         icon: <Cancel />,
         subText: "Disbursement cancelled",
       },
@@ -2617,7 +2550,7 @@ export default function DisbursementPage() {
                                   <IconButton
                                     size="small"
                                     onClick={() => handleStatusUpdateClick(lead)}
-                                    sx={{ color: '#1976d2' }}
+                                    sx={{ color: PRIMARY }}
                                   >
                                     <TrendingUp fontSize="small" />
                                   </IconButton>

@@ -36,7 +36,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 
-const primary = "#ff6d00";
+const PRIMARY = "#3a5ac8"; // Updated primary color
 const API_BASE = (process.env.REACT_APP_API_URL || "https://admin.saurashakti.com").replace(/\/+$/, "");
 
 // Role-based access control
@@ -83,7 +83,7 @@ export default function InputLeadsPage() {
       { 
         label: "Total Leads", 
         value: leadsData.totalLeads, 
-        color: primary,
+        color: PRIMARY,
         icon: <People />,
         subText: "All time leads",
         trend: leadsData.todayLeads > 0 ? `+${leadsData.todayLeads} today` : "No new leads"
@@ -91,7 +91,7 @@ export default function InputLeadsPage() {
       { 
         label: "Active Leads", 
         value: leadsData.activeLeads, 
-        color: "#4caf50",
+        color: PRIMARY,
         icon: <TrendingUp />,
         subText: "Currently active",
         trend: "Follow up required"
@@ -99,7 +99,7 @@ export default function InputLeadsPage() {
       { 
         label: "Converted", 
         value: leadsData.convertedLeads, 
-        color: "#c2185b",
+        color: PRIMARY,
         icon: <People />,
         subText: "Successfully converted",
         trend: `${leadsData.conversionRate}% rate`
@@ -107,7 +107,7 @@ export default function InputLeadsPage() {
       { 
         label: "This Month", 
         value: leadsData.thisMonthLeads, 
-        color: "#9c27b0",
+        color: PRIMARY,
         icon: <TrendingUp />,
         subText: "Monthly performance",
         trend: leadsData.thisWeekLeads > 0 ? `+${leadsData.thisWeekLeads} this week` : "No weekly leads"
@@ -311,7 +311,7 @@ export default function InputLeadsPage() {
   if (loading) {
     return (
       <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "60vh" }}>
-        <CircularProgress size={60} sx={{ color: primary }} />
+        <CircularProgress size={60} sx={{ color: PRIMARY }} />
       </Box>
     );
   }
@@ -466,8 +466,8 @@ export default function InputLeadsPage() {
                 borderRadius: 2,
                 border: "2px dashed",
                 width:"530px",
-                borderColor: alpha(primary, 0.3),
-                bgcolor: alpha(primary, 0.02),
+                borderColor: alpha(PRIMARY, 0.3),
+                bgcolor: alpha(PRIMARY, 0.02),
                 height: "100%",
                 textAlign: "center",
               }}
@@ -476,8 +476,8 @@ export default function InputLeadsPage() {
                 sx={{
                   width: 60,
                   height: 60,
-                  bgcolor: alpha(primary, 0.1),
-                  color: primary,
+                  bgcolor: alpha(PRIMARY, 0.1),
+                  color: PRIMARY,
                   mx: "auto",
                   mb: 2,
                 }}
@@ -496,8 +496,7 @@ export default function InputLeadsPage() {
                 startIcon={<Add />}
                 fullWidth
                 sx={{
-                  bgcolor: primary,
-                  "&:hover": { bgcolor: "#e65c00" },
+                  background: "#4569ea",
                   borderRadius: 2,
                 }}
               >
@@ -513,8 +512,8 @@ export default function InputLeadsPage() {
                 p: 3,
                 borderRadius: 2,
                 border: "2px dashed",
-                borderColor: alpha("#2196f3", 0.3),
-                bgcolor: alpha("#2196f3", 0.02),
+                borderColor: alpha(PRIMARY, 0.3),
+                bgcolor: alpha(PRIMARY, 0.02),
                 height: "100%",
                 width:"530px",
                 textAlign: "center",
@@ -524,8 +523,8 @@ export default function InputLeadsPage() {
                 sx={{
                   width: 60,
                   height: 60,
-                  bgcolor: alpha("#2196f3", 0.1),
-                  color: "#2196f3",
+                  bgcolor: alpha(PRIMARY, 0.1),
+                  color: PRIMARY,
                   mx: "auto",
                   mb: 2,
                 }}
@@ -557,8 +556,8 @@ export default function InputLeadsPage() {
                       startIcon={<Upload />}
                       fullWidth
                       sx={{
-                        bgcolor: "#2196f3",
-                        "&:hover": { bgcolor: "#1976d2" },
+                        background: "#4569ea",
+                        "&:hover": { bgcolor: "#2d4ab5" },
                         borderRadius: 2,
                         mb: 2,
                       }}
@@ -578,7 +577,7 @@ export default function InputLeadsPage() {
                 >
                   <Stack direction="row" alignItems="center" justifyContent="space-between">
                     <Stack direction="row" alignItems="center" spacing={1.5}>
-                      <Description sx={{ color: primary }} />
+                      <Description sx={{ color: PRIMARY }} />
                       <Box>
                         <Typography fontWeight={600} noWrap>
                           {selectedFile.name}
@@ -597,7 +596,7 @@ export default function InputLeadsPage() {
                     onClick={handleImportLeads}
                     disabled={uploading}
                     fullWidth
-                    sx={{ mt: 2, borderRadius: 2 }}
+                    sx={{ mt: 2, borderRadius: 2, bgcolor: "#4569ea" }}
                     startIcon={uploading ? <CircularProgress size={20} /> : null}
                   >
                     {uploading ? "Importing..." : "Import Leads"}
@@ -639,7 +638,7 @@ export default function InputLeadsPage() {
               onClick={downloadTemplate}
               variant="text"
               startIcon={<Download />}
-              sx={{ mt: 1, alignSelf: 'flex-start' }}
+              sx={{ mt: 1, alignSelf: 'flex-start', color: PRIMARY }}
             >
               Download Template
             </Button>
@@ -651,14 +650,14 @@ export default function InputLeadsPage() {
           sx={{
             mt: 3,
             p: 2,
-            bgcolor: alpha("#ff9800", 0.1),
+            bgcolor: alpha(PRIMARY, 0.1),
             borderRadius: 2,
             border: "1px solid",
-            borderColor: alpha("#ff9800", 0.3),
+            borderColor: alpha(PRIMARY, 0.3),
           }}
         >
           <Stack direction="row" spacing={1} alignItems="center">
-            <Warning sx={{ color: "#ff9800" }} />
+            <Warning sx={{ color: PRIMARY }} />
             <Typography variant="body2">
               <strong>Tip:</strong> Ensure phone numbers are in correct format (10 digits). Invalid data may be skipped during import.
             </Typography>

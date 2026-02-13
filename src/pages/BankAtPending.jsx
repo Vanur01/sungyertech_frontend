@@ -147,8 +147,8 @@ import { useNavigate } from "react-router-dom";
 import AlertTitle from "@mui/material/AlertTitle";
 
 // ========== CONSTANTS & CONFIGURATION ==========
-const PRIMARY = "#ff6d00";
-const SECONDARY = "#1a237e";
+const PRIMARY = "#3a5ac8";
+const SECONDARY = "#2c489e";
 const ITEMS_PER_PAGE_OPTIONS = [5, 10, 25, 50];
 const DEFAULT_ITEMS_PER_PAGE = 10;
 const ALLOWED_ROLES = ["Head_office", "ZSM", "ASM", "TEAM"];
@@ -165,20 +165,20 @@ const BANK_STATUS_OPTIONS = ["pending", "approved", "rejected"];
 
 const BANK_STATUS_CONFIG = {
   pending: {
-    bg: "#fff3e0",
-    color: "#f57c00",
+    bg: alpha("#3a5ac8", 0.1),
+    color: "#3a5ac8",
     icon: <PendingActions sx={{ fontSize: 16 }} />,
     description: "Waiting for bank approval",
   },
   approved: {
-    bg: "#e8f5e9",
-    color: "#2e7d32",
+    bg: alpha("#3a5ac8", 0.1),
+    color: "#3a5ac8",
     icon: <CheckCircle sx={{ fontSize: 16 }} />,
     description: "Bank approval received",
   },
   rejected: {
-    bg: "#ffebee",
-    color: "#d32f2f",
+    bg: alpha("#3a5ac8", 0.1),
+    color: "#3a5ac8",
     icon: <Cancel sx={{ fontSize: 16 }} />,
     description: "Bank rejected the application",
   },
@@ -193,20 +193,20 @@ const LEAD_STATUS_OPTIONS = [
 
 const LEAD_STATUS_CONFIG = {
   "Bank at Pending": {
-    bg: "#fff3e0",
-    color: "#f57c00",
+    bg: alpha("#3a5ac8", 0.1),
+    color: "#3a5ac8",
     icon: <AccountBalanceWallet sx={{ fontSize: 16 }} />,
     description: "Awaiting bank approval",
   },
   Disbursement: {
-    bg: "#e8f5e9",
-    color: "#2e7d32",
+    bg: alpha("#3a5ac8", 0.1),
+    color: "#3a5ac8",
     icon: <Money sx={{ fontSize: 16 }} />,
     description: "Loan disbursement stage",
   },
   "Missed Leads": {
-    bg: "#ffebee",
-    color: "#c62828",
+    bg: alpha("#3a5ac8", 0.1),
+    color: "#3a5ac8",
     icon: <Cancel sx={{ fontSize: 16 }} />,
     description: "Lead lost or not converted",
   },
@@ -235,22 +235,22 @@ const BANK_LIST = [
 const ROLE_CONFIG = {
   Head_office: {
     label: "Head Office",
-    color: "#ff6d00",
+    color: "#3a5ac8",
     icon: <AdminPanelSettings sx={{ fontSize: 16 }} />,
   },
   ZSM: {
     label: "Zone Sales Manager",
-    color: "#9c27b0",
+    color: "#3a5ac8",
     icon: <WorkspacePremium sx={{ fontSize: 16 }} />,
   },
   ASM: {
     label: "Area Sales Manager",
-    color: "#00bcd4",
+    color: "#3a5ac8",
     icon: <SupervisorAccount sx={{ fontSize: 16 }} />,
   },
   TEAM: {
     label: "Team Member",
-    color: "#4caf50",
+    color: "#3a5ac8",
     icon: <Groups sx={{ fontSize: 16 }} />,
   },
 };
@@ -272,8 +272,8 @@ const getBankStatusColor = (status) => {
   const normalizedStatus = status?.toLowerCase();
   return (
     BANK_STATUS_CONFIG[normalizedStatus] || {
-      bg: "#f5f5f5",
-      color: "#757575",
+      bg: alpha("#3a5ac8", 0.1),
+      color: "#3a5ac8",
     }
   );
 };
@@ -281,8 +281,8 @@ const getBankStatusColor = (status) => {
 const getLeadStatusConfig = (status) => {
   return (
     LEAD_STATUS_CONFIG[status] || {
-      bg: "#f5f5f5",
-      color: "#616161",
+      bg: alpha("#3a5ac8", 0.1),
+      color: "#3a5ac8",
       icon: <Warning sx={{ fontSize: 16 }} />,
       description: "Unknown status",
     }
@@ -293,7 +293,7 @@ const getRoleConfig = (role) => {
   return (
     ROLE_CONFIG[role] || {
       label: "Unknown",
-      color: "#757575",
+      color: "#3a5ac8",
       icon: <Person sx={{ fontSize: 16 }} />,
     }
   );
@@ -487,7 +487,7 @@ const ImageViewerModal = React.memo(({ open, onClose, imageUrl, title }) => {
               variant="contained"
               startIcon={<GetApp />}
               onClick={handleDownload}
-              sx={{ mt: 2 }}
+              sx={{ mt: 2, bgcolor: PRIMARY, '&:hover': { bgcolor: SECONDARY } }}
             >
               Download Document
             </Button>
@@ -586,7 +586,7 @@ const DocumentCard = React.memo(
             variant="contained"
             startIcon={<GetApp />}
             onClick={handleDownload}
-            sx={{ bgcolor: PRIMARY }}
+            sx={{ bgcolor: PRIMARY, '&:hover': { bgcolor: SECONDARY } }}
           >
             Download
           </Button>
@@ -753,7 +753,7 @@ const BankStatusUpdateModal = React.memo(
                   width: 48,
                   height: 48,
                   borderRadius: 2,
-                  bgcolor: `${PRIMARY}15`,
+                  bgcolor: alpha(PRIMARY, 0.15),
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
@@ -774,8 +774,8 @@ const BankStatusUpdateModal = React.memo(
                   icon={getRoleConfig(userRole).icon}
                   size="small"
                   sx={{
-                    bgcolor: `${getRoleConfig(userRole).color}15`,
-                    color: getRoleConfig(userRole).color,
+                    bgcolor: alpha(PRIMARY, 0.15),
+                    color: PRIMARY,
                     fontWeight: 600,
                     mt: 1,
                   }}
@@ -1025,7 +1025,7 @@ const BankStatusUpdateModal = React.memo(
                 selectedLeadStatus === lead?.status)
             }
             startIcon={loading ? <CircularProgress size={20} /> : <Save />}
-            sx={{ bgcolor: PRIMARY, px: 4, "&:hover": { bgcolor: "#e65c00" } }}
+            sx={{ bgcolor: PRIMARY, px: 4, "&:hover": { bgcolor: SECONDARY } }}
           >
             {loading ? "Updating..." : "Update Status"}
           </Button>
@@ -1402,7 +1402,7 @@ const ViewLeadModal = React.memo(
                   <DocumentCard
                     title="Aadhaar Card"
                     url={displayData.aadhaar.url}
-                    icon={<BadgeIcon sx={{ color: "#f57c00" }} />}
+                    icon={<BadgeIcon sx={{ color: PRIMARY }} />}
                     filename="aadhaar-card"
                     onView={handleViewDocument}
                     onDownload={handleDownload}
@@ -1414,7 +1414,7 @@ const ViewLeadModal = React.memo(
                   <DocumentCard
                     title="PAN Card"
                     url={displayData.panCard.url}
-                    icon={<CreditCard sx={{ color: "#1976d2" }} />}
+                    icon={<CreditCard sx={{ color: PRIMARY }} />}
                     filename="pan-card"
                     onView={handleViewDocument}
                     onDownload={handleDownload}
@@ -1426,7 +1426,7 @@ const ViewLeadModal = React.memo(
                   <DocumentCard
                     title="Bank Passbook"
                     url={displayData.passbook.url}
-                    icon={<ReceiptLong sx={{ color: "#388e3c" }} />}
+                    icon={<ReceiptLong sx={{ color: PRIMARY }} />}
                     filename="passbook"
                     onView={handleViewDocument}
                     onDownload={handleDownload}
@@ -1438,7 +1438,7 @@ const ViewLeadModal = React.memo(
                   <DocumentCard
                     title={doc.name || `Document ${index + 1}`}
                     url={doc.url}
-                    icon={<InsertDriveFile sx={{ color: "#9c27b0" }} />}
+                    icon={<InsertDriveFile sx={{ color: PRIMARY }} />}
                     filename={doc.name}
                     onView={handleViewDocument}
                     onDownload={handleDownload}
@@ -1609,15 +1609,15 @@ const ViewLeadModal = React.memo(
               icon={userRoleConfig.icon}
               size="small"
               sx={{
-                bgcolor: `${userRoleConfig.color}15`,
-                color: userRoleConfig.color,
+                bgcolor: alpha(PRIMARY, 0.15),
+                color: PRIMARY,
                 fontWeight: 600,
               }}
             />
             <Button
               onClick={onClose}
               variant="contained"
-              sx={{ borderRadius: 2, mt: 2 }}
+              sx={{ borderRadius: 2, mt: 2, bgcolor: PRIMARY, '&:hover': { bgcolor: SECONDARY } }}
             >
               Close
             </Button>
@@ -2087,21 +2087,21 @@ export default function BankAtPendingPage() {
       {
         label: "Pending",
         value: bankPendingData.summary.pendingLeads,
-        color: "#ef6c00",
+        color: PRIMARY,
         icon: <PendingActions />,
         subText: "Awaiting approval",
       },
       {
         label: "Approved",
         value: bankPendingData.summary.approvedLeads,
-        color: "#2e7d32",
+        color: PRIMARY,
         icon: <CheckCircle />,
         subText: "Bank approved",
       },
       {
         label: "Rejected",
         value: bankPendingData.summary.rejectedLeads,
-        color: "#d32f2f",
+        color: PRIMARY,
         icon: <Cancel />,
         subText: "Bank rejected",
       },
@@ -2266,8 +2266,8 @@ export default function BankAtPendingPage() {
               icon={getRoleConfig(userRole).icon}
               size="medium"
               sx={{
-                bgcolor: `${getRoleConfig(userRole).color}15`,
-                color: getRoleConfig(userRole).color,
+                bgcolor: alpha(PRIMARY, 0.15),
+                color: PRIMARY,
                 fontWeight: 600,
               }}
             />
@@ -2302,11 +2302,11 @@ export default function BankAtPendingPage() {
                           width: 40,
                           height: 40,
                           borderRadius: 2,
-                          bgcolor: `${card.color}15`,
+                          bgcolor: alpha(PRIMARY, 0.15),
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "center",
-                          color: card.color,
+                          color: PRIMARY,
                         }}
                       >
                         {card.icon}
@@ -2652,7 +2652,7 @@ export default function BankAtPendingPage() {
                           {filteredLeads.length === 0 && userPermissions.canManage && (
                             <Button
                               variant="contained"
-                              sx={{ mt: 2 }}
+                              sx={{ mt: 2, bgcolor: PRIMARY, '&:hover': { bgcolor: SECONDARY } }}
                               onClick={() => navigate('/leads/create')}
                             >
                               Create New Lead
@@ -2782,7 +2782,7 @@ export default function BankAtPendingPage() {
                                       e.stopPropagation();
                                       handleStatusUpdateClick(lead);
                                     }}
-                                    sx={{ color: '#1976d2' }}
+                                    sx={{ color: PRIMARY }}
                                   >
                                     <TrendingUp fontSize="small" />
                                   </IconButton>

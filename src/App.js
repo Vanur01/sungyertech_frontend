@@ -29,13 +29,15 @@ import DocumentSubmission from "./pages/DocumentSubmission";
 import Disbursement from "./pages/Disbursement";
 import LeadOverview from "./pages/LeadOverview";
 import BankAtPending from "./pages/BankAtPending";
+import Attandance from "./pages/Attandance";
+import Visitor from "./pages/Visitor";
 
 const theme = createTheme({
   palette: {
     primary: {
-      main: "#ff8c00",
-      light: "#ffb357",
-      dark: "#e65c00",
+      main: "#3566bb",
+      light: "#2172c9",
+      dark: "#0a479b",
       contrastText: "#fff",
     },
     secondary: {
@@ -357,6 +359,37 @@ function App() {
                             </ProtectedRoute>
                           }
                         />
+                        <Route
+                          path="attendance"
+                          element={
+                            <ProtectedRoute
+                              allowedRoles={[
+                                "Head_office",
+                                "ZSM",
+                                "ASM",
+                                "TEAM",
+                              ]}
+                            >
+                              <Attandance />
+                            </ProtectedRoute>
+                          }
+                        />
+                             <Route
+                          path="visitors"
+                          element={
+                            <ProtectedRoute
+                              allowedRoles={[
+                                "Head_office",
+                                "ZSM",
+                                "ASM",
+                                "TEAM",
+                              ]}
+                            >
+                              <Visitor />
+                            </ProtectedRoute>
+                          }
+                        />
+                        
                         <Route
                           path="all-leads"
                           element={

@@ -96,7 +96,7 @@ import { format, isValid, parseISO } from "date-fns";
 import PendingActions from "@mui/icons-material/PendingActions";
 
 
-const PRIMARY_COLOR = "#ff6d00";
+const PRIMARY_COLOR = "#3a5ac8";
 
 export default function MissedLeadsPage() {
   const theme = useTheme();
@@ -560,7 +560,7 @@ export default function MissedLeadsPage() {
                 bgcolor: period === item ? PRIMARY_COLOR : 'transparent',
                 borderColor: period === item ? PRIMARY_COLOR : 'divider',
                 '&:hover': {
-                  bgcolor: period === item ? '#e65100' : PRIMARY_COLOR + '10',
+                  bgcolor: period === item ? '#2a4ab8' : PRIMARY_COLOR + '10',
                   borderColor: PRIMARY_COLOR,
                 },
               }}
@@ -657,7 +657,7 @@ export default function MissedLeadsPage() {
           p: 2.5, 
           borderBottom: 1, 
           borderColor: 'divider', 
-          bgcolor: '#fffaf0'
+          bgcolor: '#f5f7ff'
         }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
@@ -771,7 +771,7 @@ export default function MissedLeadsPage() {
             <Table>
               <TableHead>
                 <TableRow sx={{ 
-                  bgcolor: '#fffaf0',
+                  bgcolor: '#f5f7ff',
                   '& th': {
                     fontWeight: 700,
                     color: '#555',
@@ -805,7 +805,7 @@ export default function MissedLeadsPage() {
                     hover
                     sx={{
                       '&:hover': {
-                        bgcolor: '#fffaf0',
+                        bgcolor: '#f5f7ff',
                       }
                     }}
                   >
@@ -936,7 +936,7 @@ export default function MissedLeadsPage() {
                   bgcolor: PRIMARY_COLOR,
                   color: '#fff',
                   '&:hover': {
-                    bgcolor: '#e65100',
+                    bgcolor: '#2a4ab8',
                   }
                 }
               }}
@@ -1467,7 +1467,7 @@ export default function MissedLeadsPage() {
                                 >
                                   View Document
                                 </Button>
-                              </Card>
+                            </Card>
                             </Grid>
                           ))}
                         </Grid>

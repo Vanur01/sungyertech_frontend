@@ -126,7 +126,7 @@ import {
 import { useNavigate } from "react-router-dom";
 
 // ========== CONSTANTS & CONFIGURATION ==========
-const PRIMARY = "#ff6d00";
+const PRIMARY_COLOR = "#4569ea";
 const SECONDARY = "#1a237e";
 const ITEMS_PER_PAGE_OPTIONS = [10, 20, 50, 100];
 const DEFAULT_ITEMS_PER_PAGE = 20;
@@ -135,80 +135,80 @@ const DEFAULT_ITEMS_PER_PAGE = 20;
 const ALLOWED_ROLES = ["Head_office", "ZSM", "ASM", "TEAM"];
 const hasAccess = (userRole) => ALLOWED_ROLES.includes(userRole);
 
-// Enhanced Status Configuration
+// Enhanced Status Configuration - All using single color
 const STATUS_CONFIG = {
   "Not Assigned": {
-    bg: "#f5f5f5",
-    color: "#616161",
+    bg: alpha(PRIMARY_COLOR, 0.1),
+    color: PRIMARY_COLOR,
     icon: <PendingActions sx={{ fontSize: 16 }} />,
     description: "Visit not yet assigned or scheduled",
     order: 1,
   },
   Scheduled: {
-    bg: "#e3f2fd",
-    color: "#1565c0",
+    bg: alpha(PRIMARY_COLOR, 0.1),
+    color: PRIMARY_COLOR,
     icon: <Schedule sx={{ fontSize: 16 }} />,
     description: "Visit scheduled for future date",
     order: 2,
   },
   Completed: {
-    bg: "#e8f5e9",
-    color: "#2e7d32",
+    bg: alpha(PRIMARY_COLOR, 0.1),
+    color: PRIMARY_COLOR,
     icon: <CheckCircleOutline sx={{ fontSize: 16 }} />,
     description: "Visit successfully completed",
     order: 3,
   },
   Cancelled: {
-    bg: "#ffebee",
-    color: "#c62828",
+    bg: alpha(PRIMARY_COLOR, 0.1),
+    color: PRIMARY_COLOR,
     icon: <Cancel sx={{ fontSize: 16 }} />,
     description: "Visit cancelled or postponed",
     order: 4,
   },
 };
 
-// Lead Status Configuration
+// Lead Status Configuration - All using single color
 const LEAD_STATUS_CONFIG = {
   Visit: {
-    bg: "#fff3cd",
-    color: "#856404",
+    bg: alpha(PRIMARY_COLOR, 0.1),
+    color: PRIMARY_COLOR,
     icon: <Person sx={{ fontSize: 16 }} />,
     description: "Visit scheduled or completed",
   },
   Registration: {
-    bg: "#d1ecf1",
-    color: "#0c5460",
+    bg: alpha(PRIMARY_COLOR, 0.1),
+    color: PRIMARY_COLOR,
     icon: <HowToReg sx={{ fontSize: 16 }} />,
     description: "Lead registered after visit",
   },
   "Missed Leads": {
-    bg: "#d6d8d9",
-    color: "#383d41",
+    bg: alpha(PRIMARY_COLOR, 0.1),
+    color: PRIMARY_COLOR,
     icon: <Warning sx={{ fontSize: 16 }} />,
     description: "Lead missed or lost",
   },
 };
 
-// Role Configuration
+// Role Configuration - All using single color
 const ROLE_CONFIG = {
   Head_office: {
     label: "Head Office",
-    color: "#ff6d00",
+    color: PRIMARY_COLOR,
     icon: <AdminPanelSettings sx={{ fontSize: 16 }} />,
   },
   ZSM: {
     label: "Zone Sales Manager",
-    color: "#9c27b0",
+    color: PRIMARY_COLOR,
     icon: <WorkspacePremium sx={{ fontSize: 16 }} />,
   },
   ASM: {
     label: "Area Sales Manager",
-    color: "#00bcd4",
+    color: PRIMARY_COLOR,
     icon: <SupervisorAccount sx={{ fontSize: 16 }} />,
   },
   TEAM: {
     label: "Team Member",
-    color: "#4caf50",
+    color: PRIMARY_COLOR,
     icon: <Groups sx={{ fontSize: 16 }} />,
   },
 };
@@ -217,8 +217,8 @@ const ROLE_CONFIG = {
 const getStatusConfig = (status) => {
   return (
     STATUS_CONFIG[status] || {
-      bg: "#f5f5f5",
-      color: "#616161",
+      bg: alpha(PRIMARY_COLOR, 0.1),
+      color: PRIMARY_COLOR,
       icon: <PendingActions sx={{ fontSize: 16 }} />,
       description: "Unknown status",
     }
@@ -228,8 +228,8 @@ const getStatusConfig = (status) => {
 const getLeadStatusConfig = (status) => {
   return (
     LEAD_STATUS_CONFIG[status] || {
-      bg: "#f5f5f5",
-      color: "#616161",
+      bg: alpha(PRIMARY_COLOR, 0.1),
+      color: PRIMARY_COLOR,
       icon: <Info sx={{ fontSize: 16 }} />,
       description: "Unknown lead status",
     }
@@ -240,7 +240,7 @@ const getRoleConfig = (role) => {
   return (
     ROLE_CONFIG[role] || {
       label: "Unknown",
-      color: "#757575",
+      color: PRIMARY_COLOR,
       icon: <Person sx={{ fontSize: 16 }} />,
     }
   );
@@ -274,11 +274,11 @@ const ViewVisitModal = React.memo(
     const userRoleConfig = useMemo(() => getRoleConfig(userRole), [userRole]);
     const visitStatusConfig = useMemo(
       () => getStatusConfig(visit?.visitStatus),
-      [visit?.visitStatus]
+      [visit?.visitStatus],
     );
     const leadStatusConfig = useMemo(
       () => getLeadStatusConfig(visit?.status),
-      [visit?.status]
+      [visit?.status],
     );
 
     const handleTabChange = (event, newValue) => {
@@ -304,7 +304,7 @@ const ViewVisitModal = React.memo(
                       alignItems: "center",
                       gap: 1,
                       mb: 3,
-                      color: PRIMARY,
+                      color: PRIMARY_COLOR,
                     }}
                   >
                     <Person /> Personal Information
@@ -395,7 +395,7 @@ const ViewVisitModal = React.memo(
                       alignItems: "center",
                       gap: 1,
                       mb: 3,
-                      color: PRIMARY,
+                      color: PRIMARY_COLOR,
                     }}
                   >
                     <CalendarToday /> Visit Information
@@ -506,7 +506,7 @@ const ViewVisitModal = React.memo(
                   alignItems: "center",
                   gap: 1,
                   mb: 3,
-                  color: PRIMARY,
+                  color: PRIMARY_COLOR,
                 }}
               >
                 <LocationOn /> Location & Notes
@@ -579,14 +579,14 @@ const ViewVisitModal = React.memo(
         fullScreen={isMobile}
         PaperProps={{ sx: { borderRadius: 3, maxHeight: "90vh" } }}
       >
-        <DialogTitle sx={{ bgcolor: PRIMARY, color: "white", pb: 2 }}>
+        <DialogTitle sx={{ bgcolor: PRIMARY_COLOR, color: "white", pb: 2 }}>
           <Stack
             direction="row"
             alignItems="center"
             justifyContent="space-between"
           >
             <Box display="flex" alignItems="center" gap={2}>
-              <Avatar sx={{ bgcolor: "white", color: PRIMARY }}>
+              <Avatar sx={{ bgcolor: "white", color: PRIMARY_COLOR }}>
                 {visit.firstName?.[0] || "V"}
               </Avatar>
               <Box>
@@ -641,7 +641,7 @@ const ViewVisitModal = React.memo(
                 alignItems="center"
                 minHeight={200}
               >
-                <CircularProgress sx={{ color: PRIMARY }} />
+                <CircularProgress sx={{ color: PRIMARY_COLOR }} />
               </Box>
             ) : (
               tabs[activeTab].content
@@ -663,15 +663,15 @@ const ViewVisitModal = React.memo(
               icon={userRoleConfig.icon}
               size="small"
               sx={{
-                bgcolor: `${userRoleConfig.color}15`,
-                color: userRoleConfig.color,
+                bgcolor: alpha(PRIMARY_COLOR, 0.1),
+                color: PRIMARY_COLOR,
                 fontWeight: 600,
               }}
             />
             <Button
               onClick={onClose}
               variant="contained"
-              sx={{ borderRadius: 2, mt: 2 }}
+              sx={{ borderRadius: 2, mt: 2, bgcolor: PRIMARY_COLOR }}
             >
               Close
             </Button>
@@ -679,7 +679,7 @@ const ViewVisitModal = React.memo(
         </DialogActions>
       </Dialog>
     );
-  }
+  },
 );
 
 ViewVisitModal.displayName = "ViewVisitModal";
@@ -794,7 +794,7 @@ const EditVisitModal = React.memo(
           setValidationErrors((prev) => ({ ...prev, [field]: "" }));
         }
       },
-      [validationErrors]
+      [validationErrors],
     );
 
     if (!visit) return null;
@@ -808,7 +808,7 @@ const EditVisitModal = React.memo(
         fullScreen={isMobile}
         PaperProps={{ sx: { borderRadius: 3 } }}
       >
-        <DialogTitle sx={{ bgcolor: alpha(PRIMARY, 0.05), pb: 2 }}>
+        <DialogTitle sx={{ bgcolor: alpha(PRIMARY_COLOR, 0.05), pb: 2 }}>
           <Stack
             direction="row"
             alignItems="center"
@@ -820,11 +820,11 @@ const EditVisitModal = React.memo(
                   width: 48,
                   height: 48,
                   borderRadius: 2,
-                  bgcolor: `${PRIMARY}15`,
+                  bgcolor: alpha(PRIMARY_COLOR, 0.1),
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  color: PRIMARY,
+                  color: PRIMARY_COLOR,
                 }}
               >
                 <Edit sx={{ fontSize: 28 }} />
@@ -942,7 +942,7 @@ const EditVisitModal = React.memo(
         <DialogActions
           sx={{ p: 3, pt: 2, borderTop: 1, borderColor: "divider", gap: 2 }}
         >
-          <Button onClick={onClose} variant="outlined" size="large">
+          <Button onClick={onClose} variant="outlined" size="large" sx={{ background:"#fff", color:"#3451b3" , borderColor:"#3451b3" }}>
             Cancel
           </Button>
           <Button
@@ -951,14 +951,16 @@ const EditVisitModal = React.memo(
             size="large"
             disabled={updating}
             startIcon={updating ? <CircularProgress size={20} /> : <Save />}
-            sx={{ bgcolor: PRIMARY, px: 4, "&:hover": { bgcolor: "#e65c00" } }}
+            sx={{
+              background: "#3451b3" , color:"#fff" ,
+            }}
           >
             {updating ? "Saving..." : "Save Changes"}
           </Button>
         </DialogActions>
       </Dialog>
     );
-  }
+  },
 );
 
 EditVisitModal.displayName = "EditVisitModal";
@@ -1030,7 +1032,7 @@ export default function TotalVisitsPage() {
     Object.keys(STATUS_CONFIG).reduce((acc, status) => {
       acc[status] = true;
       return acc;
-    }, {})
+    }, {}),
   );
 
   // Sorting & Pagination
@@ -1074,7 +1076,7 @@ export default function TotalVisitsPage() {
       }
 
       const response = await fetchAPI(
-        `/lead/visitSummary?${params.toString()}`
+        `/lead/visitSummary?${params.toString()}`,
       );
 
       if (response?.success) {
@@ -1083,10 +1085,10 @@ export default function TotalVisitsPage() {
         // Calculate summary
         const totalVisits = visits.length;
         const completedVisits = visits.filter(
-          (v) => v.visitStatus === "Completed"
+          (v) => v.visitStatus === "Completed",
         ).length;
         const scheduledVisits = visits.filter(
-          (v) => v.visitStatus === "Scheduled"
+          (v) => v.visitStatus === "Scheduled",
         ).length;
 
         const weekAgo = new Date();
@@ -1150,14 +1152,14 @@ export default function TotalVisitsPage() {
             (visit.lastName?.toLowerCase() || "").includes(query) ||
             (visit.email?.toLowerCase() || "").includes(query) ||
             (visit.phone || "").includes(query) ||
-            (visit.visitLocation?.toLowerCase() || "").includes(query)
+            (visit.visitLocation?.toLowerCase() || "").includes(query),
         );
       }
 
       // Status filter
       if (statusFilter !== "All") {
         filtered = filtered.filter(
-          (visit) => visit.visitStatus === statusFilter
+          (visit) => visit.visitStatus === statusFilter,
         );
       }
 
@@ -1190,11 +1192,11 @@ export default function TotalVisitsPage() {
 
       // Status checkboxes
       const activeStatuses = Object.keys(selectedStatuses).filter(
-        (status) => selectedStatuses[status]
+        (status) => selectedStatuses[status],
       );
       if (activeStatuses.length < Object.keys(STATUS_CONFIG).length) {
         filtered = filtered.filter((visit) =>
-          activeStatuses.includes(visit.visitStatus || "Not Assigned")
+          activeStatuses.includes(visit.visitStatus || "Not Assigned"),
         );
       }
 
@@ -1281,7 +1283,7 @@ export default function TotalVisitsPage() {
       setSelectedVisit(visit);
       setViewModalOpen(true);
     },
-    [showSnackbar]
+    [showSnackbar],
   );
 
   const handleEditClick = useCallback(
@@ -1293,7 +1295,7 @@ export default function TotalVisitsPage() {
       setSelectedVisit(visit);
       setEditModalOpen(true);
     },
-    [showSnackbar]
+    [showSnackbar],
   );
 
   const handleVisitUpdate = useCallback(
@@ -1306,7 +1308,7 @@ export default function TotalVisitsPage() {
         showSnackbar("Failed to refresh data", "error");
       }
     },
-    [fetchVisitsData, showSnackbar]
+    [fetchVisitsData, showSnackbar],
   );
 
   const handleCloseSnackbar = useCallback(() => {
@@ -1329,7 +1331,7 @@ export default function TotalVisitsPage() {
       Object.keys(STATUS_CONFIG).reduce((acc, status) => {
         acc[status] = true;
         return acc;
-      }, {})
+      }, {}),
     );
     setSortConfig({ key: null, direction: "asc" });
     setPage(0);
@@ -1345,39 +1347,39 @@ export default function TotalVisitsPage() {
     setPage(0);
   };
 
-  // Summary Cards
+  // Summary Cards - All using single color
   const summaryCards = useMemo(
     () => [
       {
         label: "Total Visits",
         value: summary.totalVisits,
-        color: PRIMARY,
+        color: PRIMARY_COLOR,
         icon: <People />,
         subText: "All visits",
       },
       {
         label: "Completed",
         value: summary.completedVisits,
-        color: "#4caf50",
+        color: PRIMARY_COLOR,
         icon: <CheckCircle />,
         subText: "Completed visits",
       },
       {
         label: "Scheduled",
         value: summary.scheduledVisits,
-        color: "#2196f3",
+        color: PRIMARY_COLOR,
         icon: <Schedule />,
         subText: "Scheduled visits",
       },
       {
         label: "This Week",
         value: summary.thisWeekVisits,
-        color: "#9c27b0",
+        color: PRIMARY_COLOR,
         icon: <TrendingUp />,
         subText: "Visits this week",
       },
     ],
-    [summary]
+    [summary],
   );
 
   // Access Check
@@ -1418,7 +1420,12 @@ export default function TotalVisitsPage() {
         <Alert
           severity="error"
           action={
-            <Button color="inherit" size="small" onClick={fetchVisitsData}>
+            <Button
+              color="inherit"
+              size="small"
+              onClick={fetchVisitsData}
+              sx={{ color: PRIMARY_COLOR }}
+            >
               Retry
             </Button>
           }
@@ -1479,7 +1486,12 @@ export default function TotalVisitsPage() {
           alignItems={{ xs: "stretch", sm: "center" }}
         >
           <Box>
-            <Typography variant="h5" fontWeight={700} gutterBottom>
+            <Typography
+              variant="h5"
+              fontWeight={700}
+              gutterBottom
+              sx={{ color: PRIMARY_COLOR }}
+            >
               Visit Management
             </Typography>
             <Typography variant="body2" color="text.secondary">
@@ -1493,6 +1505,11 @@ export default function TotalVisitsPage() {
               startIcon={<Refresh />}
               onClick={fetchVisitsData}
               disabled={loading}
+              sx={{
+                background: "#3451b3",
+                color: "#fff",
+                border: "1px solid #3451b3",
+              }}
             >
               Refresh
             </Button>
@@ -1527,7 +1544,7 @@ export default function TotalVisitsPage() {
                           width: 48,
                           height: 48,
                           borderRadius: 2,
-                          bgcolor: `${card.color}15`,
+                          bgcolor: alpha(card.color, 0.1),
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "center",
@@ -1632,7 +1649,12 @@ export default function TotalVisitsPage() {
                     variant="outlined"
                     startIcon={<Tune />}
                     onClick={() => setShowFilterPanel(!showFilterPanel)}
-                    sx={{ display: { xs: "none", sm: "flex" } }}
+                    sx={{
+                      display: { xs: "none", sm: "flex" },
+                      background: "#3451b3",
+                      color: "#fff",
+                      border: "1px solid #3451b3",
+                    }}
                   >
                     {showFilterPanel ? "Hide Filters" : "More Filters"}
                   </Button>
@@ -1750,7 +1772,7 @@ export default function TotalVisitsPage() {
                     <Button
                       variant="contained"
                       onClick={() => setShowFilterPanel(false)}
-                      sx={{ bgcolor: PRIMARY }}
+                      sx={{ bgcolor: PRIMARY_COLOR }}
                     >
                       Apply Filters
                     </Button>
@@ -1791,7 +1813,7 @@ export default function TotalVisitsPage() {
                       <Chip
                         label={`From: ${format(
                           dateFilter.startDate,
-                          "dd MMM yyyy"
+                          "dd MMM yyyy",
                         )}`}
                         size="small"
                         onDelete={() =>
@@ -1806,7 +1828,7 @@ export default function TotalVisitsPage() {
                       <Chip
                         label={`To: ${format(
                           dateFilter.endDate,
-                          "dd MMM yyyy"
+                          "dd MMM yyyy",
                         )}`}
                         size="small"
                         onDelete={() =>
@@ -1818,7 +1840,7 @@ export default function TotalVisitsPage() {
                       />
                     )}
                     {Object.keys(selectedStatuses).some(
-                      (status) => !selectedStatuses[status]
+                      (status) => !selectedStatuses[status],
                     ) && (
                       <Chip
                         label="Custom Status Filter"
@@ -1828,7 +1850,7 @@ export default function TotalVisitsPage() {
                             Object.keys(STATUS_CONFIG).reduce((acc, status) => {
                               acc[status] = true;
                               return acc;
-                            }, {})
+                            }, {}),
                           )
                         }
                       />
@@ -1993,10 +2015,10 @@ export default function TotalVisitsPage() {
                   {paginatedVisits.length > 0 ? (
                     paginatedVisits.map((visit) => {
                       const visitStatusConfig = getStatusConfig(
-                        visit.visitStatus
+                        visit.visitStatus,
                       );
                       const leadStatusConfig = getLeadStatusConfig(
-                        visit.status
+                        visit.status,
                       );
 
                       return (
@@ -2005,7 +2027,7 @@ export default function TotalVisitsPage() {
                           hover
                           sx={{
                             "&:hover": {
-                              bgcolor: alpha(PRIMARY, 0.02),
+                              bgcolor: alpha(PRIMARY_COLOR, 0.02),
                             },
                           }}
                         >
@@ -2111,10 +2133,10 @@ export default function TotalVisitsPage() {
                                   size="small"
                                   onClick={() => handleViewClick(visit)}
                                   sx={{
-                                    bgcolor: alpha("#1976d2", 0.1),
-                                    color: "#1976d2",
+                                    bgcolor: alpha(PRIMARY_COLOR, 0.1),
+                                    color: PRIMARY_COLOR,
                                     "&:hover": {
-                                      bgcolor: alpha("#1976d2", 0.2),
+                                      bgcolor: alpha(PRIMARY_COLOR, 0.2),
                                     },
                                   }}
                                 >
@@ -2127,10 +2149,10 @@ export default function TotalVisitsPage() {
                                   size="small"
                                   onClick={() => handleEditClick(visit)}
                                   sx={{
-                                    bgcolor: alpha(PRIMARY, 0.1),
-                                    color: PRIMARY,
+                                    bgcolor: alpha(PRIMARY_COLOR, 0.1),
+                                    color: PRIMARY_COLOR,
                                     "&:hover": {
-                                      bgcolor: alpha(PRIMARY, 0.2),
+                                      bgcolor: alpha(PRIMARY_COLOR, 0.2),
                                     },
                                   }}
                                 >
@@ -2174,7 +2196,7 @@ export default function TotalVisitsPage() {
                             dateFilter.startDate ||
                             dateFilter.endDate ||
                             Object.values(selectedStatuses).some(
-                              (v) => !v
+                              (v) => !v,
                             )) && (
                             <Button
                               variant="outlined"
@@ -2206,18 +2228,18 @@ export default function TotalVisitsPage() {
                   gap: 2,
                 }}
               >
-                <Typography variant="body2" color="text.secondary">
+                <Typography variant="body2" color="text.secondary" sx={{ background:"#3451b3", color:"#fff", px:2, py:1, borderRadius:4 }}>
                   Showing{" "}
                   {Math.min(page * rowsPerPage + 1, filteredVisits.length)} to{" "}
                   {Math.min((page + 1) * rowsPerPage, filteredVisits.length)} of{" "}
                   {filteredVisits.length} entries
                 </Typography>
-                <Pagination
+                <Pagination 
                   count={Math.ceil(filteredVisits.length / rowsPerPage)}
                   page={page + 1}
                   onChange={(event, value) => setPage(value - 1)}
-                  color="primary"
                   showFirstButton
+                  color="#3451b3"
                   showLastButton
                   siblingCount={1}
                   boundaryCount={1}

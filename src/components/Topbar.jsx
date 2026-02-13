@@ -1,5 +1,5 @@
 // components/Topbar.js
-import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import {
   AppBar,
   Toolbar,
@@ -11,31 +11,29 @@ import {
   ListItemIcon,
   ListItemText,
   Typography,
-  useTheme
+  alpha,
+  Badge,
 } from '@mui/material';
 import {
   Menu as MenuIcon,
-  Logout as LogoutIcon
+  Logout as LogoutIcon,
+  Notifications as NotificationsIcon,
+  Person as PersonIcon,
+  Settings as SettingsIcon,
 } from '@mui/icons-material';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
-const Topbar = ({ toggleDrawer, sidebarWidth = 280, isMobile = false }) => {
+const Topbar = ({ toggleDrawer, sidebarWidth = 260, isMobile = false }) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const theme = useTheme();
   
-  // State
   const [anchorEl, setAnchorEl] = useState(null);
   const [loggingOut, setLoggingOut] = useState(false);
 
-  // Menu handlers
   const handleProfileMenu = useCallback((event) => setAnchorEl(event.currentTarget), []);
+  const handleClose = useCallback(() => setAnchorEl(null), []);
   
-  const handleClose = useCallback(() => {
-    setAnchorEl(null);
-  }, []);
-
   const handleLogout = useCallback(async () => {
     try {
       setLoggingOut(true);
@@ -45,171 +43,149 @@ const Topbar = ({ toggleDrawer, sidebarWidth = 280, isMobile = false }) => {
     } catch (error) {
       console.error('Logout error:', error);
       navigate('/login', { replace: true });
-    } finally {
-      setLoggingOut(false);
     }
   }, [logout, navigate, handleClose]);
 
-  // Role information
-  const roleInfo = useMemo(() => {
-    if (!user) return { 
-      label: 'User', 
-      color: '#666', 
-      bgGradient: 'linear-gradient(135deg, #666 0%, #888 100%)'
-    };
-    
-    const roleMap = {
-      Head_office: { 
-        label: 'Head Office', 
-        color: '#ff6d00', 
-        bgGradient: 'linear-gradient(135deg, #ff6d00 0%, #ff9100 100%)'
-      },
-      ZSM: { 
-        label: 'Zonal Manager', 
-        color: '#1a237e', 
-        bgGradient: 'linear-gradient(135deg, #1a237e 0%, #283593 100%)'
-      },
-      ASM: { 
-        label: 'Area Manager', 
-        color: '#2e7d32', 
-        bgGradient: 'linear-gradient(135deg, #2e7d32 0%, #4caf50 100%)'
-      },
-      TEAM: { 
-        label: 'Field Executive', 
-        color: '#6a1b9a', 
-        bgGradient: 'linear-gradient(135deg, #6a1b9a 0%, #9c27b0 100%)'
-      }
-    };
-
-    return roleMap[user.role] || { 
-      label: 'User', 
-      color: '#666', 
-      bgGradient: 'linear-gradient(135deg, #666 0%, #888 100%)'
-    };
-  }, [user]);
-
-  // User initials for avatar
+  // User information
   const userInitials = useMemo(() => {
-    if (!user || !user.name) return 'U';
-    return user.name
-      .split(' ')
-      .map(n => n?.[0] || '')
-      .join('')
-      .toUpperCase()
-      .substring(0, 2);
+    if (!user) return 'U';
+    const firstName = user.firstName || '';
+    const lastName = user.lastName || '';
+    return `${firstName[0] || ''}${lastName[0] || ''}`.toUpperCase() || 'U';
   }, [user]);
 
-  // Display name
   const displayName = useMemo(() => {
-    if (!user) return 'Guest User';
-    return user.firstName || user.name?.split(' ')[0] || 'User';
+    if (!user) return 'User';
+    return user.firstName || 'User';
   }, [user]);
 
-  // AppBar styles
-  const appBarStyles = useMemo(() => ({
-    bgcolor: 'background.paper',
-    color: 'text.primary',
-    borderBottom: '1px solid',
-    borderColor: 'divider',
-    zIndex: theme.zIndex.drawer + 1,
-    width: '100%',
-    left: 0,
-    '@media (min-width: 900px)': {
-      width: `calc(100% - ${sidebarWidth}px)`,
-      left: `${sidebarWidth}px`,
-    }
-  }), [theme, sidebarWidth]);
+  const userRole = useMemo(() => {
+    if (!user?.role) return 'User';
+    const roleMap = {
+      Head_office: 'Head Office',
+      ZSM: 'Zonal Manager',
+      ASM: 'Area Manager',
+      TEAM: 'Field Executive'
+    };
+    return roleMap[user.role] || 'User';
+  }, [user]);
+
+  const notifications = [
+    { id: 1, title: 'New lead assigned', time: '5 min ago', read: false },
+    { id: 2, title: 'Installation completed', time: '1 hour ago', read: true },
+    { id: 3, title: 'Payment received', time: '2 hours ago', read: true },
+  ];
+
+  const unreadCount = useMemo(() => 
+    notifications.filter(n => !n.read).length
+  , [notifications]);
 
   return (
     <>
       <AppBar
         position="fixed"
         elevation={0}
-        sx={appBarStyles}
+        sx={{
+          bgcolor: '#ffffff',
+          borderBottom: '1px solid #e0e0e0',
+          width: '100%',
+          zIndex: 1100,
+        }}
       >
         <Toolbar sx={{
           justifyContent: 'space-between',
-          height: 60,
-          px: 2,
-          minHeight: 'auto',
+          height: 64,
+          px: { xs: 2, sm: 3 },
         }}>
           {/* Left Section */}
-          <Box sx={{ 
-            display: 'flex', 
-            alignItems: 'center'
-          }}>
-            {/* Menu Button */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             {isMobile && (
               <IconButton 
                 onClick={toggleDrawer} 
                 sx={{ 
-                  color: 'text.primary',
-                  mr: 1
+                  color: '#4569ea',
                 }}
               >
                 <MenuIcon />
               </IconButton>
             )}
+            
+            <Typography
+              variant="h6"
+              sx={{
+                fontWeight: 600,
+                color: '#333333',
+                fontSize: '1.25rem',
+              }}
+            >
+              Dashboard
+            </Typography>
           </Box>
 
           {/* Right Section */}
-          <Box sx={{ 
-            display: 'flex', 
-            alignItems: 'center'
-          }}>
-            {/* Profile */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+            {/* Notifications */}
+            <IconButton
+              onClick={handleProfileMenu}
+              sx={{
+                color: '#666666',
+                '&:hover': { bgcolor: alpha('#4569ea', 0.05) },
+              }}
+            >
+              <Badge
+                badgeContent={unreadCount}
+                color="error"
+                sx={{
+                  '& .MuiBadge-badge': {
+                    fontSize: '0.7rem',
+                    fontWeight: 600,
+                  },
+                }}
+              >
+                <NotificationsIcon />
+              </Badge>
+            </IconButton>
+
+            {/* User Profile */}
             <Box
               sx={{
                 display: 'flex',
                 alignItems: 'center',
                 gap: 1,
                 cursor: 'pointer',
-                p: 1,
-                borderRadius: 2,
-                '&:hover': {
-                  bgcolor: 'action.hover',
-                }
+                p: 0.5,
+                borderRadius: '8px',
+                '&:hover': { bgcolor: alpha('#4569ea', 0.05) },
               }}
               onClick={handleProfileMenu}
-              aria-label="Open user menu"
             >
               <Avatar
                 sx={{
-                  background: roleInfo.bgGradient,
+                  bgcolor: '#4569ea',
                   width: 36,
                   height: 36,
-                  fontWeight: 600,
                   fontSize: '0.9rem',
+                  fontWeight: 600,
+                  color: '#ffffff',
                 }}
               >
                 {userInitials}
               </Avatar>
-              <Box sx={{ 
-                display: { xs: 'none', sm: 'block' },
-                maxWidth: 150,
-                overflow: 'hidden',
-              }}>
+              <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
                 <Typography 
-                  fontWeight={600} 
                   fontSize="0.9rem"
-                  sx={{ 
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                  }}
+                  fontWeight={500}
+                  color="#333333"
+                  sx={{ lineHeight: 1.2 }}
                 >
                   {displayName}
                 </Typography>
                 <Typography 
                   fontSize="0.75rem" 
-                  color="text.secondary"
-                  sx={{ 
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                  }}
+                  color="#666666"
+                  sx={{ lineHeight: 1.2 }}
                 >
-                  {roleInfo.label}
+                  {userRole}
                 </Typography>
               </Box>
             </Box>
@@ -223,79 +199,110 @@ const Topbar = ({ toggleDrawer, sidebarWidth = 280, isMobile = false }) => {
           onClose={handleClose}
           PaperProps={{ 
             sx: { 
-              width: 200,
+              width: 240,
               mt: 1,
-              borderRadius: 2,
-              overflow: 'hidden',
-              border: '1px solid',
-              borderColor: 'divider',
+              borderRadius: '8px',
+              border: '1px solid #e0e0e0',
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)',
             } 
           }}
           transformOrigin={{ horizontal: 'right', vertical: 'top' }}
           anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
         >
           {/* User Info */}
-          <Box sx={{ 
-            p: 2, 
-            borderBottom: '1px solid', 
-            borderColor: 'divider',
-            background: roleInfo.bgGradient,
-          }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <Box sx={{ p: 2, borderBottom: '1px solid #e0e0e0' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
               <Avatar
                 sx={{
-                  background: 'rgba(255, 255, 255, 0.9)',
-                  color: roleInfo.color,
+                  bgcolor: '#4569ea',
+                  color: '#ffffff',
                   width: 40,
                   height: 40,
-                  fontWeight: 600,
                   fontSize: '0.9rem',
-                  border: `2px solid ${roleInfo.color}`
+                  fontWeight: 600,
                 }}
               >
                 {userInitials}
               </Avatar>
-              <Box sx={{ minWidth: 0 }}>
-                <Typography fontWeight={600} fontSize="0.9rem" noWrap sx={{ color: 'white' }}>
+              <Box>
+                <Typography fontWeight={600} fontSize="0.9rem" color="#333333">
                   {displayName}
                 </Typography>
-                <Typography variant="caption" noWrap sx={{ color: 'rgba(255, 255, 255, 0.9)' }}>
-                  {roleInfo.label}
+                <Typography fontSize="0.75rem" color="#666666">
+                  {userRole}
                 </Typography>
               </Box>
             </Box>
           </Box>
           
-          {/* Logout Menu Item */}
-          <MenuItem 
-            onClick={handleLogout} 
-            sx={{ 
-              py: 1.5, 
-              px: 2,
-              color: 'error.main',
-            }}
-            disabled={loggingOut}
-          >
-            <ListItemIcon sx={{ minWidth: 40, color: 'inherit' }}>
-              <LogoutIcon fontSize="small" />
-            </ListItemIcon>
-            <ListItemText 
-              primary="Logout" 
-              primaryTypographyProps={{ 
-                fontSize: '0.9rem',
-                fontWeight: 500
+          {/* Menu Items */}
+          <Box sx={{ py: 0.5 }}>
+            <MenuItem 
+              onClick={handleClose}
+              sx={{ 
+                py: 1.25, 
+                px: 2,
+                '&:hover': { bgcolor: alpha('#4569ea', 0.05) }
               }}
-            />
-          </MenuItem>
+            >
+              <ListItemIcon sx={{ minWidth: 36, color: '#666666' }}>
+                <PersonIcon fontSize="small" />
+              </ListItemIcon>
+              <ListItemText 
+                primary="Profile" 
+                primaryTypographyProps={{ 
+                  fontSize: '0.9rem',
+                  color: '#333333'
+                }}
+              />
+            </MenuItem>
+            
+            <MenuItem 
+              onClick={handleClose}
+              sx={{ 
+                py: 1.25, 
+                px: 2,
+                '&:hover': { bgcolor: alpha('#4569ea', 0.05) }
+              }}
+            >
+              <ListItemIcon sx={{ minWidth: 36, color: '#666666' }}>
+                <SettingsIcon fontSize="small" />
+              </ListItemIcon>
+              <ListItemText 
+                primary="Settings" 
+                primaryTypographyProps={{ 
+                  fontSize: '0.9rem',
+                  color: '#333333'
+                }}
+              />
+            </MenuItem>
+            
+            <MenuItem 
+              onClick={handleLogout} 
+              sx={{ 
+                py: 1.25, 
+                px: 2,
+                color: '#ff4444',
+                '&:hover': { bgcolor: alpha('#ff4444', 0.05) }
+              }}
+              disabled={loggingOut}
+            >
+              <ListItemIcon sx={{ minWidth: 36, color: 'inherit' }}>
+                <LogoutIcon fontSize="small" />
+              </ListItemIcon>
+              <ListItemText 
+                primary={loggingOut ? "Logging out..." : "Logout"} 
+                primaryTypographyProps={{ 
+                  fontSize: '0.9rem',
+                }}
+              />
+            </MenuItem>
+          </Box>
         </Menu>
       </AppBar>
 
       {/* Spacer for fixed AppBar */}
-      <Box 
-        sx={{ 
-          height: 64,
-        }} 
-      />
+      <Box sx={{ height: 64 }} />
     </>
   );
 };

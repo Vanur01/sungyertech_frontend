@@ -118,7 +118,7 @@ import {
 import { useNavigate } from "react-router-dom";
 
 // ========== CONSTANTS & CONFIGURATION ==========
-const PRIMARY = "#ff6d00";
+const PRIMARY = "#3a5ac8";
 const SECONDARY = "#1a237e";
 const ITEMS_PER_PAGE_OPTIONS = [5, 10, 25, 50];
 const DEFAULT_ITEMS_PER_PAGE = 10;
@@ -179,7 +179,7 @@ const LEAD_STATUS_CONFIG = {
 const ROLE_CONFIG = {
   Head_office: {
     label: "Head Office",
-    color: "#ff6d00",
+    color: "#3a5ac8",
     icon: <AdminPanelSettings sx={{ fontSize: 16 }} />,
   },
   ZSM: {
@@ -660,7 +660,7 @@ const InstallationStatusUpdateModal = React.memo(
                 installationNotes === (lead.installationNotes || ""))
             }
             startIcon={loading ? <CircularProgress size={20} /> : <Save />}
-            sx={{ bgcolor: PRIMARY, px: 4, "&:hover": { bgcolor: "#e65c00" } }}
+            sx={{ bgcolor: PRIMARY, px: 4, "&:hover": { bgcolor: "#2a4ab8" } }}
           >
             {loading ? "Updating..." : "Update Status"}
           </Button>
@@ -846,7 +846,7 @@ const ViewLeadModal = React.memo(
                         gap: 1,
                         mb: 2,
                         color: PRIMARY,
-                      }}
+                    }}
                     >
                       <Note /> Installation Notes
                     </Typography>
@@ -1459,7 +1459,7 @@ export default function InstallationPage() {
     {
       title: 'Total Installations',
       value: installationData.summary.totalInstallations,
-      icon: <Build sx={{ fontSize: 32, color: PRIMARY }} />,
+      icon: <Build sx={{ fontSize: 24 , color: PRIMARY }} />,
       bgcolor: `${PRIMARY}15`,
       color: PRIMARY,
       subText: 'All installation leads',
@@ -1467,7 +1467,7 @@ export default function InstallationPage() {
     {
       title: 'Scheduled',
       value: installationData.summary.pendingInstallations,
-      icon: <Schedule sx={{ fontSize: 32, color: '#1976d2' }} />,
+      icon: <Schedule sx={{ fontSize: 24, color: '#1976d2' }} />,
       bgcolor: '#e3f2fd',
       color: '#1976d2',
       subText: 'Pending installation',
@@ -1475,17 +1475,17 @@ export default function InstallationPage() {
     {
       title: 'Meter Charge',
       value: installationData.summary.meterChargeInstallations,
-      icon: <LocalAtm sx={{ fontSize: 32, color: '#ef6c00' }} />,
-      bgcolor: '#fff3e0',
-      color: '#ef6c00',
+      icon: <LocalAtm sx={{ fontSize: 24, color: '#1976d2' }} />,
+      bgcolor: '#e6edf5',
+      color: '#1976d2',
       subText: 'Meter charging phase',
     },
     {
       title: 'Final Payment',
       value: installationData.summary.finalPaymentInstallations,
-      icon: <CheckCircle sx={{ fontSize: 32, color: '#2e7d32' }} />,
+      icon: <CheckCircle sx={{ fontSize: 24, color: '#1976d2' }} />,
       bgcolor: '#e8f5e9',
-      color: '#2e7d32',
+      color: '#1976d2',
       subText: 'Installation completed',
     },
   ];

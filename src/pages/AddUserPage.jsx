@@ -38,33 +38,33 @@ import {
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 
-const PRIMARY_COLOR = "#1976d2";
-const SECONDARY_COLOR = "#115293";
+const PRIMARY_COLOR = "#3a5ac8";
+const SECONDARY_COLOR = "#2c489e";
 
 const ROLE_CONFIG = {
   Head_office: {
     label: "Head Office",
     icon: <Security />,
     description: "Full system access and administration rights",
-    color: "#d32f2f",
+    color: "#3a5ac8",
   },
   ZSM: {
     label: "Zonal Sales Manager",
     icon: <Group />,
     description: "Manage regional teams and operations",
-    color: "#ed6c02",
+    color: "#3a5ac8",
   },
   ASM: {
     label: "Area Sales Manager",
     icon: <Group />,
     description: "Manage local teams and field operations",
-    color: "#2e7d32",
+    color: "#3a5ac8",
   },
   TEAM: {
     label: "Team Member",
     icon: <Person />,
     description: "Field operations and lead management",
-    color: "#0288d1",
+    color: "#3a5ac8",
   },
 };
 
@@ -258,7 +258,7 @@ export default function AddUserPage() {
             sx={{
               width: 80,
               height: 80,
-              bgcolor: "success.main",
+              bgcolor: PRIMARY_COLOR,
               color: "white",
               mb: 3,
               mx: "auto",
@@ -461,7 +461,7 @@ export default function AddUserPage() {
 
           {/* Role Selection Section */}
           <Grid item xs={12} sx={{ mt: 2 }}>
-            <Typography variant="subtitle1" fontWeight={600} color="primary" gutterBottom>
+            <Typography variant="subtitle1" fontWeight={600} color={PRIMARY_COLOR} gutterBottom>
               Role Assignment
             </Typography>
             <Divider sx={{ mb: 2 }} />
@@ -518,7 +518,7 @@ export default function AddUserPage() {
           {/* Supervisor Selection for TEAM */}
           {formData.role === "TEAM" && (
             <Grid item xs={12}>
-              <Typography variant="subtitle1" fontWeight={600} color="primary" gutterBottom sx={{ mt: 2 }}>
+              <Typography variant="subtitle1" fontWeight={600} color={PRIMARY_COLOR} gutterBottom sx={{ mt: 2 }}>
                 Assign Supervisor
               </Typography>
               <FormControl fullWidth>
@@ -581,7 +581,7 @@ export default function AddUserPage() {
               <Button
                 onClick={() => navigate(-1)}
                 variant="outlined"
-                sx={{ borderRadius: 2, minWidth: 100 }}
+                sx={{ borderRadius: 2, minWidth: 100 , background:"#fff" , color:"#3a5ac8" , borderColor:"#3a5ac8" }}
               >
                 Cancel
               </Button>
@@ -597,11 +597,10 @@ export default function AddUserPage() {
                   )
                 }
                 sx={{
-                  bgcolor: PRIMARY_COLOR,
+                  background: "#3a5ac8",
                   color: "white",
                   borderRadius: 2,
-                  minWidth: 150,
-                  "&:hover": { bgcolor: SECONDARY_COLOR },
+                  minWidth: 150
                 }}
               >
                 {loading ? "Creating..." : "Create User"}

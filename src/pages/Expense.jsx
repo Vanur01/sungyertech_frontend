@@ -80,8 +80,8 @@ import {
 import { useAuth } from "../contexts/AuthContext";
 import { format, parseISO } from "date-fns";
 
-const PRIMARY_COLOR = "#1976d2";
-const SECONDARY_COLOR = "#dc004e";
+const PRIMARY_COLOR = "#3a5ac8";
+const SECONDARY_COLOR = "#3a5ac8";
 
 const STATUS_CONFIG = {
   Approved: {
@@ -102,7 +102,7 @@ const STATUS_CONFIG = {
 };
 
 const CATEGORY_CONFIG = {
-  Transport: { color: "#2196f3", icon: <DirectionsCar /> },
+  Transport: { color: "#3a5ac8", icon: <DirectionsCar /> },
   Equipment: { color: "#4caf50", icon: <Build /> },
   Installation: { color: "#ff8c00", icon: <ElectricBolt /> },
   Marketing: { color: "#9c27b0", icon: <Campaign /> },
@@ -589,21 +589,21 @@ export default function ExpensesPage() {
         label: "Approved",
         value: formatCurrency(approvedAmount),
         icon: <CheckCircle />,
-        color: "#4caf50",
+         color: PRIMARY_COLOR,
         subLabel: `${expenses.filter(e => e.status === "Approved").length} items`,
       },
       {
         label: "Pending",
         value: formatCurrency(pendingAmount),
         icon: <PendingActions />,
-        color: "#ff9800",
+         color: PRIMARY_COLOR,
         subLabel: `${expenses.filter(e => e.status === "Pending").length} items`,
       },
       {
         label: "This Week",
         value: formatCurrency(thisWeekAmount),
         icon: <Speed />,
-        color: "#2196f3",
+        color: "#3a5ac8",
         subLabel: "Last 7 days",
       },
     ];
@@ -654,6 +654,12 @@ export default function ExpensesPage() {
                 borderRadius: 2,
                 px: 3,
                 fontWeight: 600,
+                borderColor: "#3a5ac8",
+                color: "#3a5ac8",
+                "&:hover": {
+                  borderColor: "#2a4ab8",
+                  backgroundColor: "#3a5ac810",
+                },
               }}
             >
               Refresh
@@ -664,13 +670,13 @@ export default function ExpensesPage() {
                 startIcon={<Add />}
                 onClick={() => setOpenDialog(true)}
                 sx={{
-                  bgcolor: PRIMARY_COLOR,
+                  background: "#3a5ac8",
                   color: "white",
                   borderRadius: 2,
                   px: 3,
                   fontWeight: 600,
                   "&:hover": {
-                    bgcolor: "#1565c0",
+                    bgcolor: "#2a4ab8",
                   },
                 }}
               >
@@ -691,12 +697,19 @@ export default function ExpensesPage() {
             variant={isMobile ? "scrollable" : "fullWidth"}
             scrollButtons="auto"
             sx={{
+              "& .MuiTabs-indicator": {
+                backgroundColor: "#3a5ac8",
+              },
               "& .MuiTab-root": {
                 textTransform: "none",
                 fontWeight: 600,
                 minHeight: 60,
                 py: 2,
                 minWidth: 120,
+                color: "text.secondary",
+                "&.Mui-selected": {
+                  color: "#3a5ac8",
+                },
               },
             }}
           >
@@ -960,7 +973,7 @@ export default function ExpensesPage() {
         {/* Table Content */}
         {loading ? (
           <Box sx={{ display: "flex", justifyContent: "center", p: 8 }}>
-            <CircularProgress />
+            <CircularProgress sx={{ color: "#3a5ac8" }} />
           </Box>
         ) : paginatedExpenses.length === 0 ? (
           <Box
@@ -989,10 +1002,10 @@ export default function ExpensesPage() {
                 startIcon={<Add />}
                 onClick={() => setOpenDialog(true)}
                 sx={{
-                  bgcolor: PRIMARY_COLOR,
+                  bgcolor: "#3a5ac8",
                   color: "white",
                   "&:hover": {
-                    bgcolor: "#1565c0",
+                    bgcolor: "#2a4ab8",
                   },
                 }}
               >
@@ -1054,7 +1067,7 @@ export default function ExpensesPage() {
                           </Box>
                         </TableCell>
                         <TableCell>
-                          <Typography fontWeight="bold" color="primary" variant="body1">
+                          <Typography fontWeight="bold" color="#3a5ac8" variant="body1">
                             {formatCurrency(getExpenseAmount(expense))}
                           </Typography>
                         </TableCell>
@@ -1103,9 +1116,9 @@ export default function ExpensesPage() {
                                   setOpenViewDialog(true);
                                 }}
                                 sx={{ 
-                                  color: "primary.main",
-                                  bgcolor: '#e3f2fd',
-                                  '&:hover': { bgcolor: '#bbdefb' }
+                                  color: "#3a5ac8",
+                                  bgcolor: '#3a5ac810',
+                                  '&:hover': { bgcolor: '#3a5ac820' }
                                 }}
                               >
                                 <Visibility fontSize="small" />
@@ -1118,9 +1131,9 @@ export default function ExpensesPage() {
                                   size="small"
                                   onClick={() => handleEdit(expense)}
                                   sx={{ 
-                                    color: "warning.main",
-                                    bgcolor: '#fff3e0',
-                                    '&:hover': { bgcolor: '#ffe0b2' }
+                                    color: "#ff9800",
+                                    bgcolor: '#ff980010',
+                                    '&:hover': { bgcolor: '#ff980020' }
                                   }}
                                 >
                                   <Edit fontSize="small" />
@@ -1136,9 +1149,9 @@ export default function ExpensesPage() {
                                     size="small"
                                     onClick={() => handleStatusClick(expense, "approve")}
                                     sx={{ 
-                                      color: "success.main",
-                                      bgcolor: '#e8f5e9',
-                                      '&:hover': { bgcolor: '#c8e6c9' }
+                                      color: "#4caf50",
+                                      bgcolor: '#4caf5010',
+                                      '&:hover': { bgcolor: '#4caf5020' }
                                     }}
                                   >
                                     <CheckCircle fontSize="small" />
@@ -1149,9 +1162,9 @@ export default function ExpensesPage() {
                                     size="small"
                                     onClick={() => handleStatusClick(expense, "reject")}
                                     sx={{ 
-                                      color: "error.main",
-                                      bgcolor: '#ffebee',
-                                      '&:hover': { bgcolor: '#ffcdd2' }
+                                      color: "#f44336",
+                                      bgcolor: '#f4433610',
+                                      '&:hover': { bgcolor: '#f4433620' }
                                     }}
                                   >
                                     <Cancel fontSize="small" />
@@ -1170,9 +1183,9 @@ export default function ExpensesPage() {
                                     setOpenDeleteDialog(true);
                                   }}
                                   sx={{ 
-                                    color: "error.main",
-                                    bgcolor: '#ffebee',
-                                    '&:hover': { bgcolor: '#ffcdd2' }
+                                    color: "#f44336",
+                                    bgcolor: '#f4433610',
+                                    '&:hover': { bgcolor: '#f4433620' }
                                   }}
                                 >
                                   <Delete fontSize="small" />
@@ -1228,7 +1241,20 @@ export default function ExpensesPage() {
                   count={pagination.totalPages}
                   page={pagination.page}
                   onChange={handlePageChange}
-                  color="primary"
+                  sx={{
+                    '& .MuiPaginationItem-root': {
+                      '&.Mui-selected': {
+                        backgroundColor: '#3a5ac8',
+                        color: 'white',
+                        '&:hover': {
+                          backgroundColor: '#2a4ab8',
+                        },
+                      },
+                      '&:hover': {
+                        backgroundColor: '#3a5ac820',
+                      },
+                    },
+                  }}
                   shape="rounded"
                   size={isMobile ? "small" : "medium"}
                   showFirstButton
@@ -1349,10 +1375,10 @@ export default function ExpensesPage() {
                 !formData.title || !formData.amount || !formData.category
               }
               sx={{ 
-                bgcolor: PRIMARY_COLOR, 
+                bgcolor: "#3a5ac8", 
                 color: "white",
                 "&:hover": {
-                  bgcolor: "#1565c0",
+                  bgcolor: "#2a4ab8",
                 },
                 fullWidth: isMobile
               }}
@@ -1397,7 +1423,7 @@ export default function ExpensesPage() {
                 <Typography variant="h5" fontWeight="bold" gutterBottom>
                   {getExpenseTitle(selectedExpense)}
                 </Typography>
-                <Typography variant="h4" color="primary" fontWeight="bold">
+                <Typography variant="h4" color="#3a5ac8" fontWeight="bold">
                   {formatCurrency(getExpenseAmount(selectedExpense))}
                 </Typography>
               </Box>
@@ -1512,10 +1538,10 @@ export default function ExpensesPage() {
                 }}
                 variant="contained"
                 sx={{
-                  bgcolor: PRIMARY_COLOR,
+                  bgcolor: "#3a5ac8",
                   color: "white",
                   "&:hover": {
-                    bgcolor: "#1565c0",
+                    bgcolor: "#2a4ab8",
                   },
                   fullWidth: isMobile
                 }}

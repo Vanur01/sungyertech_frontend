@@ -53,12 +53,12 @@ import {
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 
-const primary = "#ff6d00";
-const secondary = "#1a237e";
-const successColor = "#4caf50";
+const primary = "#3a5ac8";
+const secondary = "#3a5ac8";
+const successColor = "#3a5ac8";
 const errorColor = "#f44336";
-const warningColor = "#ff9800";
-const infoColor = "#2196f3";
+const warningColor = "#3a5ac8";
+const infoColor = "#3a5ac8";
 
 export default function CreateLeadPage() {
   const navigate = useNavigate();
@@ -414,7 +414,7 @@ export default function CreateLeadPage() {
           <Button 
             variant="contained" 
             onClick={() => navigate("/dashboard")}
-            sx={{ borderRadius: 2, px: 4 }}
+            sx={{ borderRadius: 2, px: 4, bgcolor: primary, '&:hover': { bgcolor: '#2c489e' } }}
             startIcon={<ArrowBack />}
           >
             Return to Dashboard
@@ -505,7 +505,7 @@ export default function CreateLeadPage() {
               {formTouched && !loading && (
                 <Chip
                   label="Unsaved Changes"
-                  color="warning"
+                  color="primary"
                   variant="outlined"
                   icon={<Warning />}
                   size="small"
@@ -642,7 +642,7 @@ export default function CreateLeadPage() {
                 {/* Address Information Section */}
                 <Box sx={{ mb: 5 }}>
                   <Stack direction="row" alignItems="center" spacing={2} mb={4}>
-                    <Avatar sx={{ bgcolor: alpha(secondary, 0.1), color: secondary }}>
+                    <Avatar sx={{ bgcolor: alpha(primary, 0.1), color: primary }}>
                       <Place />
                     </Avatar>
                     <Box>
@@ -814,11 +814,11 @@ export default function CreateLeadPage() {
                       disabled={loading || !formTouched}
                       sx={{
                         ...actionButtonStyle,
-                        borderColor: warningColor,
-                        color: warningColor,
+                        borderColor: primary,
+                        color: primary,
                         "&:hover": {
-                          borderColor: warningColor,
-                          bgcolor: alpha(warningColor, 0.04),
+                          borderColor: primary,
+                          bgcolor: alpha(primary, 0.04),
                         },
                       }}
                     >
@@ -840,8 +840,7 @@ export default function CreateLeadPage() {
                       }
                       sx={{
                         ...actionButtonStyle,
-                        bgcolor: successColor,
-                        "&:hover": { bgcolor: "#43a047" },
+                        background: "#3a5ac8",
                       }}
                     >
                       {loading ? "Creating..." : submitted ? "Lead Created!" : "Create Lead"}
@@ -856,12 +855,12 @@ export default function CreateLeadPage() {
           <Card sx={{ 
             borderRadius: 3,
             p: 3,
-            bgcolor: alpha(infoColor, 0.03),
+            bgcolor: alpha(primary, 0.03),
             border: "1px solid",
-            borderColor: alpha(infoColor, 0.1),
+            borderColor: alpha(primary, 0.1),
           }}>
             <Stack direction="row" spacing={2} alignItems="flex-start">
-              <Info sx={{ color: infoColor, mt: 0.5 }} />
+              <Info sx={{ color: primary, mt: 0.5 }} />
               <Box>
                 <Typography variant="subtitle1" fontWeight="bold" color="text.primary" gutterBottom>
                   Important Information

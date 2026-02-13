@@ -25,64 +25,112 @@ import {
   Avatar,
   Badge,
   Chip,
+  Collapse,
 } from "@mui/material";
 import {
   Dashboard,
-  Group,
-  PersonAddAlt1,
+  Groups,
+  PersonAdd,
   AccountBalance,
   Description,
   ReceiptLong,
   TaskAlt,
-  ReportProblem,
-  Assignment,
-  ListAlt,
-  FilterList,
-  MonetizationOn,
-  People,
-  BarChart,
+  Warning,
+  CloudUpload,
+  CalendarMonth,
+  FilterAlt,
+  Paid,
+  TrendingUp,
   Settings,
   Person,
   Logout,
   ChevronLeft,
   ChevronRight,
   Home,
-  TrendingUp,
   Download,
   Upload,
-  Payment,
   Analytics,
-  ManageAccounts,
+  AdminPanelSettings,
   PendingActions,
   CreditCard,
+  Assessment,
+  Lightbulb,
+  SolarPower,
+  Business,
+  LocationCity,
+  GroupWork,
+  Insights,
+  Summarize,
+  AccountTree,
+  Speed,
+  Report,
+  AttachMoney,
+  Timeline,
+  PieChart,
+  ShowChart,
+  PeopleAlt,
+  SupervisorAccount,
+  WorkspacePremium,
+  Security,
+  VerifiedUser,
+  ViewModule,
+  FolderOpen,
+  Checklist,
+  PlaylistAddCheck,
+  Cancel,
+  CloudDownload,
+  AccountCircle,
+  HowToReg,
+  AccountBalanceWallet,
+  Build,
+  Engineering,
+  HomeWork,
+  School,
+  Factory,
+  Agriculture,
+  LocalPolice,
+  LocalHospital,
+  Storefront,
 } from "@mui/icons-material";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
-import logo from "../logo.svg"; // Import the logo
+import logo from "../logo.png";
+import PeopleAltIcon from "@mui/icons-material/PeopleAlt";
+
+// Color Constants
+const PRIMARY_COLOR = "#4569ea";
+const PRIMARY_LIGHT = "#5c7cec";
+const PRIMARY_DARK = "#3a5ac8";
+const BACKGROUND_COLOR = "#4569ea";
+const TEXT_COLOR = "#ffffff";
+const ICON_COLOR = "#ffffff";
+const HOVER_BG = "rgba(255, 255, 255, 0.15)";
+const ACTIVE_BG = "rgba(255, 255, 255, 0.25)";
+const BORDER_COLOR = "rgba(255, 255, 255, 0.25)";
 
 // Constants
 const SIDEBAR_WIDTH = 280;
-const COLLAPSED_WIDTH = 80;
+const COLLAPSED_WIDTH = 70;
 const MIN_SWIPE_DISTANCE = 50;
 
-// Icon colors based on menu items
-const ICON_COLORS = {
-  Dashboard: "#ff6d00",
-  "Total Visits": "#2196f3",
-  Registration: "#4caf50",
-  "Bank Loan Apply": "#9c27b0",
-  "Document": "#ff9800",
-  "Bank at Pending": "#ff5722",
-  Disbursement: "#00bcd4",
-  Installation: "#8bc34a",
-  "Missed Leads": "#f44336",
-  "Import Leads": "#ff5722",
-  "All Leads": "#3f51b5",
-  "Lead Funnel": "#009688",
-  Expense: "#795548",
-  "User Management": "#673ab7",
-  "Team Management": "#673ab7",
-  Reports: "#607d8b",
+// Enhanced icons mapping
+const ICON_MAPPING = {
+  "Dashboard": <Dashboard />,
+  "Total Visits": <Groups />,
+  "Registration": <PersonAdd />,
+  "Bank Loan Apply": <AccountBalance />,
+  "Document": <Description />,
+  "Bank at Pending": <PendingActions />,
+  "Disbursement": <ReceiptLong />,
+  "Installation": <TaskAlt />,
+  "Missed Leads": <Warning />,
+  "Import Leads": <CloudUpload />,
+  "Attendance": <CalendarMonth />,
+  "All Leads": <FilterAlt />,
+  "Lead Funnel": <AccountTree />,
+  "Expense": <Paid />,
+  "User Management": <AdminPanelSettings />,
+  "Reports": <Insights />,
 };
 
 const Sidebar = ({ open, toggleDrawer }) => {
@@ -127,7 +175,7 @@ const Sidebar = ({ open, toggleDrawer }) => {
       setScrollTop(scrollTop);
       setScrolled(scrollTop > 10);
     },
-    [isMobile]
+    [isMobile],
   );
 
   // Role-based configurations
@@ -135,30 +183,26 @@ const Sidebar = ({ open, toggleDrawer }) => {
     const config = {
       Head_office: {
         label: "Head Office",
-        icon: <Home sx={{ fontSize: 20 }} />,
+        icon: <WorkspacePremium sx={{ fontSize: 20, color: TEXT_COLOR }} />,
         color: "#ff6d00",
-        gradient: "linear-gradient(135deg, #ff6d00 0%, #ff9100 100%)",
         badgeColor: "warning",
       },
       ZSM: {
         label: "Zonal Manager",
-        icon: <TrendingUp sx={{ fontSize: 20 }} />,
+        icon: <SupervisorAccount sx={{ fontSize: 20, color: TEXT_COLOR }} />,
         color: "#1a237e",
-        gradient: "linear-gradient(135deg, #1a237e 0%, #283593 100%)",
         badgeColor: "primary",
       },
       ASM: {
         label: "Area Manager",
-        icon: <Group sx={{ fontSize: 20 }} />,
+        icon: <PeopleAlt sx={{ fontSize: 20, color: TEXT_COLOR }} />,
         color: "#2e7d32",
-        gradient: "linear-gradient(135deg, #2e7d32 0%, #4caf50 100%)",
         badgeColor: "success",
       },
       TEAM: {
         label: "Field Executive",
-        icon: <Person sx={{ fontSize: 20 }} />,
+        icon: <Engineering sx={{ fontSize: 20, color: TEXT_COLOR }} />,
         color: "#6a1b9a",
-        gradient: "linear-gradient(135deg, #6a1b9a 0%, #9c27b0 100%)",
         badgeColor: "secondary",
       },
     };
@@ -166,9 +210,8 @@ const Sidebar = ({ open, toggleDrawer }) => {
     return (
       config[user?.role] || {
         label: "User",
-        icon: <Person sx={{ fontSize: 20 }} />,
+        icon: <Person sx={{ fontSize: 20, color: TEXT_COLOR }} />,
         color: "#666",
-        gradient: "linear-gradient(135deg, #666 0%, #888 100%)",
         badgeColor: "default",
       }
     );
@@ -180,12 +223,11 @@ const Sidebar = ({ open, toggleDrawer }) => {
       if (!user?.role) return false;
       return requiredRoles.includes(user.role);
     },
-    [user]
+    [user],
   );
 
   const menuItems = useMemo(() => {
     const allItems = [
-      // Main Dashboard (for all roles)
       {
         text: "Dashboard",
         icon: <Dashboard />,
@@ -193,22 +235,20 @@ const Sidebar = ({ open, toggleDrawer }) => {
         exact: true,
         roles: ["Head_office", "ZSM", "ASM", "TEAM"],
       },
-      // Visit Management (for all roles)
       {
         text: "Total Visits",
-        icon: <Group />,
+        icon: <Groups />,
         path: "/total-visits",
         roles: ["Head_office", "ZSM", "ASM", "TEAM"],
       },
       {
         text: "Registration",
-        icon: <PersonAddAlt1 />,
+        icon: <PersonAdd />,
         path: "/registration",
         roles: ["Head_office", "ZSM", "ASM", "TEAM"],
       },
-      // Sales Funnel - Updated sequence
       {
-        text: "Bank Loan Apply",
+        text: "Bank Loan",
         icon: <AccountBalance />,
         path: "/bank-loan-apply",
         roles: ["Head_office", "ZSM", "ASM", "TEAM"],
@@ -220,7 +260,7 @@ const Sidebar = ({ open, toggleDrawer }) => {
         roles: ["Head_office", "ZSM", "ASM", "TEAM"],
       },
       {
-        text: "Bank at Pending",
+        text: "Loan Pending",
         icon: <PendingActions />,
         path: "/bank-at-pending",
         roles: ["Head_office", "ZSM", "ASM", "TEAM"],
@@ -239,43 +279,55 @@ const Sidebar = ({ open, toggleDrawer }) => {
       },
       {
         text: "Missed Leads",
-        icon: <ReportProblem />,
+        icon: <Warning />,
         path: "/missed-leads",
         roles: ["Head_office", "ZSM", "ASM", "TEAM"],
       },
       {
         text: "Import Leads",
-        icon: <Upload />,
+        icon: <CloudUpload />,
         path: "/import-leads",
         roles: ["Head_office", "ZSM"],
       },
       {
+        text: "Attendance",
+        icon: <CalendarMonth />,
+        path: "/attendance",
+        roles: ["Head_office", "ZSM", "ASM", "TEAM"],
+      },
+      {
+        text: "Visitors",
+        icon: <PeopleAltIcon />,
+        path: "/visitors",
+        roles: ["Head_office", "ZSM", "ASM", "TEAM"],
+      },
+      {
         text: "All Leads",
-        icon: <ListAlt />,
+        icon: <FilterAlt />,
         path: "/all-leads",
         roles: ["Head_office", "ZSM", "ASM", "TEAM"],
       },
       {
         text: "Lead Funnel",
-        icon: <FilterList />,
+        icon: <AccountTree />,
         path: "/lead-funnel",
         roles: ["Head_office", "ZSM", "ASM", "TEAM"],
       },
       {
         text: "Expense",
-        icon: <Payment />,
+        icon: <Paid />,
         path: "/expense",
         roles: ["Head_office", "ZSM", "ASM", "TEAM"],
       },
       {
-        text: "User Management",
-        icon: <ManageAccounts />,
+        text: "Users",
+        icon: <AdminPanelSettings />,
         path: "/user-management",
         roles: ["Head_office", "ZSM", "ASM"],
       },
       {
         text: "Reports",
-        icon: <Analytics />,
+        icon: <Insights />,
         path: "/reports",
         roles: ["Head_office", "ZSM", "ASM"],
       },
@@ -293,7 +345,7 @@ const Sidebar = ({ open, toggleDrawer }) => {
       }
       return activeItem.startsWith(path);
     },
-    [activeItem]
+    [activeItem],
   );
 
   // Navigation handler
@@ -304,7 +356,7 @@ const Sidebar = ({ open, toggleDrawer }) => {
         toggleDrawer();
       }
     },
-    [navigate, isMobile, toggleDrawer]
+    [navigate, isMobile, toggleDrawer],
   );
 
   // Touch handlers for mobile swipe
@@ -314,7 +366,7 @@ const Sidebar = ({ open, toggleDrawer }) => {
         setTouchStart(e.targetTouches[0].clientX);
       }
     },
-    [isMobile]
+    [isMobile],
   );
 
   const handleTouchMove = useCallback(
@@ -323,7 +375,7 @@ const Sidebar = ({ open, toggleDrawer }) => {
         setTouchEnd(e.targetTouches[0].clientX);
       }
     },
-    [isMobile, touchStart]
+    [isMobile, touchStart],
   );
 
   const handleTouchEnd = useCallback(() => {
@@ -354,34 +406,30 @@ const Sidebar = ({ open, toggleDrawer }) => {
     return `${user.firstName || ""} ${user.lastName || ""}`.trim();
   }, [user]);
 
-  // Get icon color based on menu item text
-  const getIconColor = useCallback(
-    (text, isActive) => {
-      if (isActive) return "#ffffff";
-      return ICON_COLORS[text] || theme.palette.text.secondary;
-    },
-    [theme]
-  );
-
-  // Get background color for active item
-  const getActiveBgColor = useCallback(
-    (text) => {
-      const baseColor = ICON_COLORS[text] || theme.palette.primary.main;
-      return alpha(baseColor, 0.9);
-    },
-    [theme]
-  );
-
-  // Render menu item with proper icon colors
+  // Render menu item with enhanced design
   const renderMenuItem = useCallback(
     (item) => {
       const active = isActive(item.path, item.exact);
-      const iconColor = getIconColor(item.text, active);
-      const bgColor = active ? getActiveBgColor(item.text) : "transparent";
-      const textColor = active ? "#ffffff" : theme.palette.text.primary;
-      const hoverBgColor = active
-        ? alpha(getActiveBgColor(item.text), 0.8)
-        : alpha(theme.palette.action.hover, 0.05);
+      const bgColor = active ? ACTIVE_BG : "transparent";
+      const textColor = TEXT_COLOR;
+      const hoverBgColor = HOVER_BG;
+
+      const iconWithBadge = item.badge ? (
+        <Badge
+          color="error"
+          variant="dot"
+          sx={{
+            "& .MuiBadge-dot": {
+              right: 2,
+              top: 2,
+            },
+          }}
+        >
+          {ICON_MAPPING[item.text] || item.icon}
+        </Badge>
+      ) : (
+        ICON_MAPPING[item.text] || item.icon
+      );
 
       if (!isCollapsed || isMobile) {
         return (
@@ -390,37 +438,61 @@ const Sidebar = ({ open, toggleDrawer }) => {
             onClick={() => handleNavigate(item.path)}
             sx={{
               pl: 2,
-              borderRadius: 2,
+              borderRadius: "12px",
               mx: 1,
               my: 0.5,
               bgcolor: bgColor,
               color: textColor,
               "&:hover": {
                 bgcolor: hoverBgColor,
+                transform: "translateX(4px)",
+                boxShadow: "0 4px 12px rgba(255, 255, 255, 0.1)",
               },
-              py: 1.25,
+              py: 1.5,
               px: 2,
               border: active
-                ? `2px solid ${
-                    ICON_COLORS[item.text] || theme.palette.primary.main
-                  }`
+                ? `2px solid rgba(255, 255, 255, 0.4)`
                 : "2px solid transparent",
-              transition: "all 0.2s ease",
-              minHeight: 48,
+              transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+              minHeight: 52,
               boxShadow: active
-                ? `0 4px 12px ${alpha(
-                    ICON_COLORS[item.text] || theme.palette.primary.main,
-                    0.3
-                  )}`
+                ? "0 8px 25px rgba(255, 255, 255, 0.2)"
                 : "none",
+              position: "relative",
+              overflow: "hidden",
+              backdropFilter: "blur(10px)",
+              "&::before": active
+                ? {
+                    content: '""',
+                    position: "absolute",
+                    left: 0,
+                    top: 0,
+                    height: "100%",
+                    width: "5px",
+                    background: "linear-gradient(180deg, #5c7cec 0%, #3a5ac8 100%)",
+                    borderRadius: "0 4px 4px 0",
+                  }
+                : {},
+              "&::after": active
+                ? {
+                    content: '""',
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    background: "linear-gradient(135deg, rgba(92, 124, 236, 0.1) 0%, rgba(58, 90, 200, 0.1) 100%)",
+                  }
+                : {},
             }}
           >
-            <ListItemIcon sx={{ minWidth: 40, mr: 2 }}>
-              {React.cloneElement(item.icon, {
+            <ListItemIcon sx={{ minWidth: 42, mr: 2.5 }}>
+              {React.cloneElement(iconWithBadge, {
                 sx: {
-                  fontSize: 22,
-                  color: iconColor,
-                  filter: active ? "brightness(0) invert(1)" : "none",
+                  fontSize: 24,
+                  color: ICON_COLOR,
+                  opacity: active ? 1 : 0.85,
+                  filter: active ? "drop-shadow(0 2px 4px rgba(255,255,255,0.3))" : "none",
                 },
               })}
             </ListItemIcon>
@@ -430,8 +502,49 @@ const Sidebar = ({ open, toggleDrawer }) => {
                 fontSize: "0.95rem",
                 fontWeight: active ? 700 : 600,
                 color: textColor,
+                letterSpacing: "0.2px",
+                textShadow: active ? "0 1px 2px rgba(0,0,0,0.2)" : "none",
               }}
             />
+            {active && (
+              <Box
+                sx={{
+                  position: "absolute",
+                  right: 12,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 0.5,
+                }}
+              >
+                <Box
+                  sx={{
+                    width: 6,
+                    height: 6,
+                    borderRadius: "50%",
+                    bgcolor: "rgba(255, 255, 255, 0.9)",
+                    animation: "pulse 1.5s infinite",
+                  }}
+                />
+                <Box
+                  sx={{
+                    width: 4,
+                    height: 4,
+                    borderRadius: "50%",
+                    bgcolor: "rgba(255, 255, 255, 0.7)",
+                    animation: "pulse 1.5s infinite 0.2s",
+                  }}
+                />
+                <Box
+                  sx={{
+                    width: 2,
+                    height: 2,
+                    borderRadius: "50%",
+                    bgcolor: "rgba(255, 255, 255, 0.5)",
+                    animation: "pulse 1.5s infinite 0.4s",
+                  }}
+                />
+              </Box>
+            )}
           </ListItemButton>
         );
       }
@@ -442,50 +555,69 @@ const Sidebar = ({ open, toggleDrawer }) => {
             onClick={() => handleNavigate(item.path)}
             sx={{
               justifyContent: "center",
-              borderRadius: 2,
+              borderRadius: "12px",
               my: 0.5,
               bgcolor: bgColor,
               "&:hover": {
                 bgcolor: hoverBgColor,
+                transform: "scale(1.15)",
+                boxShadow: "0 4px 12px rgba(255, 255, 255, 0.15)",
               },
-              p: 1.25,
-              minHeight: 48,
-              minWidth: 48,
+              p: 1.5,
+              minHeight: 52,
+              minWidth: 52,
               border: active
-                ? `2px solid ${
-                    ICON_COLORS[item.text] || theme.palette.primary.main
-                  }`
+                ? `2px solid rgba(255, 255, 255, 0.4)`
                 : "2px solid transparent",
-              boxShadow: active
-                ? `0 4px 12px ${alpha(
-                    ICON_COLORS[item.text] || theme.palette.primary.main,
-                    0.3
-                  )}`
-                : "none",
+              transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+              position: "relative",
+              backdropFilter: "blur(10px)",
             }}
           >
             <ListItemIcon sx={{ justifyContent: "center", minWidth: "auto" }}>
-              {React.cloneElement(item.icon, {
+              {React.cloneElement(iconWithBadge, {
                 sx: {
-                  fontSize: 22,
-                  color: iconColor,
-                  filter: active ? "brightness(0) invert(1)" : "none",
+                  fontSize: 18,
+                  color: ICON_COLOR,
+                  opacity: active ? 1 : 0.85,
+                  filter: active ? "drop-shadow(0 2px 3px rgba(255,255,255,0.3))" : "none",
                 },
               })}
             </ListItemIcon>
+            {active && (
+              <Box
+                sx={{
+                  position: "absolute",
+                  bottom: 6,
+                  width: "6px",
+                  height: "6px",
+                  borderRadius: "50%",
+                  background: "linear-gradient(135deg, #5c7cec, #3a5ac8)",
+                  boxShadow: "0 0 8px rgba(92, 124, 236, 0.8)",
+                }}
+              />
+            )}
+            {item.badge && (
+              <Badge
+                color="error"
+                variant="dot"
+                sx={{
+                  position: "absolute",
+                  top: 8,
+                  right: 8,
+                  "& .MuiBadge-dot": {
+                    width: 8,
+                    height: 8,
+                    borderRadius: "50%",
+                  },
+                }}
+              />
+            )}
           </ListItemButton>
         </Tooltip>
       );
     },
-    [
-      isCollapsed,
-      isMobile,
-      theme,
-      isActive,
-      handleNavigate,
-      getIconColor,
-      getActiveBgColor,
-    ]
+    [isCollapsed, isMobile, isActive, handleNavigate],
   );
 
   // Desktop Sidebar content
@@ -496,101 +628,113 @@ const Sidebar = ({ open, toggleDrawer }) => {
           height: "100vh",
           display: "flex",
           flexDirection: "column",
-          bgcolor: "#fff",
-          borderRight: `1px solid ${theme.palette.divider}`,
+          bgcolor: BACKGROUND_COLOR,
           overflow: "hidden",
           width: isCollapsed ? COLLAPSED_WIDTH : SIDEBAR_WIDTH,
-          transition: theme.transitions.create("width", {
-            easing: theme.transitions.easing.sharp,
-            duration: theme.transitions.duration.standard,
-          }),
-          boxShadow: "none",
+          transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+          position: "relative",
+          background: `linear-gradient(135deg, ${BACKGROUND_COLOR} 0%, ${PRIMARY_DARK} 100%)`,
+          boxShadow: "inset -1px 0 20px rgba(0, 0, 0, 0.1)",
         }}
       >
-        {/* Logo Section - Updated with imported logo */}
+        {/* Logo Section */}
         <Box
           sx={{
-            p: isCollapsed ? 1.5 : 2,
-            minHeight: isCollapsed ? 80 : 100,
+            p: isCollapsed ? 2.5 : 3.5,
+            minHeight: isCollapsed ? 100 : 120,
             display: "flex",
             flexDirection: isCollapsed ? "column" : "row",
             alignItems: "center",
             justifyContent: isCollapsed ? "center" : "flex-start",
-            gap: isCollapsed ? 0 : 1.5,
+            gap: isCollapsed ? 0 : 2,
             cursor: "pointer",
-            bgcolor: theme.palette.background.paper,
-            borderBottom: `1px solid ${theme.palette.divider}`,
+            borderBottom: `1px solid ${BORDER_COLOR}`,
             "&:hover": {
-              bgcolor: alpha(theme.palette.primary.main, 0.02),
+              bgcolor: HOVER_BG,
             },
-            transition: "background-color 0.2s ease",
+            transition: "all 0.3s ease",
+            position: "relative",
+            overflow: "hidden",
           }}
           onClick={() => handleNavigate("/dashboard")}
         >
+          {/* Animated background effect */}
+          <Box
+            sx={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: `radial-gradient(circle at 30% 50%, ${PRIMARY_LIGHT} 0%, transparent 70%)`,
+              opacity: 0.2,
+            }}
+          />
+
           {/* Logo Container */}
           <Box
             sx={{
-              width: isCollapsed ? 50 : 60,
-              height: isCollapsed ? 50 : 60,
-              borderRadius: isCollapsed ? "50%" : "12px",
+              width: isCollapsed ? 48 : 56,
+              height: isCollapsed ? 48 : 56,
+              borderRadius: "16px",
               overflow: "hidden",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              bgcolor: "white",
-              border: isCollapsed 
-                ? `2px solid ${theme.palette.primary.main}`
-                : "none",
-              boxShadow: isCollapsed 
-                ? `0 2px 8px ${alpha(theme.palette.primary.main, 0.2)}`
-                : "0 2px 4px rgba(0,0,0,0.1)",
+              bgcolor: "rgba(255, 255, 255, 0.12)",
+              border: `2px solid rgba(255, 255, 255, 0.3)`,
+              boxShadow: "0 6px 24px rgba(0, 0, 0, 0.25)",
               transition: "all 0.3s ease",
+              backdropFilter: "blur(12px)",
+              zIndex: 1,
+              "&:hover": {
+                transform: "rotate(5deg)",
+                boxShadow: "0 8px 32px rgba(0, 0, 0, 0.3)",
+              },
             }}
           >
             <img
               src={logo}
-              alt="Saura Shakti Logo"
+              alt="Sunergytech Logo"
               style={{
                 width: "100%",
                 height: "100%",
                 objectFit: "contain",
-                padding: isCollapsed ? "8px" : "10px",
+                padding: "12px",
+                filter: "brightness(0) invert(1) drop-shadow(0 2px 4px rgba(0,0,0,0.3))",
               }}
             />
           </Box>
-          
+
           {!isCollapsed && (
-            <Box sx={{ flex: 1, minWidth: 0 }}>
+            <Box sx={{ flex: 1, minWidth: 0, zIndex: 1 }}>
               <Typography
                 variant="h6"
-                fontWeight={800}
-                color={theme.palette.primary.main}
+                fontWeight={900}
+                color={TEXT_COLOR}
                 sx={{
                   fontSize: "1.3rem",
                   lineHeight: 1.2,
                   mb: 0.5,
-                  background: `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.primary.light})`,
-                  backgroundClip: "text",
-                  textFillColor: "transparent",
+                  textShadow: "0 2px 8px rgba(0,0,0,0.3)",
+                  letterSpacing: "0.5px",
+                  background: "linear-gradient(135deg, #fff, #e0e7ff)",
                   WebkitBackgroundClip: "text",
                   WebkitTextFillColor: "transparent",
-                  whiteSpace: "nowrap",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
                 }}
               >
-                Saura Shakti
+                SunergyTech
               </Typography>
               <Typography
                 variant="caption"
-                color="text.secondary"
                 sx={{
-                  fontSize: "0.75rem",
+                  fontSize: "0.7rem",
                   display: "block",
-                  fontWeight: 500,
-                  whiteSpace: "nowrap",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
+                  fontWeight: 600,
+                  color: "rgba(255, 255, 255, 0.85)",
+                  letterSpacing: "1.2px",
+                  textTransform: "uppercase",
+                  textShadow: "0 1px 3px rgba(0,0,0,0.2)",
                 }}
               >
                 Solar Management
@@ -606,73 +750,37 @@ const Sidebar = ({ open, toggleDrawer }) => {
           sx={{
             flex: 1,
             overflowY: "auto",
+            overflowX: "hidden",
             py: 2,
-            px: isCollapsed ? 1 : 2,
-            bgcolor: "#fff",
+            px: isCollapsed ? 1.5 : 2.5,
             "&::-webkit-scrollbar": {
               width: "6px",
-              display: "none",
+            },
+            "&::-webkit-scrollbar-track": {
+              background: "rgba(255, 255, 255, 0.08)",
+              borderRadius: "10px",
+            },
+            "&::-webkit-scrollbar-thumb": {
+              background: "rgba(255, 255, 255, 0.2)",
+              borderRadius: "10px",
+              "&:hover": {
+                background: "rgba(255, 255, 255, 0.3)",
+              },
             },
           }}
         >
-          {/* Menu Items */}
-          {!isCollapsed && (
-            <>
-              <Typography
-                variant="caption"
-                color="text.secondary"
-                sx={{
-                  px: 2,
-                  mb: 1,
-                  display: "block",
-                  fontWeight: 700,
-                  letterSpacing: "1px",
-                  fontSize: "0.75rem",
-                  textTransform: "uppercase",
-                }}
-              >
-                Main
-              </Typography>
-              <List sx={{ p: 0 }}>
-                {menuItems.map((item) => renderMenuItem(item))}
-              </List>
-            </>
-          )}
-
-          {/* Collapsed view */}
-          {isCollapsed && (
-            <Box
-              sx={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-              }}
-            >
-              <List sx={{ p: 0 }}>
-                {menuItems.map((item) => renderMenuItem(item))}
-              </List>
-            </Box>
-          )}
+          <List sx={{ p: 0 }}>
+            {menuItems.map((item) => renderMenuItem(item)) }
+          </List>
         </Box>
 
         {/* Footer */}
         <Box
           sx={{
-            p: isCollapsed ? 1 : 2,
-            borderTop: `1px solid ${theme.palette.divider}`,
-            bgcolor: theme.palette.background.paper,
-            position: "relative",
-            "&::before": scrolled
-              ? {
-                  content: '""',
-                  position: "absolute",
-                  top: -1,
-                  left: 0,
-                  right: 0,
-                  height: "1px",
-                  background: `linear-gradient(to right, transparent, ${theme.palette.divider}, transparent)`,
-                }
-              : {},
+            p: isCollapsed ? 1.5 : 2,
+            borderTop: `1px solid ${BORDER_COLOR}`,
+            bgcolor: "rgba(255, 255, 255, 0.08)",
+            backdropFilter: "blur(10px)",
           }}
         >
           {/* Collapse Toggle */}
@@ -680,7 +788,7 @@ const Sidebar = ({ open, toggleDrawer }) => {
             sx={{
               display: "flex",
               justifyContent: "center",
-              mb: isCollapsed ? 0.5 : 1,
+              mb: isCollapsed ? 1 : 1.5,
             }}
           >
             <Tooltip
@@ -691,14 +799,17 @@ const Sidebar = ({ open, toggleDrawer }) => {
                 onClick={() => setIsCollapsed(!isCollapsed)}
                 size="small"
                 sx={{
-                  color: theme.palette.primary.main,
-                  bgcolor: alpha(theme.palette.primary.main, 0.1),
+                  color: TEXT_COLOR,
+                  bgcolor: "rgba(255, 255, 255, 0.2)",
                   "&:hover": {
-                    bgcolor: alpha(theme.palette.primary.main, 0.2),
+                    bgcolor: "rgba(255, 255, 255, 0.3)",
+                    transform: "rotate(180deg)",
+                    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.2)",
                   },
-                  width: isCollapsed ? 32 : 36,
-                  height: isCollapsed ? 32 : 36,
-                  transition: "all 0.2s ease",
+                  width: 40,
+                  height: 40,
+                  transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+                  border: `1px solid rgba(255, 255, 255, 0.25)`,
                 }}
               >
                 {isCollapsed ? <ChevronRight /> : <ChevronLeft />}
@@ -712,20 +823,32 @@ const Sidebar = ({ open, toggleDrawer }) => {
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center",
-              px: isCollapsed ? 0 : 1,
+              px: isCollapsed ? 0.5 : 1,
             }}
           >
             {!isCollapsed && (
-              <Typography
-                variant="caption"
-                color="text.secondary"
-                sx={{
-                  fontSize: "0.7rem",
-                  fontWeight: 500,
-                }}
-              >
-                v2.1.0
-              </Typography>
+              <Box>
+                <Typography
+                  variant="caption"
+                  sx={{
+                    fontSize: "0.7rem",
+                    fontWeight: 600,
+                    color: "rgba(255, 255, 255, 0.7)",
+                    display: "block",
+                  }}
+                >
+                  v2.2.0
+                </Typography>
+                <Typography
+                  variant="caption"
+                  sx={{
+                    fontSize: "0.65rem",
+                    color: "rgba(255, 255, 255, 0.5)",
+                  }}
+                >
+                  SunergyTech
+                </Typography>
+              </Box>
             )}
             <Tooltip
               title="Logout"
@@ -736,12 +859,17 @@ const Sidebar = ({ open, toggleDrawer }) => {
                 size="small"
                 onClick={logout}
                 sx={{
-                  color: theme.palette.error.main,
-                  bgcolor: alpha(theme.palette.error.main, 0.1),
+                  color: TEXT_COLOR,
+                  bgcolor: "rgba(255, 255, 255, 0.2)",
                   "&:hover": {
-                    bgcolor: alpha(theme.palette.error.main, 0.2),
+                    bgcolor: "rgba(255, 255, 255, 0.3)",
+                    transform: "rotate(90deg)",
+                    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.2)",
                   },
-                  transition: "all 0.2s ease",
+                  transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+                  width: isCollapsed ? 36 : 40,
+                  height: isCollapsed ? 36 : 40,
+                  border: `1px solid rgba(255, 255, 255, 0.25)`,
                 }}
               >
                 <Logout fontSize={isCollapsed ? "small" : "medium"} />
@@ -760,7 +888,10 @@ const Sidebar = ({ open, toggleDrawer }) => {
       renderMenuItem,
       scrolled,
       handleMenuScroll,
-    ]
+      roleConfig,
+      getUserInitials,
+      getUserFullName,
+    ],
   );
 
   // Mobile Sidebar content
@@ -771,9 +902,10 @@ const Sidebar = ({ open, toggleDrawer }) => {
           height: "100vh",
           display: "flex",
           flexDirection: "column",
-          bgcolor: "#fff",
+          bgcolor: BACKGROUND_COLOR,
           width: isSmallMobile ? "100vw" : SIDEBAR_WIDTH,
-          boxShadow: "none",
+          position: "relative",
+          background: `linear-gradient(135deg, ${BACKGROUND_COLOR} 0%, ${PRIMARY_DARK} 100%)`,
         }}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
@@ -784,56 +916,148 @@ const Sidebar = ({ open, toggleDrawer }) => {
           <Box
             sx={{
               p: 3,
-              borderBottom: `1px solid ${theme.palette.divider}`,
-              bgcolor: "#fff",
+              borderBottom: `1px solid ${BORDER_COLOR}`,
               display: "flex",
               alignItems: "center",
               justifyContent: "space-between",
               flexShrink: 0,
               transition: "all 0.3s ease",
+              position: "relative",
+              overflow: "hidden",
+              bgcolor: "rgba(255, 255, 255, 0.08)",
+              backdropFilter: "blur(10px)",
             }}
           >
-            <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+            {/* Animated background effect */}
+            <Box
+              sx={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                background: `radial-gradient(circle at 30% 50%, ${PRIMARY_LIGHT} 0%, transparent 60%)`,
+                opacity: 0.2,
+              }}
+            />
+
+            <Box
+              sx={{ display: "flex", alignItems: "center", gap: 2, zIndex: 1 }}
+            >
               {/* Mobile Logo */}
               <Box
                 sx={{
-                  width: 60,
-                  height: 60,
-                  borderRadius: "12px",
+                  width: 56,
+                  height: 56,
+                  borderRadius: "16px",
                   overflow: "hidden",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  bgcolor: "white",
-                  boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+                  bgcolor: "rgba(255, 255, 255, 0.12)",
+                  border: `2px solid rgba(255, 255, 255, 0.3)`,
+                  boxShadow: "0 6px 24px rgba(0, 0, 0, 0.25)",
+                  backdropFilter: "blur(12px)",
                 }}
               >
                 <img
                   src={logo}
-                  alt="Saura Shakti Logo"
+                  alt="Sunergytech Logo"
                   style={{
                     width: "100%",
                     height: "100%",
                     objectFit: "contain",
-                    padding: "10px",
+                    padding: "12px",
+                    filter: "brightness(0) invert(1) drop-shadow(0 2px 4px rgba(0,0,0,0.3))",
                   }}
                 />
               </Box>
               <Box>
                 <Typography
                   variant="h6"
-                  fontWeight={800}
-                  color={theme.palette.primary.main}
+                  fontWeight={900}
+                  color={TEXT_COLOR}
+                  sx={{ textShadow: "0 2px 8px rgba(0,0,0,0.3)" }}
                 >
-                  Saura Shakti
+                  Sunergytech
                 </Typography>
-                <Typography variant="caption" color="text.secondary">
+                <Typography
+                  variant="caption"
+                  sx={{
+                    color: "rgba(255, 255, 255, 0.85)",
+                    fontWeight: 600,
+                    textShadow: "0 1px 3px rgba(0,0,0,0.2)",
+                  }}
+                >
                   Solar Management
                 </Typography>
               </Box>
             </Box>
           </Box>
         </Fade>
+
+        {/* Mobile User Profile */}
+        <Box
+          sx={{
+            p: 2.5,
+            borderBottom: `1px solid ${BORDER_COLOR}`,
+            bgcolor: "rgba(255, 255, 255, 0.08)",
+            display: "flex",
+            alignItems: "center",
+            gap: 2,
+            mx: 2,
+            my: 2,
+            borderRadius: "16px",
+            border: `1px solid rgba(255, 255, 255, 0.15)`,
+            boxShadow: "0 4px 20px rgba(0, 0, 0, 0.15)",
+          }}
+        >
+          <Avatar
+            sx={{
+              width: 52,
+              height: 52,
+              bgcolor: "rgba(255, 255, 255, 0.2)",
+              color: TEXT_COLOR,
+              fontSize: "1.3rem",
+              fontWeight: "bold",
+              border: `2px solid rgba(255, 255, 255, 0.3)`,
+              boxShadow: "0 4px 12px rgba(0, 0, 0, 0.2)",
+            }}
+          >
+            {getUserInitials()}
+          </Avatar>
+          <Box sx={{ flex: 1, minWidth: 0 }}>
+            <Typography
+              variant="subtitle2"
+              fontWeight={700}
+              color={TEXT_COLOR}
+              sx={{
+                fontSize: "1rem",
+                mb: 0.5,
+                textShadow: "0 1px 2px rgba(0,0,0,0.2)",
+              }}
+            >
+              {getUserFullName()}
+            </Typography>
+            <Chip
+              label={roleConfig.label}
+              size="small"
+              icon={roleConfig.icon}
+              sx={{
+                bgcolor: "rgba(255, 255, 255, 0.15)",
+                color: TEXT_COLOR,
+                fontSize: "0.75rem",
+                fontWeight: 600,
+                height: 26,
+                "& .MuiChip-icon": {
+                  color: TEXT_COLOR,
+                  fontSize: 14,
+                },
+                border: `1px solid rgba(255, 255, 255, 0.2)`,
+              }}
+            />
+          </Box>
+        </Box>
 
         {/* Mobile Menu Content */}
         <Box
@@ -843,64 +1067,63 @@ const Sidebar = ({ open, toggleDrawer }) => {
             flex: 1,
             overflowY: "auto",
             py: 2,
-            px: 2,
-            bgcolor: "#fff",
+            px: 2.5,
             "&::-webkit-scrollbar": {
               width: "6px",
-              display: "none",
+            },
+            "&::-webkit-scrollbar-track": {
+              background: "rgba(255, 255, 255, 0.08)",
+              borderRadius: "10px",
+            },
+            "&::-webkit-scrollbar-thumb": {
+              background: "rgba(255, 255, 255, 0.2)",
+              borderRadius: "10px",
             },
           }}
         >
-          <Typography
-            variant="caption"
-            color="text.secondary"
-            sx={{
-              px: 2,
-              mb: 1,
-              display: "block",
-              fontWeight: 700,
-              letterSpacing: "1px",
-              fontSize: "0.75rem",
-              textTransform: "uppercase",
-            }}
-          >
-            Main
-          </Typography>
-
           <List sx={{ p: 0 }}>
             {menuItems.map((item) => renderMenuItem(item))}
           </List>
 
           {/* Spacer for better scrolling */}
-          <Box sx={{ height: 20 }} />
+          <Box sx={{ height: 30 }} />
         </Box>
 
         {/* Mobile Footer */}
         <Box
           sx={{
-            p: 2,
-            borderTop: `1px solid ${theme.palette.divider}`,
+            p: 2.5,
+            borderTop: `1px solid ${BORDER_COLOR}`,
             textAlign: "center",
             flexShrink: 0,
-            bgcolor: theme.palette.background.paper,
+            bgcolor: "rgba(255, 255, 255, 0.08)",
+            backdropFilter: "blur(10px)",
           }}
         >
           <Typography
             variant="caption"
-            color="text.secondary"
-            sx={{ fontSize: "0.75rem", fontWeight: 500 }}
+            sx={{
+              fontSize: "0.8rem",
+              fontWeight: 600,
+              color: "rgba(255, 255, 255, 0.7)",
+              display: "block",
+              mb: 1.5,
+            }}
           >
-            © 2025 Saura Shakti • v2.1.0
+            © 2025 Sunergytech • v2.2.0
           </Typography>
           <IconButton
             onClick={logout}
             sx={{
-              mt: 1,
-              color: theme.palette.error.main,
-              bgcolor: alpha(theme.palette.error.main, 0.1),
+              color: TEXT_COLOR,
+              bgcolor: "rgba(255, 255, 255, 0.2)",
               "&:hover": {
-                bgcolor: alpha(theme.palette.error.main, 0.2),
+                bgcolor: "rgba(255, 255, 255, 0.3)",
+                boxShadow: "0 4px 12px rgba(0, 0, 0, 0.2)",
               },
+              width: 48,
+              height: 48,
+              border: `1px solid rgba(255, 255, 255, 0.25)`,
             }}
           >
             <Logout />
@@ -920,7 +1143,10 @@ const Sidebar = ({ open, toggleDrawer }) => {
       scrollTop,
       isSmallMobile,
       handleMenuScroll,
-    ]
+      roleConfig,
+      getUserInitials,
+      getUserFullName,
+    ],
   );
 
   return (
@@ -936,14 +1162,11 @@ const Sidebar = ({ open, toggleDrawer }) => {
             "& .MuiDrawer-paper": {
               width: isCollapsed ? COLLAPSED_WIDTH : SIDEBAR_WIDTH,
               boxSizing: "border-box",
-              borderRight: `1px solid ${theme.palette.divider}`,
               overflowX: "hidden",
-              transition: theme.transitions.create("width", {
-                easing: theme.transitions.easing.sharp,
-                duration: theme.transitions.duration.standard,
-              }),
-              boxShadow: "none",
-              backgroundColor: theme.palette.background.default,
+              transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+              backgroundColor: "transparent",
+              border: "none",
+              boxShadow: "4px 0 30px rgba(0, 0, 0, 0.15)",
             },
           }}
         >
@@ -958,7 +1181,7 @@ const Sidebar = ({ open, toggleDrawer }) => {
           open={open}
           onClose={toggleDrawer}
           onOpen={toggleDrawer}
-          swipeAreaWidth={20}
+          swipeAreaWidth={30}
           disableSwipeToOpen={false}
           ModalProps={{
             keepMounted: true,
@@ -968,8 +1191,9 @@ const Sidebar = ({ open, toggleDrawer }) => {
               width: isSmallMobile ? "100vw" : SIDEBAR_WIDTH,
               maxWidth: "100vw",
               boxSizing: "border-box",
-              boxShadow: "none",
-              backgroundColor: theme.palette.background.default,
+              backgroundColor: "transparent",
+              border: "none",
+              boxShadow: "4px 0 30px rgba(0, 0, 0, 0.25)",
             },
           }}
         >

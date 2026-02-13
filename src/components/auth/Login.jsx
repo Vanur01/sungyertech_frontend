@@ -1,9 +1,8 @@
 // components/auth/Login.jsx
 import React, { useState, useEffect } from 'react';
-import { useNavigate, Link as RouterLink } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import {
   Box,
-  Container,
   Paper,
   TextField,
   Button,
@@ -16,8 +15,6 @@ import {
   CircularProgress,
   Fade,
   Zoom,
-  Link,
-  Divider,
   InputLabel,
   FormHelperText,
   useMediaQuery,
@@ -35,7 +32,13 @@ import {
   CheckCircleOutline
 } from '@mui/icons-material';
 import { useAuth } from '../../contexts/AuthContext';
-import logo from '../../logo.svg';
+import logo from '../../logo.png';
+
+const COLOR = '#4569ea';
+const COLOR_LIGHT = '#5c7cec';
+const COLOR_DARK = '#3a5ac8';
+const COLOR_VERY_LIGHT = '#e8edff';
+const COLOR_VERY_DARK = '#2d47a6';
 
 // Validation error types
 const ERROR_TYPES = {
@@ -50,7 +53,7 @@ const ERROR_TYPES = {
   INVALID_CREDENTIALS: 'INVALID_CREDENTIALS',
   RATE_LIMIT: 'RATE_LIMIT',
   MAINTENANCE: 'MAINTENANCE',
-  PERMISSION_DENIED: 'PERMISSION_DENIED' // Added new error type
+  PERMISSION_DENIED: 'PERMISSION_DENIED'
 };
 
 const Login = () => {
@@ -136,7 +139,7 @@ const Login = () => {
   useEffect(() => {
     if (attemptCount >= 5) {
       const lockTime = new Date();
-      lockTime.setMinutes(lockTime.getMinutes() + 15); // Lock for 15 minutes
+      lockTime.setMinutes(lockTime.getMinutes() + 15);
       setLockUntil(lockTime);
       localStorage.setItem('loginLockUntil', lockTime.toISOString());
       localStorage.setItem('failedAttempts', '0');
@@ -168,31 +171,19 @@ const Login = () => {
       };
     }
 
-    // Email format validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       return {
         valid: false,
-        message: 'Please enter a valid email address (e.g., user@example.com)',
+        message: 'Please enter a valid email address',
         type: ERROR_TYPES.INVALID_EMAIL
       };
     }
 
-    // Length validation
     if (email.length > 100) {
       return {
         valid: false,
         message: 'Email must be less than 100 characters',
-        type: ERROR_TYPES.INVALID_EMAIL
-      };
-    }
-
-    // Domain validation (optional)
-    const domain = email.split('@')[1];
-    if (domain && domain.split('.').length < 2) {
-      return {
-        valid: false,
-        message: 'Please enter a valid domain name',
         type: ERROR_TYPES.INVALID_EMAIL
       };
     }
@@ -204,7 +195,7 @@ const Login = () => {
     };
   };
 
-  // Password validation with strength checking
+  // Password validation
   const validatePassword = (password) => {
     if (!password) {
       return {
@@ -214,8 +205,7 @@ const Login = () => {
       };
     }
 
-    // Length validation
-    if (password.length < 8) {
+    if (password.length < 6) {
       return {
         valid: false,
         message: 'Password must be at least 6 characters',
@@ -236,17 +226,13 @@ const Login = () => {
     let message = '';
     let color = '';
 
-    // Length check
+    if (password.length >= 6) score += 1;
     if (password.length >= 8) score += 1;
-    if (password.length >= 12) score += 1;
+    if (/[A-Z]/.test(password)) score += 1;
+    if (/[a-z]/.test(password)) score += 1;
+    if (/[0-9]/.test(password)) score += 1;
+    if (/[^A-Za-z0-9]/.test(password)) score += 1;
 
-    // Complexity checks
-    if (/[A-Z]/.test(password)) score += 1; // Uppercase
-    if (/[a-z]/.test(password)) score += 1; // Lowercase
-    if (/[0-9]/.test(password)) score += 1; // Numbers
-    if (/[^A-Za-z0-9]/.test(password)) score += 1; // Special chars
-
-    // Set strength message
     if (score >= 5) {
       message = 'Strong password';
       color = 'success';
@@ -372,7 +358,6 @@ const Login = () => {
     });
     setError(errorMessage);
     
-    // Store error in session storage for debugging
     sessionStorage.setItem('lastLoginError', JSON.stringify({
       message: errorMessage,
       type: errorType,
@@ -390,7 +375,6 @@ const Login = () => {
       [name]: newValue
     }));
 
-    // Clear specific error when user starts typing
     if (errors[name]) {
       setErrors(prev => ({
         ...prev,
@@ -398,7 +382,6 @@ const Login = () => {
       }));
     }
     
-    // Clear general errors
     if (authError || localError) {
       setError('');
       setLocalError(null);
@@ -408,12 +391,10 @@ const Login = () => {
       setSuccessMessage('');
     }
 
-    // Validate field on change if touched
     if (touched[name]) {
       validateField(name, newValue);
     }
 
-    // Save email for remember me
     if (name === 'email' && formData.rememberMe) {
       localStorage.setItem('rememberedEmail', newValue);
     }
@@ -426,7 +407,6 @@ const Login = () => {
       [name]: true
     }));
 
-    // Validate the field
     const validationResult = validateField(name, value);
     if (!validationResult.valid) {
       setErrors(prev => ({
@@ -444,7 +424,6 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Check if account is locked
     if (lockUntil && new Date(lockUntil) > new Date()) {
       handleError({
         type: ERROR_TYPES.RATE_LIMIT,
@@ -453,22 +432,18 @@ const Login = () => {
       return;
     }
 
-    // Mark all fields as touched
     setTouched({
       email: true,
       password: true
     });
 
-    // Validate form
     if (!validateForm()) {
-      // Focus on first error field
       if (errors.email) {
         document.getElementById('email').focus();
       } else if (errors.password) {
         document.getElementById('password').focus();
       }
       
-      // Show error for invalid form
       handleError({
         type: ERROR_TYPES.REQUIRED,
         message: 'Please fix the errors in the form'
@@ -481,24 +456,19 @@ const Login = () => {
     setLocalError(null);
     setError('');
 
-    // Simulate network delay for better UX
     await new Promise(resolve => setTimeout(resolve, 500));
 
     try {
       console.log('Calling login with:', formData.email);
       
-      // Call login function from AuthContext
       const result = await login(formData.email, formData.password);
       console.log('Login result:', result);
       
-      // Check if login was successful
       if (result?.success) {
-        // Reset attempt count on success
         setAttemptCount(0);
         localStorage.removeItem('loginLockUntil');
         localStorage.removeItem('failedAttempts');
         
-        // Get user role from result
         const userRole = result.data?.role || result.role;
         console.log('User role after login:', userRole);
         
@@ -506,12 +476,10 @@ const Login = () => {
           throw new Error('User role not found in login response');
         }
         
-        // Check if user has permission to access the system
         if (!['Head_office', 'ZSM', 'ASM', 'TEAM'].includes(userRole)) {
           throw new Error('You do not have permission to access this system');
         }
         
-        // Store remember me preference
         if (formData.rememberMe) {
           localStorage.setItem('rememberMe', 'true');
           localStorage.setItem('rememberedEmail', formData.email);
@@ -520,23 +488,19 @@ const Login = () => {
           localStorage.removeItem('rememberedEmail');
         }
         
-        // Store login timestamp
         localStorage.setItem('lastLogin', new Date().toISOString());
         
         setSuccessMessage('Login successful! Redirecting to dashboard...');
         
-        // Show success message before redirect
         setTimeout(() => {
           console.log('Redirecting to dashboard');
           navigate("/dashboard", { replace: true });
         }, 1500);
         
       } else {
-        // Handle error response
         const errorType = result?.errorType || ERROR_TYPES.INVALID_CREDENTIALS;
         const errorMessage = result?.error || 'Invalid email or password. Please try again.';
         
-        // Check if it's a permission error
         if (errorMessage.includes('You can only update users in your zone') || 
             errorMessage.includes('permission') || 
             errorMessage.includes('403')) {
@@ -551,7 +515,6 @@ const Login = () => {
           });
         }
         
-        // Increment attempt count
         const newAttemptCount = attemptCount + 1;
         setAttemptCount(newAttemptCount);
         localStorage.setItem('failedAttempts', newAttemptCount.toString());
@@ -566,7 +529,6 @@ const Login = () => {
     } catch (err) {
       console.error('Login error:', err);
       
-      // Determine error type
       let errorType = ERROR_TYPES.SERVER_ERROR;
       let errorMessage = err.message || 'An unexpected error occurred. Please try again.';
       
@@ -595,7 +557,6 @@ const Login = () => {
         message: errorMessage
       });
       
-      // Increment attempt count for server errors
       const newAttemptCount = attemptCount + 1;
       setAttemptCount(newAttemptCount);
     } finally {
@@ -608,54 +569,6 @@ const Login = () => {
     setShowPassword(!showPassword);
   };
 
-  const handleDemoLogin = async () => {
-    if (lockUntil && new Date(lockUntil) > new Date()) {
-      handleError({
-        type: ERROR_TYPES.RATE_LIMIT,
-        message: `Account is locked. Try again after ${formatLockTime(lockUntil)}`
-      });
-      return;
-    }
-
-    setFormData({
-      email: 'headoffice@saurashakti.com',
-      password: '',
-      rememberMe: true
-    });
-    
-    // Clear errors
-    setErrors({ email: '', password: '' });
-    setLocalError(null);
-    setError('');
-    
-    // Show password prompt
-    const password = prompt('Enter password for headoffice@saurashakti.com:');
-    if (password) {
-      setFormData(prev => ({
-        ...prev,
-        password: password
-      }));
-      
-      // Validate the demo login
-      const emailValidation = validateEmail('headoffice@saurashakti.com');
-      const passwordValidation = validatePassword(password);
-      
-      if (!emailValidation.valid || !passwordValidation.valid) {
-        handleError({
-          type: ERROR_TYPES.INVALID_CREDENTIALS,
-          message: 'Invalid demo credentials'
-        });
-        return;
-      }
-      
-      // Wait a moment for state to update, then submit
-      setTimeout(() => {
-        handleSubmit(new Event('submit'));
-      }, 100);
-    }
-  };
-
-  // Format lock time
   const formatLockTime = (lockTime) => {
     if (!lockTime) return '';
     const now = new Date();
@@ -670,7 +583,6 @@ const Login = () => {
     return `${hours} hour${hours > 1 ? 's' : ''} ${minutes > 0 ? `${minutes} minute${minutes > 1 ? 's' : ''}` : ''}`;
   };
 
-  // Handle mobile keyboard behavior
   const handleKeyDown = (e) => {
     if (isMobile && e.key === 'Enter') {
       e.preventDefault();
@@ -680,14 +592,8 @@ const Login = () => {
     }
   };
 
-  // Handle back button
   const handleBack = () => {
     navigate(-1);
-  };
-
-  // Forgot password handler
-  const handleForgotPassword = () => {
-    navigate('/forgot-password');
   };
 
   // Display error message with icon
@@ -710,8 +616,12 @@ const Login = () => {
             borderRadius: 2,
             fontSize: { xs: '0.875rem', sm: '1rem' },
             py: { xs: 0.5, sm: 1 },
+            backgroundColor: 'rgba(69, 105, 234, 0.1)',
+            border: '1px solid',
+            borderColor: 'rgba(69, 105, 234, 0.2)',
             '& .MuiAlert-icon': {
-              fontSize: { xs: '1.25rem', sm: '1.5rem' }
+              fontSize: { xs: '1.25rem', sm: '1.5rem' },
+              color: COLOR
             }
           }}
           onClose={() => {
@@ -720,26 +630,26 @@ const Login = () => {
           }}
         >
           <Box>
-            <Typography variant="body2" fontWeight="medium">
+            <Typography variant="body2" fontWeight="medium" sx={{ color: COLOR_DARK }}>
               {error.message}
             </Typography>
             {isRateLimit && lockUntil && (
-              <Typography variant="caption" sx={{ mt: 0.5, display: 'block' }}>
+              <Typography variant="caption" sx={{ mt: 0.5, display: 'block', color: COLOR }}>
                 Lock expires: {new Date(lockUntil).toLocaleTimeString()}
               </Typography>
             )}
             {isNetworkError && (
-              <Typography variant="caption" sx={{ mt: 0.5, display: 'block' }}>
+              <Typography variant="caption" sx={{ mt: 0.5, display: 'block', color: COLOR }}>
                 Please check your internet connection and try again.
               </Typography>
             )}
             {isPermissionError && (
-              <Typography variant="caption" sx={{ mt: 0.5, display: 'block', color: 'warning.dark' }}>
+              <Typography variant="caption" sx={{ mt: 0.5, display: 'block', color: COLOR }}>
                 Contact your administrator for system access
               </Typography>
             )}
             {attemptCount > 0 && attemptCount < 5 && !isPermissionError && (
-              <Typography variant="caption" sx={{ mt: 0.5, display: 'block', color: 'warning.dark' }}>
+              <Typography variant="caption" sx={{ mt: 0.5, display: 'block', color: COLOR }}>
                 Failed attempts: {attemptCount}/5
               </Typography>
             )}
@@ -756,14 +666,20 @@ const Login = () => {
     return (
       <Fade in={true}>
         <Alert 
-          severity="success" 
+          severity="success"
           icon={<CheckCircleOutline />}
           sx={{ 
             width: '100%', 
             mb: 2, 
             borderRadius: 2,
             fontSize: { xs: '0.875rem', sm: '1rem' },
-            py: { xs: 0.5, sm: 1 }
+            py: { xs: 0.5, sm: 1 },
+            backgroundColor: 'rgba(69, 105, 234, 0.1)',
+            border: '1px solid',
+            borderColor: 'rgba(69, 105, 234, 0.3)',
+            '& .MuiAlert-icon': {
+              color: COLOR
+            }
           }}
           onClose={() => setSuccessMessage('')}
         >
@@ -782,7 +698,7 @@ const Login = () => {
         <Typography 
           variant="caption" 
           sx={{ 
-            color: `${passwordStrength.color}.main`,
+            color: COLOR,
             fontWeight: 500,
             fontSize: '0.75rem'
           }}
@@ -802,8 +718,8 @@ const Login = () => {
                 height: 3,
                 borderRadius: 1,
                 backgroundColor: index <= passwordStrength.score 
-                  ? `${passwordStrength.color}.main` 
-                  : 'grey.300'
+                  ? COLOR 
+                  : COLOR_VERY_LIGHT
               }}
             />
           ))}
@@ -823,9 +739,7 @@ const Login = () => {
     <Box
       sx={{
         minHeight: '100vh',
-        background: theme.palette.mode === 'dark'
-          ? 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)'
-          : 'linear-gradient(135deg, #ff8c00 0%, #ff6b00 50%, #ff5500 100%)',
+        background: `linear-gradient(135deg, ${COLOR} 0%, ${COLOR_DARK} 50%, ${COLOR_LIGHT} 100%)`,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -840,7 +754,7 @@ const Login = () => {
           left: 0,
           right: 0,
           bottom: 0,
-          background: 'radial-gradient(circle at 50% 50%, rgba(255,255,255,0.1) 0%, transparent 50%)',
+          background: `radial-gradient(circle at 50% 50%, rgba(255,255,255,0.1) 0%, transparent 50%)`,
         }
       }}
     >
@@ -911,8 +825,8 @@ const Login = () => {
               flexDirection: 'column',
               alignItems: 'center',
               borderRadius: { xs: 2, sm: 3, md: 3 },
-              backgroundColor: theme.palette.background.paper,
-              boxShadow: theme.shadows[isMobile ? 6 : 24],
+              backgroundColor: '#ffffff',
+              boxShadow: `0 8px 32px rgba(69, 105, 234, 0.2)`,
               position: 'relative',
               overflow: 'hidden',
               '&::before': {
@@ -922,7 +836,7 @@ const Login = () => {
                 left: 0,
                 right: 0,
                 height: 4,
-                background: 'linear-gradient(90deg, #ff8c00, #ff6b00)',
+                background: COLOR,
               }
             }}
           >
@@ -936,16 +850,16 @@ const Login = () => {
                 mb: 2,
                 pb: 1,
                 borderBottom: '1px solid',
-                borderColor: 'divider'
+                borderColor: COLOR_VERY_LIGHT
               }}>
-                <Smartphone sx={{ fontSize: 20, color: 'primary.main' }} />
-                <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 500 }}>
-                  Saura Shakti Mobile
+                <Smartphone sx={{ fontSize: 20, color: COLOR }} />
+                <Typography variant="caption" sx={{ color: COLOR, fontWeight: 500 }}>
+                  SunergyTech Mobile
                 </Typography>
               </Box>
             )}
 
-            {/* Logo Section - Updated with imported logo */}
+            {/* Logo Section */}
             <Fade in={true} timeout={1000}>
               <Box sx={{ 
                 display: 'flex', 
@@ -958,27 +872,26 @@ const Login = () => {
                     width: { xs: 80, sm: 100, md: 120 },
                     height: { xs: 80, sm: 100, md: 120 },
                     borderRadius: '50%',
-                    background: 'linear-gradient(135deg, #ffffff, #f5f5f5)',
+                    background: COLOR_VERY_LIGHT,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     marginBottom: { xs: 1.5, sm: 2, md: 2 },
-                    boxShadow: '0 8px 24px rgba(0, 0, 0, 0.1)',
-                    border: '3px solid',
-                    borderColor: 'primary.main',
+                    boxShadow: `0 8px 24px rgba(69, 105, 234, 0.2)`,
+                    border: `3px solid ${COLOR}`,
                     overflow: 'hidden',
                     animation: 'pulse 2s infinite',
                     '@keyframes pulse': {
-                      '0%': { boxShadow: '0 0 0 0 rgba(255, 140, 0, 0.4)' },
-                      '70%': { boxShadow: '0 0 0 10px rgba(255, 140, 0, 0)' },
-                      '100%': { boxShadow: '0 0 0 0 rgba(255, 140, 0, 0)' },
+                      '0%': { boxShadow: `0 0 0 0 rgba(69, 105, 234, 0.4)` },
+                      '70%': { boxShadow: `0 0 0 10px rgba(69, 105, 234, 0)` },
+                      '100%': { boxShadow: `0 0 0 0 rgba(69, 105, 234, 0)` },
                     }
                   }}
                 >
                   {/* Logo Image */}
                   <img 
                     src={logo} 
-                    alt="Saura Shakti Logo" 
+                    alt="SunergyTech Logo" 
                     style={{
                       width: '100%',
                       height: '100%',
@@ -988,13 +901,14 @@ const Login = () => {
                   />
                 </Box>
                 <Typography 
-                  variant="subtitle1"
+                  variant="h5"
                   sx={{ 
-                    color: 'text.secondary', 
                     textAlign: 'center', 
                     fontWeight: 700,
-                    fontSize: { xs: '1.2rem', sm: '1.4rem', md: '1.5rem' }
-                }}
+                    fontSize: { xs: '1.2rem', sm: '1.4rem', md: '1.5rem' },
+                    color: COLOR,
+                    letterSpacing: '0.5px'
+                  }}
                 >
                   Solar Management System
                 </Typography>
@@ -1016,10 +930,15 @@ const Login = () => {
                   mb: 2, 
                   borderRadius: 2,
                   fontSize: '0.875rem',
-                  py: 0.5
+                  py: 0.5,
+                  backgroundColor: 'rgba(69, 105, 234, 0.1)',
+                  border: `1px solid ${COLOR}`,
+                  '& .MuiAlert-icon': {
+                    color: COLOR
+                  }
                 }}
               >
-                <Typography variant="caption">
+                <Typography variant="caption" sx={{ color: COLOR_DARK }}>
                   <strong>Warning:</strong> {5 - attemptCount} attempt{5 - attemptCount > 1 ? 's' : ''} remaining before account lock.
                 </Typography>
               </Alert>
@@ -1042,7 +961,7 @@ const Login = () => {
                   htmlFor="email" 
                   sx={{ 
                     mb: 0.5, 
-                    color: 'text.primary',
+                    color: COLOR_DARK,
                     fontWeight: 500,
                     fontSize: { xs: '0.875rem', sm: '0.9rem', md: '1rem' }
                   }}
@@ -1066,7 +985,7 @@ const Login = () => {
                       <InputAdornment position="start">
                         <Email sx={{ 
                           fontSize: { xs: '1rem', sm: '1.25rem' },
-                          color: errors.email ? 'error.main' : validation.emailValid ? 'success.main' : 'text.secondary' 
+                          color: errors.email ? 'error.main' : validation.emailValid ? COLOR : COLOR 
                         }} />
                       </InputAdornment>
                     ),
@@ -1076,8 +995,9 @@ const Login = () => {
                       borderRadius: { xs: 1, sm: 2, md: 2 },
                       fontSize: { xs: '0.9rem', sm: '1rem' },
                       height: { xs: '48px', sm: '56px', md: '56px' },
+                      backgroundColor: COLOR_VERY_LIGHT,
                       '&.Mui-focused fieldset': {
-                        borderColor: validation.emailValid ? 'success.main' : 'primary.main',
+                        borderColor: COLOR,
                         borderWidth: 2
                       }
                     }
@@ -1089,9 +1009,10 @@ const Login = () => {
                     fontSize: { xs: '0.75rem', sm: '0.875rem' },
                     display: 'flex',
                     alignItems: 'center',
-                    gap: 0.5
+                    gap: 0.5,
+                    color: COLOR
                   }}>
-                    <ErrorOutline sx={{ fontSize: '0.875rem' }} />
+                    <ErrorOutline sx={{ fontSize: '0.875rem', color: COLOR }} />
                     {errors.email}
                   </FormHelperText>
                 )}
@@ -1099,12 +1020,12 @@ const Login = () => {
                   <FormHelperText sx={{ 
                     mt: 0.25, 
                     fontSize: { xs: '0.75rem', sm: '0.875rem' },
-                    color: 'success.main',
+                    color: COLOR,
                     display: 'flex',
                     alignItems: 'center',
                     gap: 0.5
                   }}>
-                    <CheckCircleOutline sx={{ fontSize: '0.875rem' }} />
+                    <CheckCircleOutline sx={{ fontSize: '0.875rem', color: COLOR }} />
                     Valid email address
                   </FormHelperText>
                 )}
@@ -1116,7 +1037,7 @@ const Login = () => {
                   <InputLabel 
                     htmlFor="password" 
                     sx={{ 
-                      color: 'text.primary',
+                      color: COLOR_DARK,
                       fontWeight: 500,
                       fontSize: { xs: '0.875rem', sm: '0.9rem', md: '1rem' }
                     }}
@@ -1142,7 +1063,7 @@ const Login = () => {
                       <InputAdornment position="start">
                         <Lock sx={{ 
                           fontSize: { xs: '1rem', sm: '1.25rem' },
-                          color: errors.password ? 'error.main' : validation.passwordValid ? 'success.main' : 'text.secondary' 
+                          color: errors.password ? 'error.main' : validation.passwordValid ? COLOR : COLOR 
                         }} />
                       </InputAdornment>
                     ),
@@ -1153,8 +1074,8 @@ const Login = () => {
                           edge="end"
                           disabled={lockUntil && new Date(lockUntil) > new Date()}
                           sx={{ 
-                            color: errors.password ? 'error.main' : validation.passwordValid ? 'success.main' : 'text.secondary',
-                            '&:hover': { backgroundColor: 'rgba(255, 140, 0, 0.1)' },
+                            color: errors.password ? 'error.main' : validation.passwordValid ? COLOR : COLOR,
+                            '&:hover': { backgroundColor: COLOR_VERY_LIGHT },
                             padding: { xs: '8px', sm: '12px' }
                           }}
                         >
@@ -1171,8 +1092,9 @@ const Login = () => {
                       borderRadius: { xs: 1, sm: 2, md: 2 },
                       fontSize: { xs: '0.9rem', sm: '1rem' },
                       height: { xs: '48px', sm: '56px', md: '56px' },
+                      backgroundColor: COLOR_VERY_LIGHT,
                       '&.Mui-focused fieldset': {
-                        borderColor: validation.passwordValid ? 'success.main' : 'primary.main',
+                        borderColor: COLOR,
                         borderWidth: 2
                       }
                     }
@@ -1187,9 +1109,10 @@ const Login = () => {
                     fontSize: { xs: '0.75rem', sm: '0.875rem' },
                     display: 'flex',
                     alignItems: 'center',
-                    gap: 0.5
+                    gap: 0.5,
+                    color: COLOR
                   }}>
-                    <ErrorOutline sx={{ fontSize: '0.875rem' }} />
+                    <ErrorOutline sx={{ fontSize: '0.875rem', color: COLOR }} />
                     {errors.password}
                   </FormHelperText>
                 )}
@@ -1197,12 +1120,12 @@ const Login = () => {
                   <FormHelperText sx={{ 
                     mt: 0.25, 
                     fontSize: { xs: '0.75rem', sm: '0.875rem' },
-                    color: 'success.main',
+                    color: COLOR,
                     display: 'flex',
                     alignItems: 'center',
                     gap: 0.5
                   }}>
-                    <CheckCircleOutline sx={{ fontSize: '0.875rem' }} />
+                    <CheckCircleOutline sx={{ fontSize: '0.875rem', color: COLOR }} />
                     Password meets requirements
                   </FormHelperText>
                 )}
@@ -1215,12 +1138,20 @@ const Login = () => {
                     name="rememberMe"
                     checked={formData.rememberMe}
                     onChange={handleChange}
-                    color="primary"
+                    sx={{
+                      color: COLOR,
+                      '&.Mui-checked': {
+                        color: COLOR,
+                      },
+                    }}
                     disabled={lockUntil && new Date(lockUntil) > new Date()}
                   />
                 }
                 label={
-                  <Typography sx={{ fontSize: { xs: '0.875rem', sm: '0.9rem', md: '1rem' } }}>
+                  <Typography sx={{ 
+                    fontSize: { xs: '0.875rem', sm: '0.9rem', md: '1rem' },
+                    color: COLOR_DARK
+                  }}>
                     Remember me
                   </Typography>
                 }
@@ -1232,15 +1163,11 @@ const Login = () => {
                 type="submit"
                 fullWidth
                 variant="contained"
-                disabled={isLoading || !validation.formValid || (lockUntil && new Date(lockUntil) > new Date())}
                 sx={{
                   mt: { xs: 0.5, sm: 1, md: 1.5 },
                   mb: { xs: 1.5, sm: 2, md: 2.5 },
                   py: { xs: 1.25, sm: 1.5, md: 1.5 },
-                  backgroundColor: 'primary.main',
-                  background: validation.formValid && !lockUntil 
-                    ? 'linear-gradient(45deg, #ff8c00 30%, #ff6b00 90%)' 
-                    : 'grey.400',
+                  background: COLOR,
                   color: '#fff',
                   fontWeight: 700,
                   fontSize: { xs: '0.9rem', sm: '1rem', md: '1.125rem' },
@@ -1248,32 +1175,10 @@ const Login = () => {
                   textTransform: 'uppercase',
                   letterSpacing: '0.5px',
                   minHeight: { xs: '44px', sm: '48px', md: '52px' },
-                  '&:hover': { 
-                    background: validation.formValid && !lockUntil 
-                      ? 'linear-gradient(45deg, #ff6b00 30%, #ff5500 90%)'
-                      : 'grey.400',
-                    transform: validation.formValid && !lockUntil ? 'translateY(-1px)' : 'none',
-                    boxShadow: validation.formValid && !lockUntil ? '0 4px 12px rgba(255, 140, 0, 0.3)' : 'none'
-                  },
-                  '&:active': {
-                    transform: 'translateY(0)',
-                  },
-                  '&:disabled': {
-                    background: 'grey.400',
-                    transform: 'none',
-                    boxShadow: 'none',
-                    cursor: 'not-allowed'
-                  },
                   transition: 'all 0.2s ease'
                 }}
               >
-                {isLoading ? (
-                  <CircularProgress size={24} sx={{ color: '#fff' }} />
-                ) : lockUntil && new Date(lockUntil) > new Date() ? (
-                  `Locked (${formatLockTime(lockUntil)})`
-                ) : (
-                  'Sign In'
-                )}
+              Login
               </Button>
             </Box>
 
@@ -1283,21 +1188,21 @@ const Login = () => {
                 variant="caption"
                 sx={{
                   mt: { xs: 2, sm: 3, md: 3 },
-                  color: 'text.secondary',
+                  color: COLOR,
                   textAlign: 'center',
                   fontSize: { xs: '0.75rem', sm: '0.875rem', md: '0.875rem' },
                   display: 'block',
                   lineHeight: 1.4
                 }}
               >
-                © {new Date().getFullYear()} Saura Shakti Solar Management System. All rights reserved.
+                © {new Date().getFullYear()} SunergyTech Solar Management System. All rights reserved.
                 <br />
                 <Typography 
                   component="span" 
                   variant="caption" 
                   sx={{ 
                     fontSize: { xs: '0.7rem', sm: '0.75rem', md: '0.75rem' }, 
-                    color: 'text.disabled' 
+                    color: COLOR_LIGHT 
                   }}
                 >
                   Version 2.1.0 • Last updated: {new Date().toLocaleDateString()}
@@ -1311,7 +1216,7 @@ const Login = () => {
                 variant="caption"
                 sx={{
                   mt: 1,
-                  color: 'text.disabled',
+                  color: COLOR_LIGHT,
                   textAlign: 'center',
                   fontSize: '0.7rem',
                   display: 'block'

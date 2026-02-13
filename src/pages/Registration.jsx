@@ -145,7 +145,7 @@ import { useNavigate } from "react-router-dom";
 import AlertTitle from "@mui/material/AlertTitle";
 
 // ========== CONSTANTS & CONFIGURATION ==========
-const PRIMARY = "#ff6d00";
+const PRIMARY = "#3a5ac8";
 const SECONDARY = "#1a237e";
 const ITEMS_PER_PAGE_OPTIONS = [5, 10, 25, 50];
 const DEFAULT_ITEMS_PER_PAGE = 10;
@@ -224,22 +224,22 @@ const SOLAR_REQUIREMENT_TYPES = [
 const ROLE_CONFIG = {
   Head_office: {
     label: "Head Office",
-    color: "#ff6d00",
+    color: "#3a5ac8",
     icon: <AdminPanelSettings sx={{ fontSize: 16 }} />,
   },
   ZSM: {
     label: "Zone Sales Manager",
-    color: "#9c27b0",
+    color: "#3a5ac8",
     icon: <WorkspacePremium sx={{ fontSize: 16 }} />,
   },
   ASM: {
     label: "Area Sales Manager",
-    color: "#00bcd4",
+    color: "#3a5ac8",
     icon: <SupervisorAccount sx={{ fontSize: 16 }} />,
   },
   TEAM: {
     label: "Team Member",
-    color: "#4caf50",
+    color: "#3a5ac8",
     icon: <Groups sx={{ fontSize: 16 }} />,
   },
 };
@@ -1076,7 +1076,7 @@ const ViewRegistrationModal = React.memo(
                   <DocumentCard
                     title="Aadhaar Card"
                     url={displayData.aadhaar.url}
-                    icon={<BadgeIcon sx={{ color: "#f57c00" }} />}
+                    icon={<BadgeIcon sx={{ color: PRIMARY }} />}
                     filename="aadhaar-card"
                     onView={handleViewDocument}
                     onDownload={handleDownload}
@@ -1088,7 +1088,7 @@ const ViewRegistrationModal = React.memo(
                   <DocumentCard
                     title="PAN Card"
                     url={displayData.panCard.url}
-                    icon={<CreditCard sx={{ color: "#1976d2" }} />}
+                    icon={<CreditCard sx={{ color: PRIMARY }} />}
                     filename="pan-card"
                     onView={handleViewDocument}
                     onDownload={handleDownload}
@@ -1100,7 +1100,7 @@ const ViewRegistrationModal = React.memo(
                   <DocumentCard
                     title="Bank Passbook"
                     url={displayData.passbook.url}
-                    icon={<ReceiptLong sx={{ color: "#388e3c" }} />}
+                    icon={<ReceiptLong sx={{ color: PRIMARY }} />}
                     filename="passbook"
                     onView={handleViewDocument}
                     onDownload={handleDownload}
@@ -1112,7 +1112,7 @@ const ViewRegistrationModal = React.memo(
                   <DocumentCard
                     title={doc.name || `Document ${index + 1}`}
                     url={doc.url}
-                    icon={<InsertDriveFile sx={{ color: "#9c27b0" }} />}
+                    icon={<InsertDriveFile sx={{ color: PRIMARY }} />}
                     filename={doc.name}
                     onView={handleViewDocument}
                     onDownload={handleDownload}
@@ -1289,7 +1289,7 @@ const ViewRegistrationModal = React.memo(
             <Button
               onClick={onClose}
               variant="contained"
-              sx={{ borderRadius: 2, mt: 2 }}
+              sx={{ bgcolor: PRIMARY, borderRadius: 2, mt: 2 }}
             >
               Close
             </Button>
@@ -1653,7 +1653,7 @@ const EditRegistrationModal = React.memo(
             size="large"
             disabled={loading}
             startIcon={loading ? <CircularProgress size={20} /> : <Save />}
-            sx={{ bgcolor: PRIMARY, px: 4, "&:hover": { bgcolor: "#e65c00" } }}
+            sx={{ bgcolor: PRIMARY, px: 4, "&:hover": { bgcolor: "#2d4bb9" } }}
           >
             {loading ? "Saving..." : "Save Changes"}
           </Button>
@@ -1925,7 +1925,7 @@ const DocumentUploadModal = React.memo(
             size="large"
             disabled={loading || !documentFile}
             startIcon={loading ? <CircularProgress size={20} /> : <CloudUpload />}
-            sx={{ bgcolor: PRIMARY, px: 4, "&:hover": { bgcolor: "#e65c00" } }}
+            sx={{ bgcolor: PRIMARY, px: 4, "&:hover": { bgcolor: "#2d4bb9" } }}
           >
             {loading ? "Uploading..." : "Upload Document"}
           </Button>
@@ -2437,14 +2437,14 @@ export default function RegistrationPage() {
       {
         label: "Pending",
         value: registrationsData.summary.pendingRegistrations,
-        color: "#ef6c00",
+        color: PRIMARY,
         icon: <PendingActions />,
         subText: "Pending registrations",
       },
       {
         label: "Completed",
         value: registrationsData.summary.completedRegistrations,
-        color: "#2e7d32",
+        color: PRIMARY,
         icon: <CheckCircle />,
         subText: "Completed registrations",
       },
@@ -3209,10 +3209,10 @@ export default function RegistrationPage() {
                                   size="small"
                                   onClick={() => handleViewClick(registration)}
                                   sx={{
-                                    bgcolor: alpha("#1976d2", 0.1),
-                                    color: "#1976d2",
+                                    bgcolor: alpha(PRIMARY, 0.1),
+                                    color: PRIMARY,
                                     "&:hover": {
-                                      bgcolor: alpha("#1976d2", 0.2),
+                                      bgcolor: alpha(PRIMARY, 0.2),
                                     },
                                   }}
                                 >
@@ -3246,10 +3246,10 @@ export default function RegistrationPage() {
                                       handleDocumentUploadClick(registration)
                                     }
                                     sx={{
-                                      bgcolor: alpha("#9c27b0", 0.1),
-                                      color: "#9c27b0",
+                                      bgcolor: alpha(PRIMARY, 0.1),
+                                      color: PRIMARY,
                                       "&:hover": {
-                                        bgcolor: alpha("#9c27b0", 0.2),
+                                        bgcolor: alpha(PRIMARY, 0.2),
                                       },
                                     }}
                                   >

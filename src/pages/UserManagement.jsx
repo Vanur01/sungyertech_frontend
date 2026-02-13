@@ -96,34 +96,34 @@ import {
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 
-const PRIMARY_COLOR = "#1976d2";
-const SECONDARY_COLOR = "#115293";
+const PRIMARY_COLOR = "#3a5ac8";
+const SECONDARY_COLOR = "#2d4bb9";
 
 const ROLE_CONFIG = {
   Head_office: {
-    color: "#ff6d00",
-    bg: alpha("#ff6d00", 0.1),
+    color: "#3a5ac8",
+    bg: alpha("#3a5ac8", 0.1),
     icon: <AdminPanelSettings fontSize="small" />,
     label: "Head Office",
     level: 1,
   },
   ZSM: {
-    color: "#2e7d32",
-    bg: alpha("#2e7d32", 0.1),
+    color: "#3a5ac8",
+    bg: alpha("#3a5ac8", 0.1),
     icon: <SupervisorAccount fontSize="small" />,
     label: "Zonal Sales Manager",
     level: 2,
   },
   ASM: {
-    color: "#c2185b",
-    bg: alpha("#c2185b", 0.1),
+    color: "#3a5ac8",
+    bg: alpha("#3a5ac8", 0.1),
     icon: <SupervisorAccount fontSize="small" />,
     label: "Area Sales Manager",
     level: 3,
   },
   TEAM: {
-    color: "#1976d2",
-    bg: alpha("#1976d2", 0.1),
+    color: "#3a5ac8",
+    bg: alpha("#3a5ac8", 0.1),
     icon: <Group fontSize="small" />,
     label: "Team Member",
     level: 4,
@@ -692,7 +692,7 @@ const EditUserModal = ({ open, onClose, user, onSave, currentUserRole }) => {
   );
 };
 
-// Password View Dialog (Only for Head_office)
+// Password View Dialog (Only for Head_office) - FIXED VERSION
 const PasswordViewDialog = ({ open, onClose, user, fetchAPI }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
@@ -747,11 +747,7 @@ const PasswordViewDialog = ({ open, onClose, user, fetchAPI }) => {
       PaperProps={{ sx: { borderRadius: 3 } }}
     >
       <DialogTitle sx={{ borderBottom: 1, borderColor: "divider" }}>
-        <Stack
-          direction="row"
-          alignItems="center"
-          justifyContent="space-between"
-        >
+        <Stack direction="row" alignItems="center" justifyContent="space-between">
           <Typography variant="h6" fontWeight="bold">
             View Password
           </Typography>
@@ -762,118 +758,120 @@ const PasswordViewDialog = ({ open, onClose, user, fetchAPI }) => {
       </DialogTitle>
 
       <DialogContent sx={{ pt: 3 }}>
-        {user && (
-          <Stack spacing={3}>
-            <Stack direction="row" alignItems="center" spacing={2}>
-              <Avatar
-                sx={{
-                  bgcolor: ROLE_CONFIG[user.role]?.color || PRIMARY_COLOR,
-                  width: 60,
-                  height: 60,
-                }}
-              >
-                {user.firstName?.[0]}
-              </Avatar>
-              <Box>
-                <Typography
-                  fontWeight={600}
-                  variant="h6"
-                  sx={{ marginTop: "14px" }}
-                >
-                  {user.firstName} {user.lastName}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  {user.email} • {ROLE_CONFIG[user.role]?.label}
-                </Typography>
-                <Chip
-                  label={user.status === "active" ? "Active" : "Inactive"}
-                  size="small"
+        <Stack spacing={3}>
+          {user && (
+            <>
+              <Stack direction="row" alignItems="center" spacing={2}>
+                <Avatar
                   sx={{
-                    mt: 1,
-                    bgcolor:
-                      user.status === "active"
-                        ? STATUS_CONFIG.active.bg
-                        : STATUS_CONFIG.inactive.bg,
-                    color:
-                      user.status === "active"
-                        ? STATUS_CONFIG.active.color
-                        : STATUS_CONFIG.inactive.color,
+                    bgcolor: ROLE_CONFIG[user.role]?.color || PRIMARY_COLOR,
+                    width: 60,
+                    height: 60,
                   }}
-                />
-              </Box>
-            </Stack>
+                >
+                  {user.firstName?.[0]}
+                </Avatar>
 
-            <Alert severity="warning">
-              <Typography variant="subtitle2" fontWeight={600}>
-                Security Notice
-              </Typography>
-              <Typography variant="body2">
-                This password is only visible to Head Office. Please handle this
-                sensitive information securely.
-              </Typography>
-            </Alert>
+                <Box>
+                  <Typography fontWeight={600} variant="h6" sx={{ mt: 1 }}>
+                    {user.firstName} {user.lastName}
+                  </Typography>
 
-            {loading ? (
-              <Stack alignItems="center" spacing={2} py={3}>
-                <CircularProgress />
-                <Typography variant="body2" color="text.secondary">
-                  Loading password...
-                </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {user.email} • {ROLE_CONFIG[user.role]?.label}
+                  </Typography>
+
+                  <Chip
+                    label={user.status === "active" ? "Active" : "Inactive"}
+                    size="small"
+                    sx={{
+                      mt: 1,
+                      bgcolor:
+                        user.status === "active"
+                          ? STATUS_CONFIG.active.bg
+                          : STATUS_CONFIG.inactive.bg,
+                      color:
+                        user.status === "active"
+                          ? STATUS_CONFIG.active.color
+                          : STATUS_CONFIG.inactive.color,
+                      fontWeight: 600,
+                    }}
+                  />
+                </Box>
               </Stack>
-            ) : (
-              <Paper
-                variant="outlined"
-                sx={{
-                  p: 3,
-                  position: "relative",
-                  bgcolor: "grey.50",
-                  borderRadius: 2,
-                }}
-              >
-                <Typography
-                  variant="h6"
-                  sx={{
-                    fontFamily: "monospace",
-                    letterSpacing: "0.1em",
-                    textAlign: "center",
-                    wordBreak: "break-all",
-                    color: "text.primary",
-                    fontWeight: 600,
-                  }}
-                >
-                  {password}
+
+              <Alert severity="warning">
+                <Typography variant="subtitle2" fontWeight={600}>
+                  Security Notice
                 </Typography>
-                <IconButton
-                  onClick={handleCopyPassword}
-                  size="small"
+                <Typography variant="body2">
+                  This password is only visible to Head Office. Please handle this
+                  sensitive information securely.
+                </Typography>
+              </Alert>
+
+              {loading ? (
+                <Stack alignItems="center" spacing={2} py={3}>
+                  <CircularProgress />
+                  <Typography variant="body2" color="text.secondary">
+                    Loading password...
+                  </Typography>
+                </Stack>
+              ) : (
+                <Paper
+                  variant="outlined"
                   sx={{
-                    position: "absolute",
-                    top: 12,
-                    right: 12,
-                    color: copied ? "success.main" : "primary.main",
-                    bgcolor: "background.paper",
-                    "&:hover": {
-                      bgcolor: "background.paper",
-                    },
+                    p: 3,
+                    position: "relative",
+                    bgcolor: "grey.50",
+                    borderRadius: 2,
                   }}
                 >
-                  <ContentCopy fontSize="small" />
-                </IconButton>
-                {copied && (
-                  <Fade in={copied}>
-                    <Typography
-                      variant="caption"
-                      color="success.main"
-                      sx={{ position: "absolute", top: -20, right: 0 }}
-                    >
-                      Copied!
-                    </Typography>
-                  </Fade>
-                )}
-              </Paper>
-            )}
-          </Stack>
-        )}
+                  <Typography
+                    variant="h6"
+                    sx={{
+                      fontFamily: "monospace",
+                      letterSpacing: "0.1em",
+                      textAlign: "center",
+                      wordBreak: "break-all",
+                      color: "text.primary",
+                      fontWeight: 600,
+                    }}
+                  >
+                    {password}
+                  </Typography>
+                  <IconButton
+                    onClick={handleCopyPassword}
+                    size="small"
+                    sx={{
+                      position: "absolute",
+                      top: 12,
+                      right: 12,
+                      color: copied ? "success.main" : "primary.main",
+                      bgcolor: "background.paper",
+                      "&:hover": {
+                        bgcolor: "background.paper",
+                      },
+                    }}
+                  >
+                    <ContentCopy fontSize="small" />
+                  </IconButton>
+                  {copied && (
+                    <Fade in={copied}>
+                      <Typography
+                        variant="caption"
+                        color="success.main"
+                        sx={{ position: "absolute", top: -20, right: 0 }}
+                      >
+                        Copied!
+                      </Typography>
+                    </Fade>
+                  )}
+                </Paper>
+              )}
+            </>
+          )}
+        </Stack>
       </DialogContent>
 
       <DialogActions sx={{ p: 3, pt: 0 }}>
@@ -1242,7 +1240,7 @@ const StatusFilter = ({ value, onChange }) => {
   );
 };
 
-export default function UserManagement() {
+const UserManagement  = () =>  {
   const navigate = useNavigate();
   const location = useLocation();
   const { safeFetchAPI, user: currentUser } = useAuth();
@@ -1349,12 +1347,12 @@ export default function UserManagement() {
 
     // ZSM can edit ASM and TEAM (roles below ZSM)
     if (currentUserRole === "ZSM") {
-      return targetRoleLevel > currentRoleLevel; // ASM (3) and TEAM (4) are > ZSM (2)
+      return targetRoleLevel > currentRoleLevel;
     }
 
     // ASM can only edit TEAM members
     if (currentUserRole === "ASM") {
-      return targetUserRole === "TEAM"; // TEAM (4) only
+      return targetUserRole === "TEAM";
     }
 
     return false;
@@ -1364,23 +1362,16 @@ export default function UserManagement() {
   const canEditThisUser = (user) => {
     if (!user || !currentUser) return false;
 
-    // Check basic permission
-    if (!canEditUser(user)) return false;
-
     // Allow self-edit for all roles (users should be able to edit their own profile)
     if (user._id === currentUser._id) return true;
 
-    // Additional business logic:
-    // 1. ZSM cannot edit other ZSM
-    if (currentUser.role === "ZSM" && user.role === "ZSM") return false;
-    
-    // 2. ASM cannot edit other ASM
-    if (currentUser.role === "ASM" && user.role === "ASM") return false;
+    // Check basic permission
+    if (!canEditUser(user)) return false;
 
     return true;
   };
 
-  // Fetch users with role-based filtering - FIXED FOR ZSM
+  // Fetch users with role-based filtering
   const fetchUsers = useCallback(async () => {
     try {
       setLoading(true);
@@ -1394,26 +1385,24 @@ export default function UserManagement() {
       if (roleFilter !== "all") params.append("role", roleFilter);
       if (statusFilter !== "all") params.append("status", statusFilter);
 
-      // Role-based data filtering - FIXED FOR ZSM
+      // Role-based data filtering
       if (userRole === "ASM") {
         // ASM only sees their own TEAM members
         params.append("role", "TEAM");
-        // ASM sees team members assigned to them
         if (currentUser?._id) {
           params.append("managedBy", currentUser._id);
         }
       } else if (userRole === "ZSM") {
-        // ZSM sees all ASM and TEAM members under them
+        // ZSM sees all users managed by them
         if (currentUser?._id) {
           params.append("managedBy", currentUser._id);
         }
-        // ZSM should see ASM and TEAM only
-        // Remove role filter if it's 'all'
+        // Don't filter by role if roleFilter is 'all'
         if (roleFilter !== 'all') {
           params.append("role", roleFilter);
         }
       }
-      // Head_office sees all users (ZSM, ASM, TEAM) - no filters needed
+      // Head_office sees all users (no filters needed)
 
       const data = await safeFetchAPI(`/user/getAllUsers?${params.toString()}`);
 
@@ -1431,7 +1420,7 @@ export default function UserManagement() {
       if (data.success) {
         let fetchedUsers = data.result?.users || [];
 
-        // Client-side filtering based on role - FIXED FOR ZSM
+        // Client-side filtering based on role
         if (userRole === "ZSM") {
           // ZSM should see ASM and TEAM only (no Head_office)
           fetchedUsers = fetchedUsers.filter((user) =>
@@ -1775,7 +1764,7 @@ export default function UserManagement() {
                 startIcon={<Add />}
                 onClick={() => navigate("/add-user")}
                 sx={{
-                  bgcolor: PRIMARY_COLOR,
+                  background: "#3451b5",
                   color: "white",
                   borderRadius: 2,
                   "&:hover": { bgcolor: SECONDARY_COLOR },
@@ -1803,7 +1792,7 @@ export default function UserManagement() {
               title="Active Users"
               value={stats.active}
               icon={<CheckCircle />}
-              color="#4caf50"
+              color="#3451b5"
               subtext={`${((stats.active / stats.total) * 100 || 0).toFixed(
                 1
               )}% of total`}
@@ -1814,7 +1803,7 @@ export default function UserManagement() {
               title="Inactive Users"
               value={stats.inactive}
               icon={<Block />}
-              color="#f44336"
+              color="#3451b5"
               subtext={`${((stats.inactive / stats.total) * 100 || 0).toFixed(
                 1
               )}% of total`}
@@ -2029,7 +2018,7 @@ export default function UserManagement() {
                   variant="contained"
                   startIcon={<Add />}
                   onClick={() => navigate("/add-user")}
-                  sx={{ bgcolor: PRIMARY_COLOR }}
+                  sx={{ background: "#3451b5" }}
                 >
                   Add First User
                 </Button>
@@ -2531,3 +2520,5 @@ export default function UserManagement() {
     </Box>
   );
 }
+
+export default UserManagement;

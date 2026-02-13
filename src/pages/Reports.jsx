@@ -49,7 +49,7 @@ const REPORT_CONFIGS = [
     key: "leads",
     title: "Leads Report",
     description: "Lead tracking and pipeline performance",
-    icon: <TrendingUp />,
+    icon: <TrendingUp sx={{ color:"#fff",}} />,
     endpoint: "/report/leads",
     columns: [
       { field: "firstName", label: "First Name" },
@@ -67,7 +67,7 @@ const REPORT_CONFIGS = [
     key: "installation",
     title: "Installation Report",
     description: "Installation completion metrics and progress",
-    icon: <Build />,
+    icon: <Build   sx={{ color:"#fff"}}/>,
     endpoint: "/report/installations",
     columns: [
       { field: "customerName", label: "Customer" },
@@ -81,7 +81,7 @@ const REPORT_CONFIGS = [
     key: "expenses",
     title: "Expenses Report",
     description: "Expense tracking and approval status",
-    icon: <PieChart />,
+    icon: <PieChart  sx={{ color:"#fff"}} />,
     endpoint: "/report/expenses",
     columns: [
       { field: "title", label: "Title" },
@@ -638,8 +638,7 @@ export default function ReportsPage() {
             disabled={loading || Object.keys(reportsData).length === 0}
             size={isMobile ? "small" : "medium"}
             sx={{
-              bgcolor: primary,
-              "&:hover": { bgcolor: "#e65c00" },
+              background: "#3451b5",
             }}
           >
             Download All
@@ -676,7 +675,7 @@ export default function ReportsPage() {
                 boxShadow: "0 4px 20px rgba(0,0,0,0.05)",
                 bgcolor: "white",
                 p: 3,
-                width: "500px",
+                width: "360px",
                 display: "flex",
                 flexDirection: "column",
                 height: "100%",
@@ -726,7 +725,7 @@ export default function ReportsPage() {
                       width: 60,
                       height: 60,
                       borderRadius: "50%",
-                      bgcolor: `${primary}15`,
+                      background:"#3451b5",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
@@ -735,7 +734,7 @@ export default function ReportsPage() {
                       flexShrink: 0,
                     }}
                   >
-                    {React.cloneElement(report.icon, { sx: { fontSize: 30 } })}
+                    {React.cloneElement(report.icon, { sx: { fontSize: 30 , color:"#fff" } })}
                   </Box>
                   <Box
                     sx={{
@@ -792,28 +791,21 @@ export default function ReportsPage() {
                   <Button
                     fullWidth={isMobile}
                     variant="contained"
-                    startIcon={
-                      downloadProgress[report.key] ? (
-                        <Downloading />
-                      ) : (
-                        <Download />
-                      )
-                    }
                     onClick={() => handleDownload(report.key)}
                     disabled={
                       downloadProgress[report.key] > 0 ||
                       !reportsData[report.key]?.length
                     }
                     sx={{
-                      bgcolor: primary,
+                      background: "#3451b5",
                       borderRadius: 8,
                       px: isMobile ? 2 : 4,
                       py: 1.2,
                       textTransform: "none",
                       color: "#fff",
                       fontWeight: 600,
-                      fontSize: isMobile ? "0.875rem" : "1rem",
-                      minWidth: isMobile ? "auto" : 140,
+                      fontSize: isMobile ? "0.8rem" : "0.9rem",
+                      minWidth: isMobile ? "auto" : 100,
                       "&:hover": {
                         bgcolor: "#e65c00",
                         transform: "translateY(-1px)",
@@ -836,15 +828,16 @@ export default function ReportsPage() {
                     onClick={() => handleView(report.key)}
                     disabled={!reportsData[report.key]?.length}
                     sx={{
-                      borderColor: primary,
-                      color: primary,
+                      background: "#fff",
+                      color: "#2341b5",
                       borderRadius: 8,
+                      borderColor:"#3451b5",
                       px: isMobile ? 2 : 4,
                       py: 1.2,
                       textTransform: "none",
                       fontWeight: 600,
-                      fontSize: isMobile ? "0.875rem" : "1rem",
-                      minWidth: isMobile ? "auto" : 140,
+                      fontSize: isMobile ? "0.8rem" : "0.9rem",
+                      minWidth: isMobile ? "auto" : 100,
                       "&:hover": {
                         borderColor: "#e65c00",
                         color: "#e65c00",

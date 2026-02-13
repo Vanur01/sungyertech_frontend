@@ -91,12 +91,12 @@ import {
 } from "@mui/icons-material";
 import { useAuth } from "../contexts/AuthContext";
 
-const PRIMARY_COLOR = "#1976d2";
+const PRIMARY_COLOR = "#3a5ac8";
 const SECONDARY_COLOR = "#ff6d00";
 
 const STAGE_CONFIG = {
   Visit: {
-    color: "#1976d2",
+    color: "#3a5ac8",
     icon: <Person />,
     description: "Initial contact and site visit scheduled",
     bgColor: "#e3f2fd",

@@ -112,7 +112,7 @@ import { useNavigate } from 'react-router-dom'
 // ========== CONSTANTS & UTILITIES ==========
 
 // Colors
-const PRIMARY_COLOR = "#1976d2";
+const PRIMARY_COLOR = "#3a5ac8"; // Changed from #1976d2 to #3a5ac8
 
 // Lead Status Options
 const LEAD_STATUS_OPTIONS = [
@@ -137,7 +137,7 @@ const ROLE_PERMISSIONS = {
     bulkActions: true,
     export: true,
     settings: true,
-    color: "#ff6d00",
+    color: "#3a5ac8", // Changed from #ff6d00
     icon: <AdminPanelSettings />,
     label: "Head Office",
     level: 1,
@@ -151,7 +151,7 @@ const ROLE_PERMISSIONS = {
     bulkActions: true,
     export: true,
     settings: false,
-    color: "#9c27b0",
+    color: "#3a5ac8", // Changed from #9c27b0
     icon: <WorkspacePremium />,
     label: "Zone Sales Manager",
     level: 2,
@@ -165,7 +165,7 @@ const ROLE_PERMISSIONS = {
     bulkActions: true,
     export: false,
     settings: false,
-    color: "#00bcd4",
+    color: "#3a5ac8", // Changed from #00bcd4
     icon: <SupervisorAccount />,
     label: "Area Sales Manager",
     level: 3,
@@ -179,7 +179,7 @@ const ROLE_PERMISSIONS = {
     bulkActions: false,
     export: false,
     settings: false,
-    color: "#4caf50",
+    color: "#3a5ac8", // Changed from #4caf50
     icon: <Groups />,
     label: "Team Member",
     level: 4,
@@ -190,7 +190,7 @@ const ROLE_PERMISSIONS = {
 // Utility Functions
 const getStatusColor = (status) => {
   const colorMap = {
-    Visit: { bg: "#e3f2fd", color: "#1976d2", icon: <Person /> },
+    Visit: { bg: "#e3f2fd", color: "#3a5ac8", icon: <Person /> }, // Changed color
     Registration: { bg: "#e8f5e9", color: "#2e7d32", icon: <HowToReg /> },
     "Bank Loan Apply": { bg: "#fff3e0", color: "#f57c00", icon: <Business /> },
     "Document Submission": {
@@ -206,7 +206,7 @@ const getStatusColor = (status) => {
       icon: <CheckCircle />,
     },
     "Missed Leads": { bg: "#ffebee", color: "#c62828", icon: <Cancel /> },
-    New: { bg: "#e3f2fd", color: "#1976d2", icon: <Add /> },
+    New: { bg: "#e3f2fd", color: "#3a5ac8", icon: <Add /> }, // Changed color
   };
   return (
     colorMap[status] || { bg: "#f5f5f5", color: "#616161", icon: <Pending /> }
@@ -569,7 +569,7 @@ const ViewLeadModal = React.memo(({ open, onClose, lead, userRole }) => {
                   bgcolor: activeTab === tab.value ? PRIMARY_COLOR : 'transparent',
                   color: activeTab === tab.value ? 'white' : 'text.secondary',
                   '&:hover': {
-                    bgcolor: activeTab === tab.value ? '#1565c0' : 'grey.100',
+                    bgcolor: activeTab === tab.value ? '#2d4bb9' : 'grey.100', // Changed hover color
                   }
                 }}
                 size="small"
@@ -747,7 +747,7 @@ const ViewLeadModal = React.memo(({ open, onClose, lead, userRole }) => {
                         chip
                         chipColor={{
                           bg: leadDetails.loanStatus === 'submitted' ? '#e3f2fd' : '#fff3e0',
-                          color: leadDetails.loanStatus === 'submitted' ? '#1976d2' : '#f57c00'
+                          color: leadDetails.loanStatus === 'submitted' ? '#3a5ac8' : '#f57c00' // Changed color
                         }}
                       />
                     </Stack>
@@ -786,7 +786,7 @@ const ViewLeadModal = React.memo(({ open, onClose, lead, userRole }) => {
                       <DocumentCard
                         title="PAN Card"
                         url={leadDetails.panCard.url}
-                        icon={<CreditCard sx={{ color: '#1976d2' }} />}
+                        icon={<CreditCard sx={{ color: '#3a5ac8' }} />} // Changed color
                         filename="pan-card"
                       />
                     </Grid>
@@ -820,7 +820,7 @@ const ViewLeadModal = React.memo(({ open, onClose, lead, userRole }) => {
                     chip
                     chipColor={{
                       bg: leadDetails.documentStatus === 'submitted' ? '#e3f2fd' : '#fff3e0',
-                      color: leadDetails.documentStatus === 'submitted' ? '#1976d2' : '#f57c00'
+                      color: leadDetails.documentStatus === 'submitted' ? '#3a5ac8' : '#f57c00' // Changed color
                     }}
                   />
                   <InfoRow label="Document Submission Date" value={formatDate(leadDetails.documentSubmissionDate, "dd MMM yyyy, HH:mm:ss")} icon={<Event />} />
@@ -916,7 +916,7 @@ const ViewLeadModal = React.memo(({ open, onClose, lead, userRole }) => {
                           bg: leadDetails.installationStatus === 'final-payment' ? '#e8f5e9' : 
                                leadDetails.installationStatus === 'meter-charge' ? '#fff3e0' : '#e3f2fd',
                           color: leadDetails.installationStatus === 'final-payment' ? '#388e3c' :
-                                leadDetails.installationStatus === 'meter-charge' ? '#f57c00' : '#1976d2'
+                                leadDetails.installationStatus === 'meter-charge' ? '#f57c00' : '#3a5ac8' // Changed color
                         }}
                       />
                     </Stack>
@@ -1357,10 +1357,10 @@ const EditLeadModal = React.memo(
               py: 1.5,
               mt:1,
               fontWeight: 600,
-              boxShadow: '0 2px 4px rgba(25,118,210,0.3)',
+              boxShadow: '0 2px 4px rgba(58,90,200,0.3)', // Changed shadow color
               '&:hover': { 
-                bgcolor: "#1565c0",
-                boxShadow: '0 4px 8px rgba(25,118,210,0.4)'
+                bgcolor: "#2d4bb9", // Changed hover color
+                boxShadow: '0 4px 8px rgba(58,90,200,0.4)' // Changed shadow color
               },
             }}
           >
@@ -1966,7 +1966,7 @@ const AssignLeadModal = React.memo(
               color: "white",
               borderRadius: 2,
               mt: 2,
-              "&:hover": { bgcolor: "#1565c0" },
+              "&:hover": { bgcolor: "#2d4bb9" }, // Changed hover color
             }}
           >
             {loading

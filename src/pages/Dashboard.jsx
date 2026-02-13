@@ -55,8 +55,8 @@ import { useNavigate } from "react-router-dom";
 import { useDashboard } from "../contexts/DashboardContext";
 import { useAuth } from "../contexts/AuthContext";
 
-// Constants
-const PRIMARY_COLOR = "#ff6d00";
+// Single color for entire dashboard
+const PRIMARY_COLOR = "#4569ea";
 
 const getInitials = (name) => {
   if (!name || typeof name !== "string") return "??";
@@ -80,22 +80,9 @@ const PERIOD_OPTIONS = [
   { value: "yearly", label: "Yearly", icon: <AccessTime fontSize="small" /> },
 ];
 
-// Status color mapping
-const getStatusColor = (status) => {
-  switch (status) {
-    case "Visit":
-      return "primary";
-    case "Registration":
-      return "success";
-    case "Disbursement":
-      return "info";
-    case "Bank Loan Apply":
-      return "warning";
-    case "Document Submission":
-      return "secondary";
-    default:
-      return "default";
-  }
+// Status color mapping - all using single color
+const getStatusColor = () => {
+  return "primary";
 };
 
 // Empty State Components
@@ -103,9 +90,9 @@ const EmptyStateCard = ({ title, message, icon, action }) => (
   <Card
     sx={{
       borderRadius: 2,
-      boxShadow: "0px 2px 8px rgba(0,0,0,0.08)",
+      boxShadow: "0px 2px 12px rgba(69, 105, 234, 0.1)",
       bgcolor: "white",
-      border: "1px solid #f5f5f5",
+      border: "1px solid #f0f3ff",
       height: "100%",
       minHeight: 300,
       display: "flex",
@@ -201,7 +188,7 @@ export default function UnifiedDashboard() {
       const { overview } = dashboardData;
       const userRole = user?.role;
 
-      // Base stats for all roles
+      // Base stats for all roles - all using single color
       const baseStats = [
         {
           title: "Total Visits",
@@ -209,7 +196,7 @@ export default function UnifiedDashboard() {
           change: overview.totalVisits > 0 ? "+8%" : "0%",
           trend: overview.totalVisits > 0 ? "up" : "flat",
           icon: <Visibility sx={{ fontSize: { xs: 20, sm: 24, md: 28 } }} />,
-          color: theme.palette.primary.main,
+          color: PRIMARY_COLOR,
           subtitle: getTimeSubtitle(),
           navigateTo: "/total-visits",
         },
@@ -219,7 +206,7 @@ export default function UnifiedDashboard() {
           change: overview.totalMissedLeads > 0 ? "+5%" : "0%",
           trend: overview.totalMissedLeads > 0 ? "up" : "down",
           icon: <Cancel sx={{ fontSize: { xs: 20, sm: 24, md: 28 } }} />,
-          color: theme.palette.error.main,
+          color: PRIMARY_COLOR,
           subtitle: getTimeSubtitle(),
           navigateTo: "/missed-leads",
         },
@@ -229,13 +216,13 @@ export default function UnifiedDashboard() {
           change: overview.totalRegistrations > 0 ? "+15%" : "0%",
           trend: overview.totalRegistrations > 0 ? "up" : "flat",
           icon: <PersonAdd sx={{ fontSize: { xs: 20, sm: 24, md: 28 } }} />,
-          color: theme.palette.success.main,
+          color: PRIMARY_COLOR,
           subtitle: getTimeSubtitle(),
           navigateTo: "/registration",
         },
       ];
 
-      // Role-specific additional stats
+      // Role-specific additional stats - all using single color
       let roleSpecificStats = [];
 
       if (userRole === "Head_office" || userRole === "ZSM") {
@@ -248,7 +235,7 @@ export default function UnifiedDashboard() {
             icon: (
               <AccountBalance sx={{ fontSize: { xs: 20, sm: 24, md: 28 } }} />
             ),
-            color: "#2196f3",
+            color: PRIMARY_COLOR,
             subtitle: getTimeSubtitle(),
             navigateTo: "/bank-loan-apply",
           },
@@ -258,19 +245,19 @@ export default function UnifiedDashboard() {
             change: overview.totalDocumentSubmission > 0 ? "+12%" : "0%",
             trend: overview.totalDocumentSubmission > 0 ? "up" : "flat",
             icon: <Description sx={{ fontSize: { xs: 20, sm: 24, md: 28 } }} />,
-            color: theme.palette.warning.main,
+            color: PRIMARY_COLOR,
             subtitle: getTimeSubtitle(),
             navigateTo: "/document-submission",
           },
           {
             title: "Disbursement",
             value: `₹${(overview.totalDisbursement || 0).toLocaleString(
-              "en-IN"
+              "en-IN",
             )}`,
             change: overview.totalDisbursement > 0 ? "+18%" : "0%",
             trend: overview.totalDisbursement > 0 ? "up" : "flat",
             icon: <Payments sx={{ fontSize: { xs: 20, sm: 24, md: 28 } }} />,
-            color: "#00bcd4",
+            color: PRIMARY_COLOR,
             subtitle: getTimeSubtitle(),
             navigateTo: "/disbursement",
           },
@@ -280,7 +267,7 @@ export default function UnifiedDashboard() {
             change: overview.totalInstallations > 0 ? "+8%" : "0%",
             trend: overview.totalInstallations > 0 ? "up" : "flat",
             icon: <CheckCircle sx={{ fontSize: { xs: 20, sm: 24, md: 28 } }} />,
-            color: "#4caf50",
+            color: PRIMARY_COLOR,
             subtitle: getTimeSubtitle(),
             navigateTo: "/installation-completion",
           },
@@ -290,7 +277,7 @@ export default function UnifiedDashboard() {
             change: overview.totalTeamMembers > 0 ? "+3%" : "0%",
             trend: overview.totalTeamMembers > 0 ? "up" : "flat",
             icon: <Group sx={{ fontSize: { xs: 20, sm: 24, md: 28 } }} />,
-            color: "#9c27b0",
+            color: PRIMARY_COLOR,
             subtitle: "Active members",
             navigateTo: "/team-members",
           },
@@ -303,7 +290,7 @@ export default function UnifiedDashboard() {
             change: overview.totalTeamMembers > 0 ? "+2%" : "0%",
             trend: overview.totalTeamMembers > 0 ? "up" : "flat",
             icon: <Group sx={{ fontSize: { xs: 20, sm: 24, md: 28 } }} />,
-            color: theme.palette.secondary.main,
+            color: PRIMARY_COLOR,
             subtitle: "Under management",
             navigateTo: "/my-team",
           },
@@ -317,7 +304,7 @@ export default function UnifiedDashboard() {
                 sx={{ fontSize: { xs: 20, sm: 24, md: 28 } }}
               />
             ),
-            color: "#4caf50",
+            color: PRIMARY_COLOR,
             subtitle: getTimeSubtitle(),
             navigateTo: "/all-leads",
           },
@@ -329,7 +316,7 @@ export default function UnifiedDashboard() {
             change: "+5%",
             trend: "up",
             icon: <TrendingUp sx={{ fontSize: { xs: 20, sm: 24, md: 28 } }} />,
-            color: "#ff9800",
+            color: PRIMARY_COLOR,
             subtitle: "Visit to Registration",
             navigateTo: "/performance",
           },
@@ -346,7 +333,7 @@ export default function UnifiedDashboard() {
                 sx={{ fontSize: { xs: 20, sm: 24, md: 28 } }}
               />
             ),
-            color: "#4caf50",
+            color: PRIMARY_COLOR,
             subtitle: getTimeSubtitle(),
             navigateTo: "/all-leads",
           },
@@ -368,7 +355,7 @@ export default function UnifiedDashboard() {
             change: "+3%",
             trend: "up",
             icon: <TrendingUp sx={{ fontSize: { xs: 20, sm: 24, md: 28 } }} />,
-            color: "#2196f3",
+            color: PRIMARY_COLOR,
             subtitle: "This month",
             navigateTo: "/my-performance",
           },
@@ -585,7 +572,7 @@ export default function UnifiedDashboard() {
           <Typography
             variant={isXSmall ? "h5" : "h4"}
             fontWeight="bold"
-            color="primary"
+            color={PRIMARY_COLOR}
             gutterBottom
           >
             {getRoleDisplayName()} Dashboard
@@ -599,12 +586,14 @@ export default function UnifiedDashboard() {
           sx={{
             textAlign: "center",
             py: 8,
-            bgcolor: "#fafafa",
+            bgcolor: "#f8f9ff",
             borderRadius: 2,
-            border: "1px dashed #e0e0e0",
+            border: "1px dashed #dbe2ff",
           }}
         >
-          <Info sx={{ fontSize: 64, color: "info.main", mb: 2 }} />
+          <Info
+            sx={{ fontSize: 64, color: PRIMARY_COLOR, mb: 2, opacity: 0.7 }}
+          />
           <Typography variant="h5" color="text.secondary" gutterBottom>
             No Data Available
           </Typography>
@@ -621,6 +610,7 @@ export default function UnifiedDashboard() {
             onClick={handleRefresh}
             startIcon={<Refresh />}
             size="large"
+            sx={{ bgcolor: PRIMARY_COLOR, "&:hover": { bgcolor: "#3451b3" } }}
           >
             Refresh Dashboard
           </Button>
@@ -653,7 +643,7 @@ export default function UnifiedDashboard() {
             <Typography
               variant={isXSmall ? "h5" : "h4"}
               fontWeight="bold"
-              color="primary"
+              color={PRIMARY_COLOR}
               gutterBottom
             >
               {getRoleDisplayName()} Dashboard
@@ -699,6 +689,14 @@ export default function UnifiedDashboard() {
                   flex: { xs: 1, sm: "none" },
                   px: { xs: 1, sm: 1.5 },
                   fontSize: { xs: "0.75rem", sm: "0.875rem" },
+                  borderColor: "#dbe2ff",
+                  "&.Mui-selected": {
+                    bgcolor: alpha(PRIMARY_COLOR, 0.1),
+                    color: PRIMARY_COLOR,
+                    "&:hover": {
+                      bgcolor: alpha(PRIMARY_COLOR, 0.2),
+                    },
+                  },
                 },
               }}
             >
@@ -720,11 +718,11 @@ export default function UnifiedDashboard() {
               disabled={refreshing}
               size="small"
               sx={{
-                color: "primary.main",
-                bgcolor: alpha(theme.palette.primary.main, 0.1),
+                color: PRIMARY_COLOR,
+                bgcolor: alpha(PRIMARY_COLOR, 0.1),
                 alignSelf: { xs: "flex-end", sm: "center" },
                 "&:hover": {
-                  bgcolor: alpha(theme.palette.primary.main, 0.2),
+                  bgcolor: alpha(PRIMARY_COLOR, 0.2),
                 },
               }}
             >
@@ -740,17 +738,18 @@ export default function UnifiedDashboard() {
               <Card
                 sx={{
                   borderRadius: 2,
-                  boxShadow: "0px 2px 8px rgba(0,0,0,0.08)",
+                  boxShadow: "0px 2px 12px rgba(69, 105, 234, 0.1)",
                   height: "100%",
                   width: "272px",
                   minHeight: { xs: 110, sm: 120, md: 140 },
                   transition: "all 0.3s ease",
                   cursor: "pointer",
                   bgcolor: "white",
-                  border: "1px solid #f5f5f5",
+                  border: "1px solid #f0f3ff",
                   "&:hover": {
                     transform: { xs: "none", sm: "translateY(-4px)" },
-                    boxShadow: "0px 8px 16px rgba(0,0,0,0.12)",
+                    boxShadow: "0px 8px 20px rgba(69, 105, 234, 0.15)",
+                    borderColor: alpha(PRIMARY_COLOR, 0.3),
                   },
                 }}
                 onClick={() =>
@@ -770,7 +769,7 @@ export default function UnifiedDashboard() {
                       <Typography
                         variant={isXSmall ? "h6" : "h5"}
                         fontWeight="bold"
-                        color={stat.color}
+                        color={PRIMARY_COLOR}
                         gutterBottom
                         sx={{
                           fontSize: {
@@ -805,8 +804,8 @@ export default function UnifiedDashboard() {
                       sx={{
                         p: { xs: 0.75, sm: 1 },
                         borderRadius: 2,
-                        bgcolor: alpha(stat.color, 0.1),
-                        color: stat.color,
+                        bgcolor: alpha(PRIMARY_COLOR, 0.1),
+                        color: PRIMARY_COLOR,
                         ml: 1,
                       }}
                     >
@@ -829,14 +828,14 @@ export default function UnifiedDashboard() {
                         <ArrowUpward
                           sx={{
                             fontSize: { xs: 12, sm: 14 },
-                            color: "success.main",
+                            color: PRIMARY_COLOR,
                           }}
                         />
                       ) : stat.trend === "down" ? (
                         <ArrowDownward
                           sx={{
                             fontSize: { xs: 12, sm: 14 },
-                            color: "error.main",
+                            color: PRIMARY_COLOR,
                           }}
                         />
                       ) : (
@@ -850,13 +849,7 @@ export default function UnifiedDashboard() {
                       <Typography
                         variant="caption"
                         fontWeight={600}
-                        color={
-                          stat.trend === "up"
-                            ? "success.main"
-                            : stat.trend === "down"
-                            ? "error.main"
-                            : "text.secondary"
-                        }
+                        color={PRIMARY_COLOR}
                         sx={{ fontSize: { xs: "0.65rem", sm: "0.75rem" } }}
                       >
                         {stat.change}
@@ -865,7 +858,7 @@ export default function UnifiedDashboard() {
                     <NavigateNext
                       sx={{
                         fontSize: { xs: 14, sm: 16 },
-                        color: "text.secondary",
+                        color: PRIMARY_COLOR,
                         opacity: 0.7,
                       }}
                     />
@@ -887,14 +880,15 @@ export default function UnifiedDashboard() {
               message="No recent visits found. Create a new visit to get started."
               icon={
                 <Visibility
-                  sx={{ fontSize: 48, color: "text.secondary", opacity: 0.5 }}
+                  sx={{ fontSize: 48, color: PRIMARY_COLOR, opacity: 0.5 }}
                 />
               }
               action={
                 <Button
-                  variant="outlined"
+                  variant="contained"
                   size="small"
                   onClick={() => navigate("/create-visit")}
+                  sx={{ background: "#3451b3", color: "#fff" }}
                 >
                   Create Visit
                 </Button>
@@ -904,9 +898,9 @@ export default function UnifiedDashboard() {
             <Card
               sx={{
                 borderRadius: 2,
-                boxShadow: "0px 2px 8px rgba(0,0,0,0.08)",
+                boxShadow: "0px 2px 12px rgba(69, 105, 234, 0.1)",
                 bgcolor: "white",
-                border: "1px solid #f5f5f5",
+                border: "1px solid #f0f3ff",
                 height: "100%",
               }}
             >
@@ -919,15 +913,22 @@ export default function UnifiedDashboard() {
                     mb: 3,
                   }}
                 >
-                  <Typography variant="h6" fontWeight="bold" color="primary">
+                  <Typography
+                    variant="h6"
+                    fontWeight="bold"
+                    color={PRIMARY_COLOR}
+                  >
                     Recent Visits
                   </Typography>
                   <Button
-                    variant="text"
+                    variant="contained"
                     size="small"
                     onClick={() => handleNavigateTo("/total-visits")}
                     endIcon={<NavigateNext />}
-                    sx={{ bgcolor: PRIMARY_COLOR, color: "#fff" }}
+                    sx={{
+                      bgcolor: "#3451b3",
+                      color: "#fff",
+                    }}
                   >
                     View All
                   </Button>
@@ -939,17 +940,13 @@ export default function UnifiedDashboard() {
                       sx={{
                         p: 2,
                         borderRadius: 2,
-                        border: `1px solid ${alpha(
-                          theme.palette.primary.main,
-                          0.1
-                        )}`,
+                        border: `1px solid ${alpha(PRIMARY_COLOR, 0.1)}`,
                         height: "100%",
-                        bgcolor: PRIMARY_COLOR,
-                        color: "#fff",
+                        bgcolor: alpha(PRIMARY_COLOR, 0.03),
                         transition: "all 0.2s ease",
                         "&:hover": {
-                          borderColor: alpha(theme.palette.primary.main, 0.3),
-                          bgcolor: alpha(theme.palette.primary.main, 0.05),
+                          borderColor: alpha(PRIMARY_COLOR, 0.3),
+                          bgcolor: alpha(PRIMARY_COLOR, 0.05),
                         },
                       }}
                     >
@@ -963,23 +960,18 @@ export default function UnifiedDashboard() {
                       >
                         <Typography
                           fontWeight="600"
-                          sx={{ fontSize: "0.95rem" }}
+                          sx={{ fontSize: "0.95rem", color: PRIMARY_COLOR }}
                         >
                           {visit.firstName} {visit.lastName}
                         </Typography>
                         <Chip
                           label={visit.visitStatus || "Not Assigned"}
                           size="small"
-                          color={
-                            visit.visitStatus === "Completed"
-                              ? "success"
-                              : "warning"
-                          }
-                          variant="outlined"
                           sx={{
                             fontSize: "0.7rem",
-                            bgcolor: "#fff",
+                            bgcolor: alpha(PRIMARY_COLOR, 0.1),
                             color: PRIMARY_COLOR,
+                            borderColor: alpha(PRIMARY_COLOR, 0.3),
                           }}
                         />
                       </Box>
@@ -999,10 +991,13 @@ export default function UnifiedDashboard() {
                             gap: 0.5,
                           }}
                         >
-                          <Phone fontSize="small" sx={{ fontSize: 14 }} />
+                          <Phone
+                            fontSize="small"
+                            sx={{ fontSize: 14, color: PRIMARY_COLOR }}
+                          />
                           <Typography
                             variant="body2"
-                            sx={{ fontSize: "0.8rem" }}
+                            sx={{ fontSize: "0.8rem", color: "text.secondary" }}
                           >
                             {visit.phone || "N/A"}
                           </Typography>
@@ -1014,10 +1009,13 @@ export default function UnifiedDashboard() {
                             gap: 0.5,
                           }}
                         >
-                          <Mail fontSize="small" sx={{ fontSize: 14 }} />
+                          <Mail
+                            fontSize="small"
+                            sx={{ fontSize: 14, color: PRIMARY_COLOR }}
+                          />
                           <Typography
                             variant="body2"
-                            sx={{ fontSize: "0.8rem" }}
+                            sx={{ fontSize: "0.8rem", color: "text.secondary" }}
                           >
                             {visit.email || "N/A"}
                           </Typography>
@@ -1053,14 +1051,15 @@ export default function UnifiedDashboard() {
               message="No recent registrations found. Complete a visit to create a registration."
               icon={
                 <PersonAdd
-                  sx={{ fontSize: 48, color: "text.secondary", opacity: 0.5 }}
+                  sx={{ fontSize: 48, color: PRIMARY_COLOR, opacity: 0.5 }}
                 />
               }
               action={
                 <Button
-                  variant="outlined"
+                  variant="contained"
                   size="small"
                   onClick={() => navigate("/registration")}
+                  sx={{ background: "#3451b3", color: "#fff" }}
                 >
                   View Registration
                 </Button>
@@ -1070,9 +1069,9 @@ export default function UnifiedDashboard() {
             <Card
               sx={{
                 borderRadius: 2,
-                boxShadow: "0px 2px 8px rgba(0,0,0,0.08)",
+                boxShadow: "0px 2px 12px rgba(69, 105, 234, 0.1)",
                 bgcolor: "white",
-                border: "1px solid #f5f5f5",
+                border: "1px solid #f0f3ff",
                 height: "100%",
                 minHeight: 400,
               }}
@@ -1089,16 +1088,19 @@ export default function UnifiedDashboard() {
                   <Typography
                     variant="h6"
                     fontWeight="bold"
-                    color="success.main"
+                    color={PRIMARY_COLOR}
                   >
                     Recent Registrations
                   </Typography>
                   <Button
-                    variant="text"
+                    variant="contained"
                     size="small"
                     onClick={() => handleNavigateTo("/registration")}
                     endIcon={<NavigateNext />}
-                    sx={{ color: "success.main" }}
+                    sx={{
+                      background: "#3451b3",
+                      color: "#fff",
+                    }}
                   >
                     View All
                   </Button>
@@ -1110,15 +1112,12 @@ export default function UnifiedDashboard() {
                       sx={{
                         p: 2,
                         borderRadius: 2,
-                        border: `1px solid ${alpha(
-                          theme.palette.success.main,
-                          0.1
-                        )}`,
-                        bgcolor: alpha(theme.palette.success.main, 0.03),
+                        border: `1px solid ${alpha(PRIMARY_COLOR, 0.1)}`,
+                        bgcolor: alpha(PRIMARY_COLOR, 0.03),
                         transition: "all 0.2s ease",
                         "&:hover": {
-                          borderColor: alpha(theme.palette.success.main, 0.3),
-                          bgcolor: alpha(theme.palette.success.main, 0.05),
+                          borderColor: alpha(PRIMARY_COLOR, 0.3),
+                          bgcolor: alpha(PRIMARY_COLOR, 0.05),
                         },
                       }}
                     >
@@ -1132,15 +1131,19 @@ export default function UnifiedDashboard() {
                       >
                         <Typography
                           fontWeight="600"
-                          sx={{ fontSize: "0.95rem" }}
+                          sx={{ fontSize: "0.95rem", color: PRIMARY_COLOR }}
                         >
                           {reg.firstName} {reg.lastName}
                         </Typography>
                         <Chip
                           label="Registered"
                           size="small"
-                          color="success"
-                          sx={{ fontSize: "0.7rem" }}
+                          sx={{
+                            fontSize: "0.7rem",
+                            bgcolor: alpha(PRIMARY_COLOR, 0.1),
+                            color: PRIMARY_COLOR,
+                            borderColor: alpha(PRIMARY_COLOR, 0.3),
+                          }}
                         />
                       </Box>
                       <Box
@@ -1159,10 +1162,13 @@ export default function UnifiedDashboard() {
                             gap: 0.5,
                           }}
                         >
-                          <Phone fontSize="small" sx={{ fontSize: 14 }} />
+                          <Phone
+                            fontSize="small"
+                            sx={{ fontSize: 14, color: PRIMARY_COLOR }}
+                          />
                           <Typography
                             variant="body2"
-                            sx={{ fontSize: "0.8rem" }}
+                            sx={{ fontSize: "0.8rem", color: "text.secondary" }}
                           >
                             {reg.phone || "N/A"}
                           </Typography>
@@ -1174,10 +1180,13 @@ export default function UnifiedDashboard() {
                             gap: 0.5,
                           }}
                         >
-                          <Mail fontSize="small" sx={{ fontSize: 14 }} />
+                          <Mail
+                            fontSize="small"
+                            sx={{ fontSize: 14, color: PRIMARY_COLOR }}
+                          />
                           <Typography
                             variant="body2"
-                            sx={{ fontSize: "0.8rem" }}
+                            sx={{ fontSize: "0.8rem", color: "text.secondary" }}
                           >
                             {reg.email || "N/A"}
                           </Typography>
@@ -1191,7 +1200,7 @@ export default function UnifiedDashboard() {
                         >
                           Registered:{" "}
                           {new Date(
-                            reg.dateOfRegistration
+                            reg.dateOfRegistration,
                           ).toLocaleDateString()}
                         </Typography>
                       )}
@@ -1213,14 +1222,15 @@ export default function UnifiedDashboard() {
                 message="Great job! No missed leads in recent data."
                 icon={
                   <CheckCircle
-                    sx={{ fontSize: 48, color: "success.main", opacity: 0.7 }}
+                    sx={{ fontSize: 48, color: PRIMARY_COLOR, opacity: 0.7 }}
                   />
                 }
                 action={
                   <Button
-                    variant="outlined"
+                    variant="contained"
                     size="small"
                     onClick={() => navigate("/missed-leads")}
+                    sx={{ background: "#3451b3", color: "#fff" }}
                   >
                     View All Missed Leads
                   </Button>
@@ -1230,9 +1240,9 @@ export default function UnifiedDashboard() {
               <Card
                 sx={{
                   borderRadius: 2,
-                  boxShadow: "0px 2px 8px rgba(0,0,0,0.08)",
+                  boxShadow: "0px 2px 12px rgba(69, 105, 234, 0.1)",
                   bgcolor: "white",
-                  border: "1px solid #f5f5f5",
+                  border: "1px solid #f0f3ff",
                   height: "100%",
                   minHeight: 400,
                 }}
@@ -1249,16 +1259,20 @@ export default function UnifiedDashboard() {
                     <Typography
                       variant="h6"
                       fontWeight="bold"
-                      color="error.main"
+                      color={PRIMARY_COLOR}
                     >
                       Recent Missed Leads
                     </Typography>
                     <Button
-                      variant="text"
+                      variant="contained"
                       size="small"
                       onClick={() => handleNavigateTo("/missed-leads")}
                       endIcon={<NavigateNext />}
-                      sx={{ color: "error.main" }}
+                      sx={{
+                        bgcolor: PRIMARY_COLOR,
+                        "&:hover": { bgcolor: "#3451b3" },
+                        color: "#fff",
+                      }}
                     >
                       View All
                     </Button>
@@ -1270,15 +1284,12 @@ export default function UnifiedDashboard() {
                         sx={{
                           p: 2,
                           borderRadius: 2,
-                          border: `1px solid ${alpha(
-                            theme.palette.error.main,
-                            0.1
-                          )}`,
-                          bgcolor: alpha(theme.palette.error.main, 0.03),
+                          border: `1px solid ${alpha(PRIMARY_COLOR, 0.1)}`,
+                          bgcolor: alpha(PRIMARY_COLOR, 0.03),
                           transition: "all 0.2s ease",
                           "&:hover": {
-                            borderColor: alpha(theme.palette.error.main, 0.3),
-                            bgcolor: alpha(theme.palette.error.main, 0.05),
+                            borderColor: alpha(PRIMARY_COLOR, 0.3),
+                            bgcolor: alpha(PRIMARY_COLOR, 0.05),
                           },
                         }}
                       >
@@ -1292,15 +1303,19 @@ export default function UnifiedDashboard() {
                         >
                           <Typography
                             fontWeight="600"
-                            sx={{ fontSize: "0.95rem" }}
+                            sx={{ fontSize: "0.95rem", color: PRIMARY_COLOR }}
                           >
                             {lead.firstName} {lead.lastName}
                           </Typography>
                           <Chip
                             label="Missed"
                             size="small"
-                            color="error"
-                            sx={{ fontSize: "0.7rem" }}
+                            sx={{
+                              fontSize: "0.7rem",
+                              bgcolor: alpha(PRIMARY_COLOR, 0.1),
+                              color: PRIMARY_COLOR,
+                              borderColor: alpha(PRIMARY_COLOR, 0.3),
+                            }}
                           />
                         </Box>
                         <Box
@@ -1319,10 +1334,16 @@ export default function UnifiedDashboard() {
                               gap: 0.5,
                             }}
                           >
-                            <Phone fontSize="small" sx={{ fontSize: 14 }} />
+                            <Phone
+                              fontSize="small"
+                              sx={{ fontSize: 14, color: PRIMARY_COLOR }}
+                            />
                             <Typography
                               variant="body2"
-                              sx={{ fontSize: "0.8rem" }}
+                              sx={{
+                                fontSize: "0.8rem",
+                                color: "text.secondary",
+                              }}
                             >
                               {lead.phone || "N/A"}
                             </Typography>
@@ -1334,10 +1355,16 @@ export default function UnifiedDashboard() {
                               gap: 0.5,
                             }}
                           >
-                            <Mail fontSize="small" sx={{ fontSize: 14 }} />
+                            <Mail
+                              fontSize="small"
+                              sx={{ fontSize: 14, color: PRIMARY_COLOR }}
+                            />
                             <Typography
                               variant="body2"
-                              sx={{ fontSize: "0.8rem" }}
+                              sx={{
+                                fontSize: "0.8rem",
+                                color: "text.secondary",
+                              }}
                             >
                               {lead.email || "N/A"}
                             </Typography>
@@ -1379,15 +1406,19 @@ export default function UnifiedDashboard() {
               message="No recent activities found. Your activity feed will appear here."
               icon={
                 <Schedule
-                  sx={{ fontSize: 48, color: "text.secondary", opacity: 0.5 }}
+                  sx={{ fontSize: 48, color: PRIMARY_COLOR, opacity: 0.5 }}
                 />
               }
               action={
                 <Button
-                  variant="outlined"
+                  variant="contained"
                   size="small"
                   onClick={handleRefresh}
                   startIcon={<Refresh />}
+                  sx={{
+                    bgcolor: PRIMARY_COLOR,
+                    "&:hover": { bgcolor: "#3451b3" },
+                  }}
                 >
                   Check for Updates
                 </Button>
@@ -1397,9 +1428,9 @@ export default function UnifiedDashboard() {
             <Card
               sx={{
                 borderRadius: 2,
-                boxShadow: "0px 2px 8px rgba(0,0,0,0.08)",
+                boxShadow: "0px 2px 12px rgba(69, 105, 234, 0.1)",
                 bgcolor: "white",
-                border: "1px solid #f5f5f5",
+                border: "1px solid #f0f3ff",
                 height: "100%",
                 minHeight: 400,
               }}
@@ -1413,15 +1444,23 @@ export default function UnifiedDashboard() {
                     mb: 3,
                   }}
                 >
-                  <Typography variant="h6" fontWeight="bold" color="info.main">
+                  <Typography
+                    variant="h6"
+                    fontWeight="bold"
+                    color={PRIMARY_COLOR}
+                  >
                     Recent Activity
                   </Typography>
                   <Button
-                    variant="text"
+                    variant="contained"
                     size="small"
                     onClick={() => handleNavigateTo("/activities")}
                     endIcon={<NavigateNext />}
-                    sx={{ color: "info.main" }}
+                    sx={{
+                      bgcolor: PRIMARY_COLOR,
+                      "&:hover": { bgcolor: "#3451b3" },
+                      color: "#fff",
+                    }}
                   >
                     View All
                   </Button>
@@ -1433,28 +1472,12 @@ export default function UnifiedDashboard() {
                       sx={{
                         p: 2,
                         borderRadius: 2,
-                        border: `1px solid ${alpha(
-                          theme.palette[getStatusColor(activity.status)]
-                            ?.main || "#e0e0e0",
-                          0.1
-                        )}`,
-                        bgcolor: alpha(
-                          theme.palette[getStatusColor(activity.status)]
-                            ?.main || "#e0e0e0",
-                          0.03
-                        ),
+                        border: `1px solid ${alpha(PRIMARY_COLOR, 0.1)}`,
+                        bgcolor: alpha(PRIMARY_COLOR, 0.03),
                         transition: "all 0.2s ease",
                         "&:hover": {
-                          borderColor: alpha(
-                            theme.palette[getStatusColor(activity.status)]
-                              ?.main || "#e0e0e0",
-                            0.3
-                          ),
-                          bgcolor: alpha(
-                            theme.palette[getStatusColor(activity.status)]
-                              ?.main || "#e0e0e0",
-                            0.05
-                          ),
+                          borderColor: alpha(PRIMARY_COLOR, 0.3),
+                          bgcolor: alpha(PRIMARY_COLOR, 0.05),
                         },
                       }}
                     >
@@ -1467,9 +1490,7 @@ export default function UnifiedDashboard() {
                       >
                         <Avatar
                           sx={{
-                            bgcolor:
-                              theme.palette[getStatusColor(activity.status)]
-                                ?.main || "#9e9e9e",
+                            bgcolor: PRIMARY_COLOR,
                             width: 36,
                             height: 36,
                             fontSize: "0.75rem",
@@ -1500,14 +1521,8 @@ export default function UnifiedDashboard() {
                               sx={{
                                 height: 20,
                                 fontSize: "0.65rem",
-                                bgcolor: alpha(
-                                  theme.palette[getStatusColor(activity.status)]
-                                    ?.main || "#e0e0e0",
-                                  0.1
-                                ),
-                                color:
-                                  theme.palette[getStatusColor(activity.status)]
-                                    ?.main || "#757575",
+                                bgcolor: alpha(PRIMARY_COLOR, 0.1),
+                                color: PRIMARY_COLOR,
                               }}
                             />
                             <Typography
@@ -1517,7 +1532,7 @@ export default function UnifiedDashboard() {
                             >
                               {activity.updatedAt
                                 ? new Date(
-                                    activity.updatedAt
+                                    activity.updatedAt,
                                   ).toLocaleDateString()
                                 : "N/A"}
                             </Typography>
@@ -1553,8 +1568,10 @@ export default function UnifiedDashboard() {
             <Card
               sx={{
                 borderRadius: 2,
-                boxShadow: "none",
+                boxShadow: "0px 2px 12px rgba(69, 105, 234, 0.1)",
                 bgcolor: "white",
+                width: "600px",
+                border: "1px solid #f0f3ff",
                 mt: 2,
               }}
             >
@@ -1576,11 +1593,15 @@ export default function UnifiedDashboard() {
                   </Typography>
                   {getTeamMembers.length > 0 && (
                     <Button
-                      variant="text"
+                      variant="contained"
                       size="small"
                       onClick={() => handleNavigateTo("/team-members")}
                       endIcon={<NavigateNext />}
-                      sx={{ color: PRIMARY_COLOR }}
+                      sx={{
+                        bgcolor: PRIMARY_COLOR,
+                        "&:hover": { bgcolor: "#3451b3" },
+                        color: "#fff",
+                      }}
                     >
                       View All Team
                     </Button>
@@ -1592,14 +1613,15 @@ export default function UnifiedDashboard() {
                     sx={{
                       p: 4,
                       textAlign: "center",
-                      bgcolor: "#f9f9f9",
+                      bgcolor: "#f8f9ff",
                       borderRadius: 2,
+                      
                     }}
                   >
                     <Group
                       sx={{
                         fontSize: 48,
-                        color: "text.secondary",
+                        color: PRIMARY_COLOR,
                         opacity: 0.5,
                         mb: 2,
                       }}
@@ -1628,12 +1650,8 @@ export default function UnifiedDashboard() {
                             p: 2,
                             borderRadius: 2,
                             width: "350px",
-                            border: `1px solid ${alpha(
-                              theme.palette.secondary.main,
-                              0.1
-                            )}`,
-                            bgcolor: PRIMARY_COLOR,
-                            color: "#fff",
+                            border: `1px solid ${alpha(PRIMARY_COLOR, 0.1)}`,
+                            bgcolor: "white",
                           }}
                         >
                           <Box
@@ -1646,7 +1664,7 @@ export default function UnifiedDashboard() {
                           >
                             <Avatar
                               sx={{
-                                bgcolor: "#fff",
+                                bgcolor: alpha(PRIMARY_COLOR, 0.1),
                                 color: PRIMARY_COLOR,
                                 width: 48,
                                 height: 48,
@@ -1657,7 +1675,7 @@ export default function UnifiedDashboard() {
                               {getInitials(
                                 `${member.firstName || ""} ${
                                   member.lastName || ""
-                                }`
+                                }`,
                               )}
                             </Avatar>
                             <Box sx={{ flex: 1 }}>
@@ -1667,7 +1685,7 @@ export default function UnifiedDashboard() {
                               <Typography
                                 variant="caption"
                                 color="text.secondary"
-                                sx={{ display: "block", color: "#fff" }}
+                                sx={{ display: "block" }}
                               >
                                 {member.role || "Team Member"}
                               </Typography>
@@ -1688,23 +1706,21 @@ export default function UnifiedDashboard() {
                                   : "Inactive"
                               }
                               size="small"
-                              color={
-                                member.status === "active" ? "success" : "error"
-                              }
                               sx={{
                                 fontSize: "0.7rem",
+                                bgcolor: alpha(PRIMARY_COLOR, 0.1),
                                 color: PRIMARY_COLOR,
-                                bgcolor: "#fff",
+                                borderColor: alpha(PRIMARY_COLOR, 0.3),
                               }}
                             />
                             {member.createdAt && (
                               <Typography
                                 variant="caption"
                                 color="text.secondary"
-                                sx={{ fontSize: "0.7rem", color:"#fff" }}
+                                sx={{ fontSize: "0.7rem" }}
                               >
                                 {new Date(
-                                  member.createdAt
+                                  member.createdAt,
                                 ).toLocaleDateString()}
                               </Typography>
                             )}
@@ -1719,10 +1735,16 @@ export default function UnifiedDashboard() {
                                 mt: 1,
                               }}
                             >
-                              <Mail fontSize="small" sx={{ fontSize: 12 }} />
+                              <Mail
+                                fontSize="small"
+                                sx={{ fontSize: 12, color: PRIMARY_COLOR }}
+                              />
                               <Typography
                                 variant="caption"
-                                sx={{ fontSize: "0.7rem" }}
+                                sx={{
+                                  fontSize: "0.7rem",
+                                  color: "text.secondary",
+                                }}
                               >
                                 {member.email}
                               </Typography>
@@ -1744,8 +1766,10 @@ export default function UnifiedDashboard() {
             <Card
               sx={{
                 borderRadius: 2,
-                boxShadow: "none",
+                boxShadow: "0px 2px 12px rgba(69, 105, 234, 0.1)",
                 bgcolor: "white",
+                border: "1px solid #f0f3ff",
+                                    width: "530px",
                 mt: 2,
               }}
             >
@@ -1761,16 +1785,19 @@ export default function UnifiedDashboard() {
                   <Typography
                     variant="h6"
                     fontWeight="bold"
-                    color="warning.main"
+                    color={PRIMARY_COLOR}
                   >
                     Recent Activities
                   </Typography>
                   <Button
-                    variant="text"
+                    variant="contained"
                     size="small"
                     onClick={() => handleNavigateTo("/activities")}
                     endIcon={<NavigateNext />}
-                    sx={{ color: "warning.main" }}
+                    sx={{
+                      background: "#3451b3",
+                      color: "#fff",
+                    }}
                   >
                     View All Activities
                   </Button>
@@ -1784,30 +1811,14 @@ export default function UnifiedDashboard() {
                           p: 2,
                           borderRadius: 2,
                           width: "360px",
-                          border: `1px solid ${alpha(
-                            theme.palette[getStatusColor(activity.status)]
-                              ?.main || "#e0e0e0",
-                            0.1
-                          )}`,
-                          bgcolor: alpha(
-                            theme.palette[getStatusColor(activity.status)]
-                              ?.main || "#e0e0e0",
-                            0.03
-                          ),
+                          border: `1px solid ${alpha(PRIMARY_COLOR, 0.1)}`,
+                          bgcolor: alpha(PRIMARY_COLOR, 0.03),
                           transition: "all 0.3s ease",
                           "&:hover": {
                             transform: "translateY(-2px)",
-                            borderColor: alpha(
-                              theme.palette[getStatusColor(activity.status)]
-                                ?.main || "#e0e0e0",
-                              0.3
-                            ),
-                            bgcolor: alpha(
-                              theme.palette[getStatusColor(activity.status)]
-                                ?.main || "#e0e0e0",
-                              0.05
-                            ),
-                            boxShadow: "0px 4px 12px rgba(0,0,0,0.1)",
+                            borderColor: alpha(PRIMARY_COLOR, 0.3),
+                            bgcolor: alpha(PRIMARY_COLOR, 0.05),
+                            boxShadow: "0px 4px 12px rgba(69, 105, 234, 0.1)",
                           },
                         }}
                       >
@@ -1821,9 +1832,7 @@ export default function UnifiedDashboard() {
                         >
                           <Avatar
                             sx={{
-                              bgcolor:
-                                theme.palette[getStatusColor(activity.status)]
-                                  ?.main || "#9e9e9e",
+                              bgcolor: PRIMARY_COLOR,
                               width: 40,
                               height: 40,
                               fontSize: "0.85rem",
@@ -1836,7 +1845,7 @@ export default function UnifiedDashboard() {
                             <Typography
                               variant="subtitle2"
                               fontWeight="600"
-                              sx={{ fontSize: "0.9rem" }}
+                              sx={{ fontSize: "0.9rem", color: PRIMARY_COLOR }}
                             >
                               {activity.leadName}
                             </Typography>
@@ -1848,14 +1857,8 @@ export default function UnifiedDashboard() {
                                 fontSize: "0.7rem",
                                 fontWeight: 500,
                                 mt: 0.5,
-                                bgcolor: alpha(
-                                  theme.palette[getStatusColor(activity.status)]
-                                    ?.main || "#e0e0e0",
-                                  0.15
-                                ),
-                                color:
-                                  theme.palette[getStatusColor(activity.status)]
-                                    ?.main || "#757575",
+                                bgcolor: alpha(PRIMARY_COLOR, 0.15),
+                                color: PRIMARY_COLOR,
                               }}
                             />
                           </Box>
@@ -1915,10 +1918,10 @@ export default function UnifiedDashboard() {
               minWidth: "auto",
               width: 56,
               height: 56,
-              boxShadow: 3,
+              boxShadow: "0px 4px 12px rgba(69, 105, 234, 0.3)",
               "&:hover": {
-                bgcolor: "#e65100",
-                boxShadow: 6,
+                bgcolor: "#3451b3",
+                boxShadow: "0px 6px 16px rgba(69, 105, 234, 0.4)",
               },
             }}
           />
