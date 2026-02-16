@@ -207,6 +207,7 @@ import {
   VisibilityOff,
   Security,
   CalendarToday,
+  Edit,
 } from "@mui/icons-material";
 
 import { useAuth } from "../contexts/AuthContext";
@@ -222,8 +223,7 @@ import {
 } from "date-fns";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-
-
+import Webcam from "react-webcam";
 
 // ========== CONSTANTS & CONFIGURATION ==========
 const PRIMARY = "#3a5ac8";
@@ -549,13 +549,39 @@ const formatFileSize = (bytes) => {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
 };
 
-const formatDate = (dateString, formatStr = "dd MMM yyyy, hh:mm a") => {
+// Safe date formatting function
+const safeFormatDate = (dateString, formatStr = "dd MMM yyyy, hh:mm a") => {
   if (!dateString) return "Not set";
   try {
     const date = parseISO(dateString);
     return isValid(date) ? format(date, formatStr) : "Invalid Date";
-  } catch {
+  } catch (error) {
+    console.error("Date formatting error:", error);
     return "Invalid Date";
+  }
+};
+
+// Safe date only formatting (no time)
+const safeFormatDateOnly = (dateString, formatStr = "dd MMM yyyy") => {
+  if (!dateString) return "Not set";
+  try {
+    const date = parseISO(dateString);
+    return isValid(date) ? format(date, formatStr) : "Invalid Date";
+  } catch (error) {
+    console.error("Date formatting error:", error);
+    return "Invalid Date";
+  }
+};
+
+// Safe time formatting
+const safeFormatTime = (dateString, formatStr = "hh:mm a") => {
+  if (!dateString) return "--:--";
+  try {
+    const date = parseISO(dateString);
+    return isValid(date) ? format(date, formatStr) : "--:--";
+  } catch (error) {
+    console.error("Time formatting error:", error);
+    return "--:--";
   }
 };
 
@@ -576,7 +602,7 @@ const formatTimeAgo = (dateString) => {
 
 // ========== API SERVICE LAYER ==========
 const VisitService = {
-  // Create visit
+  // Create visit - POST /api/v1/visit
   createVisit: async (fetchAPI, formData) => {
     return await fetchAPI("/visit", {
       method: "POST",
@@ -584,7 +610,7 @@ const VisitService = {
     });
   },
 
-  // Get all visits with pagination
+  // Get all visits with pagination - GET /api/v1/visit
   getVisits: async (fetchAPI, page = 1, limit = 10, filters = {}) => {
     let url = `/visit?page=${page}&limit=${limit}`;
     
@@ -597,12 +623,12 @@ const VisitService = {
     return await fetchAPI(url);
   },
 
-  // Get visit by ID
+  // Get visit by ID - GET /api/v1/visit/:id
   getVisitById: async (fetchAPI, id) => {
     return await fetchAPI(`/visit/${id}`);
   },
 
-  // Update visit
+  // Update visit - PUT /api/v1/visit/:id
   updateVisit: async (fetchAPI, id, formData) => {
     return await fetchAPI(`/visit/${id}`, {
       method: "PUT",
@@ -610,19 +636,19 @@ const VisitService = {
     });
   },
 
-  // Delete visit
+  // Delete visit - DELETE /api/v1/visit/:id
   deleteVisit: async (fetchAPI, id) => {
     return await fetchAPI(`/visit/${id}`, {
       method: "DELETE",
     });
   },
 
-  // Get visit stats
+  // Get visit stats - GET /api/v1/visit/stats
   getVisitStats: async (fetchAPI) => {
     return await fetchAPI("/visit/stats");
   },
 
-  // Get visit report
+  // Get visit report - GET /api/v1/visit/report/:type
   getVisitReport: async (fetchAPI, type, params = {}) => {
     let url = `/visit/report/${type}`;
     const queryParams = [];
@@ -638,10 +664,118 @@ const VisitService = {
     return await fetchAPI(url);
   },
 
-  // Get daily summary
+  // Get daily summary - GET /api/v1/visit/daily-summary
   getDailySummary: async (fetchAPI, date) => {
     return await fetchAPI(`/visit/daily-summary?date=${date}`);
   },
+};
+
+// ========== WEBCAM CAPTURE COMPONENT ==========
+const WebcamCapture = ({ onCapture, onClose }) => {
+  const webcamRef = useRef(null);
+  const [capturedImage, setCapturedImage] = useState(null);
+
+  const capture = useCallback(() => {
+    const imageSrc = webcamRef.current.getScreenshot();
+    setCapturedImage(imageSrc);
+  }, [webcamRef]);
+
+  const retake = () => {
+    setCapturedImage(null);
+  };
+
+  const confirmCapture = () => {
+    if (capturedImage) {
+      // Convert base64 to file
+      fetch(capturedImage)
+        .then(res => res.blob())
+        .then(blob => {
+          const file = new File([blob], `visit_${Date.now()}.jpg`, { type: 'image/jpeg' });
+          onCapture(file, capturedImage);
+        });
+    }
+  };
+
+  return (
+    <Box sx={{ textAlign: 'center', p: 2 }}>
+      {!capturedImage ? (
+        <>
+          <Webcam
+            ref={webcamRef}
+            screenshotFormat="image/jpeg"
+            width="100%"
+            height="auto"
+            videoConstraints={{
+              facingMode: "environment",
+              width: { ideal: 1280 },
+              height: { ideal: 720 }
+            }}
+            style={{
+              borderRadius: 8,
+              marginBottom: 16,
+              maxWidth: '100%'
+            }}
+          />
+          <Stack direction="row" spacing={2} justifyContent="center">
+            <Button
+              variant="contained"
+              onClick={capture}
+              startIcon={<CameraAlt />}
+              sx={{ borderRadius: 2 }}
+            >
+              Capture Photo
+            </Button>
+            <Button
+              variant="outlined"
+              onClick={onClose}
+              sx={{ borderRadius: 2 }}
+            >
+              Cancel
+            </Button>
+          </Stack>
+        </>
+      ) : (
+        <>
+          <img
+            src={capturedImage}
+            alt="Captured"
+            style={{
+              width: '100%',
+              maxHeight: 400,
+              objectFit: 'contain',
+              borderRadius: 8,
+              marginBottom: 16
+            }}
+          />
+          <Stack direction="row" spacing={2} justifyContent="center">
+            <Button
+              variant="contained"
+              onClick={confirmCapture}
+              startIcon={<CheckCircle />}
+              sx={{ borderRadius: 2, bgcolor: SUCCESS }}
+            >
+              Use Photo
+            </Button>
+            <Button
+              variant="outlined"
+              onClick={retake}
+              startIcon={<Refresh />}
+              sx={{ borderRadius: 2 }}
+            >
+              Retake
+            </Button>
+            <Button
+              variant="outlined"
+              onClick={onClose}
+              sx={{ borderRadius: 2 }}
+            >
+              Cancel
+            </Button>
+          </Stack>
+        </>
+      )}
+    </Box>
+  );
 };
 
 // ========== ENHANCED LOCATION PERMISSION DIALOG ==========
@@ -913,78 +1047,27 @@ const LocationPermissionDialog = ({ open, onClose, onAllow, onDeny }) => {
   );
 };
 
-// ========== ENHANCED MANUAL LOCATION DIALOG ==========
-const ManualLocationDialog = ({ open, onClose, onSubmit, loading }) => {
+// ========== CREATE VISIT DIALOG ==========
+const CreateVisitDialog = ({ open, onClose, onSubmit, loading }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
-  const [activeStep, setActiveStep] = useState(0);
-  const [transportMode, setTransportMode] = useState(TRANSPORT_MODES.DRIVING);
-  const [manualLocation, setManualLocation] = useState({
+  const [formData, setFormData] = useState({
     latitude: "",
     longitude: "",
     locationName: "",
     remarks: "",
-    locationType: LOCATION_TYPES.CLIENT_SITE,
-    notes: "",
-    images: [],
-    estimatedDistance: "",
-    estimatedDuration: "",
   });
   const [errors, setErrors] = useState({});
-  const [previewImages, setPreviewImages] = useState([]);
-
-  const steps = ["Enter Coordinates", "Location Details", "Upload Images", "Review"];
+  const [photo, setPhoto] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState(null);
+  const [gettingLocation, setGettingLocation] = useState(false);
+  const [showCamera, setShowCamera] = useState(false);
 
   const handleInputChange = (field) => (event) => {
-    setManualLocation((prev) => ({ ...prev, [field]: event.target.value }));
+    setFormData((prev) => ({ ...prev, [field]: event.target.value }));
     if (errors[field]) {
       setErrors((prev) => ({ ...prev, [field]: null }));
     }
-  };
-
-  const handleImageUpload = (event) => {
-    const files = Array.from(event.target.files);
-    const validFiles = [];
-    const errors = [];
-
-    files.forEach((file) => {
-      const error = validateFile(file);
-      if (error) {
-        errors.push(`${file.name}: ${error}`);
-      } else {
-        validFiles.push(file);
-      }
-    });
-
-    if (errors.length > 0) {
-      setErrors((prev) => ({ ...prev, images: errors.join(", ") }));
-      return;
-    }
-
-    setManualLocation((prev) => ({
-      ...prev,
-      images: [...prev.images, ...validFiles],
-    }));
-
-    // Create preview URLs
-    const newPreviews = validFiles.map((file) => ({
-      file,
-      url: URL.createObjectURL(file),
-      name: file.name,
-      size: file.size,
-    }));
-    setPreviewImages((prev) => [...prev, ...newPreviews]);
-  };
-
-  const handleRemoveImage = (index) => {
-    setManualLocation((prev) => ({
-      ...prev,
-      images: prev.images.filter((_, i) => i !== index),
-    }));
-    setPreviewImages((prev) => {
-      URL.revokeObjectURL(prev[index].url);
-      return prev.filter((_, i) => i !== index);
-    });
   };
 
   const handleGetCurrentLocation = () => {
@@ -993,87 +1076,195 @@ const ManualLocationDialog = ({ open, onClose, onSubmit, loading }) => {
       return;
     }
 
+    setGettingLocation(true);
+    setErrors((prev) => ({ ...prev, location: null }));
+
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        setManualLocation((prev) => ({
+        setFormData((prev) => ({
           ...prev,
           latitude: position.coords.latitude.toString(),
           longitude: position.coords.longitude.toString(),
         }));
+        setGettingLocation(false);
       },
       (error) => {
-        setErrors((prev) => ({ ...prev, location: error.message }));
+        let errorMsg = "Unable to get location";
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            errorMsg = "Location permission denied. Please enable location access.";
+            break;
+          case error.POSITION_UNAVAILABLE:
+            errorMsg = "Location information is unavailable.";
+            break;
+          case error.TIMEOUT:
+            errorMsg = "Location request timed out.";
+            break;
+          default:
+            errorMsg = "An unknown error occurred.";
+        }
+        setErrors((prev) => ({ ...prev, location: errorMsg }));
+        setGettingLocation(false);
       },
-      { enableHighAccuracy: true }
+      { 
+        enableHighAccuracy: true, 
+        timeout: 15000, 
+        maximumAge: 0 
+      }
     );
   };
 
-  const handleEstimateDistance = () => {
-    if (manualLocation.latitude && manualLocation.longitude) {
-      const distance = Math.random() * 10 + 2; // Mock calculation
-      setManualLocation((prev) => ({
-        ...prev,
-        estimatedDistance: distance.toFixed(1),
-        estimatedDuration: calculateTravelTime(distance, transportMode).toFixed(0),
-      }));
+  const handleCapturePhoto = (capturedFile, capturedPreview) => {
+    setPhoto(capturedFile);
+    setPreviewUrl(capturedPreview);
+    setShowCamera(false);
+  };
+
+  const handleRemovePhoto = () => {
+    if (previewUrl && previewUrl.startsWith('blob:')) {
+      URL.revokeObjectURL(previewUrl);
     }
+    setPhoto(null);
+    setPreviewUrl(null);
   };
 
   const handleSubmit = () => {
     const newErrors = {};
     
-    if (!manualLocation.latitude) newErrors.latitude = "Latitude is required";
-    if (!manualLocation.longitude) newErrors.longitude = "Longitude is required";
-    if (!manualLocation.locationName) newErrors.locationName = "Location name is required";
+    if (!formData.latitude) newErrors.latitude = "Latitude is required";
+    if (!formData.longitude) newErrors.longitude = "Longitude is required";
+    if (!formData.locationName) newErrors.locationName = "Location name is required";
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
     }
 
-    onSubmit(manualLocation);
+    onSubmit(formData, photo);
   };
 
   const handleClose = () => {
-    setActiveStep(0);
-    setManualLocation({
+    if (previewUrl && previewUrl.startsWith('blob:')) {
+      URL.revokeObjectURL(previewUrl);
+    }
+    setFormData({
       latitude: "",
       longitude: "",
       locationName: "",
       remarks: "",
-      locationType: LOCATION_TYPES.CLIENT_SITE,
-      notes: "",
-      images: [],
-      estimatedDistance: "",
-      estimatedDuration: "",
     });
-    setPreviewImages([]);
+    setPhoto(null);
+    setPreviewUrl(null);
     setErrors({});
+    setGettingLocation(false);
+    setShowCamera(false);
     onClose();
   };
 
-  const renderStepContent = (step) => {
-    switch (step) {
-      case 0:
-        return (
+  return (
+    <>
+      {/* Camera Dialog */}
+      <Dialog
+        open={showCamera}
+        onClose={() => setShowCamera(false)}
+        maxWidth="md"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 4,
+          },
+        }}
+      >
+        <DialogTitle sx={{ borderBottom: 1, borderColor: 'divider' }}>
+          <Stack direction="row" alignItems="center" justifyContent="space-between">
+            <Typography variant="h6" fontWeight={600}>
+              Take Photo
+            </Typography>
+            <IconButton onClick={() => setShowCamera(false)}>
+              <Close />
+            </IconButton>
+          </Stack>
+        </DialogTitle>
+        <DialogContent>
+          <WebcamCapture 
+            onCapture={handleCapturePhoto} 
+            onClose={() => setShowCamera(false)} 
+          />
+        </DialogContent>
+      </Dialog>
+
+      {/* Main Create Visit Dialog */}
+      <Dialog
+        open={open}
+        onClose={handleClose}
+        maxWidth="sm"
+        fullWidth
+        fullScreen={isMobile}
+        PaperProps={{
+          sx: {
+            borderRadius: isMobile ? 0 : 4,
+          },
+        }}
+      >
+        <DialogTitle
+          sx={{
+            pb: 2,
+            borderBottom: 1,
+            borderColor: "divider",
+          }}
+        >
+          <Stack direction="row" alignItems="center" justifyContent="space-between">
+            <Box display="flex" alignItems="center" gap={2}>
+              <Box
+                sx={{
+                  width: 48,
+                  height: 48,
+                  borderRadius: 2,
+                  background: `linear-gradient(135deg, ${alpha(PRIMARY, 0.15)} 0%, ${alpha(PRIMARY, 0.05)} 100%)`,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  color: PRIMARY,
+                }}
+              >
+                <AddLocationAlt sx={{ fontSize: 28 }} />
+              </Box>
+              <Box>
+                <Typography variant="h5" fontWeight={700}>
+                  Create New Visit
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Record a new field visit location
+                </Typography>
+              </Box>
+            </Box>
+            <IconButton onClick={handleClose} size="large">
+              <Close />
+            </IconButton>
+          </Stack>
+        </DialogTitle>
+
+        <DialogContent sx={{ py: 3 }}>
           <Stack spacing={3}>
             <Alert severity="info" sx={{ borderRadius: 2 }}>
-              <AlertTitle>Enter Location Coordinates</AlertTitle>
-              You can enter coordinates manually or use your current location
+              <AlertTitle>Location Required</AlertTitle>
+              Enter the coordinates or use your current location
             </Alert>
 
-            <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
+            <Box sx={{ display: "flex", gap: 2, alignItems: "center", flexWrap: "wrap" }}>
               <Button
                 variant="contained"
-                startIcon={<MyLocation />}
+                startIcon={gettingLocation ? <CircularProgress size={20} /> : <MyLocation />}
                 onClick={handleGetCurrentLocation}
+                disabled={gettingLocation}
                 sx={{
                   borderRadius: 2,
                   bgcolor: PRIMARY,
                   "&:hover": { bgcolor: SECONDARY },
+                  minWidth: 200,
                 }}
               >
-                Use Current Location
+                {gettingLocation ? "Getting Location..." : "Use Current Location"}
               </Button>
               <Typography variant="body2" color="text.secondary">
                 or enter manually
@@ -1090,7 +1281,7 @@ const ManualLocationDialog = ({ open, onClose, onSubmit, loading }) => {
               <Grid item xs={12} sm={6}>
                 <TextField
                   label="Latitude *"
-                  value={manualLocation.latitude}
+                  value={formData.latitude}
                   onChange={handleInputChange("latitude")}
                   fullWidth
                   size="medium"
@@ -1098,12 +1289,7 @@ const ManualLocationDialog = ({ open, onClose, onSubmit, loading }) => {
                   inputProps={{ step: "0.000001" }}
                   error={!!errors.latitude}
                   helperText={errors.latitude}
-                  sx={{
-                    "& .MuiOutlinedInput-root": {
-                      borderRadius: 2,
-                      bgcolor: "background.paper",
-                    },
-                  }}
+                  sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
                   InputProps={{
                     startAdornment: (
                       <InputAdornment position="start">
@@ -1116,7 +1302,7 @@ const ManualLocationDialog = ({ open, onClose, onSubmit, loading }) => {
               <Grid item xs={12} sm={6}>
                 <TextField
                   label="Longitude *"
-                  value={manualLocation.longitude}
+                  value={formData.longitude}
                   onChange={handleInputChange("longitude")}
                   fullWidth
                   size="medium"
@@ -1124,12 +1310,7 @@ const ManualLocationDialog = ({ open, onClose, onSubmit, loading }) => {
                   inputProps={{ step: "0.000001" }}
                   error={!!errors.longitude}
                   helperText={errors.longitude}
-                  sx={{
-                    "& .MuiOutlinedInput-root": {
-                      borderRadius: 2,
-                      bgcolor: "background.paper",
-                    },
-                  }}
+                  sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
                   InputProps={{
                     startAdornment: (
                       <InputAdornment position="start">
@@ -1141,84 +1322,16 @@ const ManualLocationDialog = ({ open, onClose, onSubmit, loading }) => {
               </Grid>
             </Grid>
 
-            {manualLocation.latitude && manualLocation.longitude && (
-              <Paper
-                sx={{
-                  p: 2,
-                  bgcolor: alpha(SUCCESS, 0.05),
-                  borderRadius: 2,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                }}
-              >
-                <Box>
-                  <Typography variant="subtitle2" fontWeight={600} color={SUCCESS}>
-                    Coordinates Ready
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    {manualLocation.latitude}, {manualLocation.longitude}
-                  </Typography>
-                </Box>
-                <Button
-                  variant="outlined"
-                  size="small"
-                  onClick={handleEstimateDistance}
-                  startIcon={<Route />}
-                  sx={{ borderRadius: 2 }}
-                >
-                  Estimate Distance
-                </Button>
-              </Paper>
-            )}
-
-            {manualLocation.estimatedDistance && (
-              <Grid container spacing={2}>
-                <Grid item xs={6}>
-                  <TextField
-                    label="Estimated Distance"
-                    value={`${manualLocation.estimatedDistance} km`}
-                    fullWidth
-                    size="small"
-                    InputProps={{ readOnly: true }}
-                    sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
-                  />
-                </Grid>
-                <Grid item xs={6}>
-                  <TextField
-                    label="Estimated Time"
-                    value={formatDuration(manualLocation.estimatedDuration)}
-                    fullWidth
-                    size="small"
-                    InputProps={{ readOnly: true }}
-                    sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
-                  />
-                </Grid>
-              </Grid>
-            )}
-          </Stack>
-        );
-
-      case 1:
-        return (
-          <Stack spacing={3}>
-            <Alert severity="info" sx={{ borderRadius: 2 }}>
-              <AlertTitle>Location Details</AlertTitle>
-              Provide additional information about this location
-            </Alert>
-
             <TextField
               label="Location Name *"
-              value={manualLocation.locationName}
+              value={formData.locationName}
               onChange={handleInputChange("locationName")}
               fullWidth
               size="medium"
               placeholder="Enter location name"
               error={!!errors.locationName}
               helperText={errors.locationName}
-              sx={{
-                "& .MuiOutlinedInput-root": { borderRadius: 2 },
-              }}
+              sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
@@ -1228,62 +1341,15 @@ const ManualLocationDialog = ({ open, onClose, onSubmit, loading }) => {
               }}
             />
 
-            <FormControl fullWidth error={!!errors.locationType}>
-              <InputLabel>Location Type *</InputLabel>
-              <Select
-                value={manualLocation.locationType}
-                label="Location Type *"
-                onChange={handleInputChange("locationType")}
-                sx={{ borderRadius: 2 }}
-              >
-                {Object.values(LOCATION_TYPES).map((type) => {
-                  const config = getLocationTypeConfig(type);
-                  return (
-                    <MenuItem key={type} value={type}>
-                      <Stack direction="row" alignItems="center" spacing={1.5}>
-                        <Box
-                          sx={{
-                            width: 24,
-                            height: 24,
-                            borderRadius: 1,
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            bgcolor: alpha(config.color, 0.1),
-                            color: config.color,
-                          }}
-                        >
-                          {config.icon}
-                        </Box>
-                        <Box>
-                          <Typography variant="body2">{config.label}</Typography>
-                          <Typography variant="caption" color="text.secondary">
-                            {type === LOCATION_TYPES.CLIENT_SITE && "Customer location"}
-                            {type === LOCATION_TYPES.OFFICE && "Company office"}
-                            {type === LOCATION_TYPES.FIELD_VISIT && "On-field visit"}
-                            {type === LOCATION_TYPES.HOME && "Residential"}
-                            {type === LOCATION_TYPES.OTHER && "Other places"}
-                          </Typography>
-                        </Box>
-                      </Stack>
-                    </MenuItem>
-                  );
-                })}
-              </Select>
-              {errors.locationType && (
-                <FormHelperText>{errors.locationType}</FormHelperText>
-              )}
-            </FormControl>
-
             <TextField
               label="Remarks"
-              value={manualLocation.remarks}
+              value={formData.remarks}
               onChange={handleInputChange("remarks")}
               fullWidth
               multiline
-              rows={2}
+              rows={3}
               size="medium"
-              placeholder="Enter remarks about this visit..."
+              placeholder="Enter any remarks about this visit..."
               sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
               InputProps={{
                 startAdornment: (
@@ -1296,424 +1362,83 @@ const ManualLocationDialog = ({ open, onClose, onSubmit, loading }) => {
 
             <Box>
               <Typography variant="subtitle2" fontWeight={600} gutterBottom>
-                Transport Mode
+                Photo (Optional)
               </Typography>
-              <RadioGroup
-                row
-                value={transportMode}
-                onChange={(e) => setTransportMode(e.target.value)}
-                sx={{ flexWrap: "wrap", gap: 1 }}
-              >
-                {Object.values(TRANSPORT_MODES).map((mode) => {
-                  const config = getTransportModeConfig(mode);
-                  return (
-                    <FormControlLabel
-                      key={mode}
-                      value={mode}
-                      control={
-                        <Radio
-                          sx={{
-                            color: config.color,
-                            "&.Mui-checked": {
-                              color: config.color,
-                            },
-                          }}
-                        />
-                      }
-                      label={
-                        <Stack direction="row" alignItems="center" spacing={0.5}>
-                          {config.icon}
-                          <Typography variant="body2">{config.label}</Typography>
-                        </Stack>
-                      }
-                      sx={{
-                        mr: 0,
-                        p: 1,
-                        borderRadius: 2,
-                        border: "1px solid",
-                        borderColor: transportMode === mode ? config.color : "divider",
-                        bgcolor: transportMode === mode ? alpha(config.color, 0.05) : "transparent",
-                      }}
-                    />
-                  );
-                })}
-              </RadioGroup>
-            </Box>
-          </Stack>
-        );
-
-      case 2:
-        return (
-          <Stack spacing={3}>
-            <Alert severity="info" sx={{ borderRadius: 2 }}>
-              <AlertTitle>Upload Location Images</AlertTitle>
-              Add photos of the location to help identify it
-            </Alert>
-
-            <Box
-              sx={{
-                p: 3,
-                border: `2px dashed ${alpha(PRIMARY, 0.3)}`,
-                borderRadius: 3,
-                bgcolor: alpha(PRIMARY, 0.02),
-                textAlign: "center",
-                cursor: "pointer",
-                "&:hover": {
-                  borderColor: PRIMARY,
-                  bgcolor: alpha(PRIMARY, 0.05),
-                },
-                transition: "all 0.2s",
-              }}
-              component="label"
-            >
-              <input
-                type="file"
-                hidden
-                multiple
-                accept="image/*"
-                onChange={handleImageUpload}
-              />
-              <CloudUpload sx={{ fontSize: 48, color: PRIMARY, mb: 1 }} />
-              <Typography variant="h6" fontWeight={600} gutterBottom>
-                Click to Upload Images
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                or drag and drop (Max 10MB per file)
-              </Typography>
-              <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: "block" }}>
-                Supported formats: JPG, PNG, WEBP, HEIC
-              </Typography>
-            </Box>
-
-            {errors.images && (
-              <Alert severity="error" sx={{ borderRadius: 2 }}>
-                {errors.images}
-              </Alert>
-            )}
-
-            {previewImages.length > 0 && (
-              <>
-                <Typography variant="subtitle1" fontWeight={600}>
-                  Uploaded Images ({previewImages.length})
-                </Typography>
-                <ImageList cols={isMobile ? 2 : 3} gap={16}>
-                  {previewImages.map((image, index) => (
-                    <ImageListItem
-                      key={index}
-                      sx={{
-                        borderRadius: 2,
-                        overflow: "hidden",
-                        border: "1px solid",
-                        borderColor: "divider",
-                        position: "relative",
-                        "&:hover .image-overlay": {
-                          opacity: 1,
-                        },
-                      }}
-                    >
-                      <img
-                        src={image.url}
-                        alt={image.name}
-                        loading="lazy"
-                        style={{ height: 150, objectFit: "cover" }}
-                      />
-                      <Box
-                        className="image-overlay"
-                        sx={{
-                          position: "absolute",
-                          top: 0,
-                          left: 0,
-                          right: 0,
-                          bottom: 0,
-                          bgcolor: "rgba(0,0,0,0.5)",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          gap: 1,
-                          opacity: 0,
-                          transition: "opacity 0.2s",
-                        }}
-                      >
-                        <IconButton
-                          size="small"
-                          sx={{ bgcolor: "white", "&:hover": { bgcolor: "grey.100" } }}
-                          onClick={() => handleRemoveImage(index)}
-                        >
-                          <Delete fontSize="small" />
-                        </IconButton>
-                      </Box>
-                      <ImageListItemBar
-                        title={image.name}
-                        subtitle={formatFileSize(image.size)}
-                        sx={{
-                          "& .MuiImageListItemBar-title": {
-                            fontSize: "0.75rem",
-                            whiteSpace: "nowrap",
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                          },
-                        }}
-                      />
-                    </ImageListItem>
-                  ))}
-                </ImageList>
-              </>
-            )}
-          </Stack>
-        );
-
-      case 3:
-        return (
-          <Stack spacing={3}>
-            <Alert severity="success" sx={{ borderRadius: 2 }}>
-              <AlertTitle>Review Location Details</AlertTitle>
-              Please verify all information before submitting
-            </Alert>
-
-            <Paper sx={{ p: 3, borderRadius: 2, bgcolor: "grey.50" }}>
-              <Grid container spacing={3}>
-                <Grid item xs={12}>
-                  <Typography variant="subtitle2" fontWeight={600} color={PRIMARY} gutterBottom>
-                    📍 Coordinates
-                  </Typography>
-                  <Typography variant="body1">
-                    {manualLocation.latitude}, {manualLocation.longitude}
-                  </Typography>
-                </Grid>
-
-                <Grid item xs={12}>
-                  <Typography variant="subtitle2" fontWeight={600} color={PRIMARY} gutterBottom>
-                    🏠 Location Name
-                  </Typography>
-                  <Typography variant="body1">{manualLocation.locationName}</Typography>
-                </Grid>
-
-                <Grid item xs={12} sm={6}>
-                  <Typography variant="subtitle2" fontWeight={600} color={PRIMARY} gutterBottom>
-                    📌 Location Type
-                  </Typography>
-                  <Chip
-                    label={getLocationTypeConfig(manualLocation.locationType).label}
-                    icon={getLocationTypeConfig(manualLocation.locationType).icon}
-                    sx={{
-                      bgcolor: alpha(getLocationTypeConfig(manualLocation.locationType).color, 0.1),
-                      color: getLocationTypeConfig(manualLocation.locationType).color,
-                      fontWeight: 600,
+              
+              {!previewUrl ? (
+                <Button
+                  variant="outlined"
+                  startIcon={<PhotoCamera />}
+                  onClick={() => setShowCamera(true)}
+                  fullWidth
+                  sx={{
+                    p: 2,
+                    border: `2px dashed ${alpha(PRIMARY, 0.3)}`,
+                    borderRadius: 2,
+                    color: PRIMARY,
+                    '&:hover': {
+                      borderColor: PRIMARY,
+                      bgcolor: alpha(PRIMARY, 0.05),
+                    }
+                  }}
+                >
+                  Take Photo
+                </Button>
+              ) : (
+                <Box sx={{ position: "relative", mt: 1 }}>
+                  <img
+                    src={previewUrl}
+                    alt="Preview"
+                    style={{
+                      width: "100%",
+                      maxHeight: 200,
+                      objectFit: "contain",
+                      borderRadius: 8,
                     }}
                   />
-                </Grid>
-
-                <Grid item xs={12} sm={6}>
-                  <Typography variant="subtitle2" fontWeight={600} color={PRIMARY} gutterBottom>
-                    🚗 Transport Mode
-                  </Typography>
-                  <Chip
-                    label={getTransportModeConfig(transportMode).label}
-                    icon={getTransportModeConfig(transportMode).icon}
+                  <IconButton
+                    size="small"
                     sx={{
-                      bgcolor: alpha(getTransportModeConfig(transportMode).color, 0.1),
-                      color: getTransportModeConfig(transportMode).color,
-                      fontWeight: 600,
+                      position: "absolute",
+                      top: 8,
+                      right: 8,
+                      bgcolor: "rgba(255,255,255,0.9)",
+                      "&:hover": { bgcolor: "white" },
                     }}
-                  />
-                </Grid>
-
-                {manualLocation.estimatedDistance && (
-                  <>
-                    <Grid item xs={12} sm={6}>
-                      <Typography variant="subtitle2" fontWeight={600} color={PRIMARY} gutterBottom>
-                        📏 Estimated Distance
-                      </Typography>
-                      <Typography variant="body1" fontWeight={600}>
-                        {manualLocation.estimatedDistance} km
-                      </Typography>
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
-                      <Typography variant="subtitle2" fontWeight={600} color={PRIMARY} gutterBottom>
-                        ⏱️ Estimated Travel Time
-                      </Typography>
-                      <Typography variant="body1" fontWeight={600}>
-                        {formatDuration(manualLocation.estimatedDuration)}
-                      </Typography>
-                    </Grid>
-                  </>
-                )}
-
-                {manualLocation.remarks && (
-                  <Grid item xs={12}>
-                    <Typography variant="subtitle2" fontWeight={600} color={PRIMARY} gutterBottom>
-                      📝 Remarks
-                    </Typography>
-                    <Paper sx={{ p: 2, bgcolor: "white", borderRadius: 2 }}>
-                      <Typography variant="body2" style={{ whiteSpace: "pre-wrap" }}>
-                        {manualLocation.remarks}
-                      </Typography>
-                    </Paper>
-                  </Grid>
-                )}
-
-                {previewImages.length > 0 && (
-                  <Grid item xs={12}>
-                    <Typography variant="subtitle2" fontWeight={600} color={PRIMARY} gutterBottom>
-                      🖼️ Images ({previewImages.length})
-                    </Typography>
-                    <AvatarGroup max={5} sx={{ justifyContent: "flex-start" }}>
-                      {previewImages.map((image, index) => (
-                        <Tooltip key={index} title={image.name}>
-                          <Avatar
-                            src={image.url}
-                            variant="rounded"
-                            sx={{ width: 48, height: 48, border: `2px solid ${PRIMARY}` }}
-                          />
-                        </Tooltip>
-                      ))}
-                    </AvatarGroup>
-                  </Grid>
-                )}
-              </Grid>
-            </Paper>
+                    onClick={handleRemovePhoto}
+                  >
+                    <Delete />
+                  </IconButton>
+                </Box>
+              )}
+              
+              {errors.photo && (
+                <FormHelperText error sx={{ mt: 1 }}>
+                  {errors.photo}
+                </FormHelperText>
+              )}
+            </Box>
           </Stack>
-        );
+        </DialogContent>
 
-      default:
-        return null;
-    }
-  };
-
-  return (
-    <Dialog
-      open={open}
-      onClose={handleClose}
-      maxWidth="md"
-      fullWidth
-      fullScreen={isMobile}
-      PaperProps={{
-        sx: {
-          borderRadius: isMobile ? 0 : 4,
-          minHeight: isMobile ? "100%" : "auto",
-          background: "linear-gradient(145deg, #ffffff 0%, #f8fafc 100%)",
-        },
-      }}
-    >
-      <DialogTitle
-        sx={{
-          pb: 2,
-          borderBottom: 1,
-          borderColor: "divider",
-          bgcolor: "background.paper",
-        }}
-      >
-        <Stack direction="row" alignItems="center" justifyContent="space-between">
-          <Box display="flex" alignItems="center" gap={2}>
-            <Box
-              sx={{
-                width: 48,
-                height: 48,
-                borderRadius: 2,
-                background: `linear-gradient(135deg, ${alpha(PRIMARY, 0.15)} 0%, ${alpha(PRIMARY, 0.05)} 100%)`,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: PRIMARY,
-              }}
-            >
-              <AddLocationAlt sx={{ fontSize: 28 }} />
-            </Box>
-            <Box>
-              <Typography variant="h5" fontWeight={700}>
-                Add Manual Location
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Create a new visit with manual coordinates
-              </Typography>
-            </Box>
-          </Box>
-          <IconButton onClick={handleClose} size="large">
-            <Close />
-          </IconButton>
-        </Stack>
-      </DialogTitle>
-
-      <DialogContent sx={{ py: 3 }}>
-        <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
-          {steps.map((label, index) => (
-            <Step key={label}>
-              <StepLabel
-                StepIconProps={{
-                  sx: {
-                    "& .MuiStepIcon-text": { fill: "white" },
-                    "& .MuiStepIcon-root": {
-                      color: activeStep >= index ? PRIMARY : "grey.400",
-                    },
-                  },
-                }}
-              >
-                {label}
-              </StepLabel>
-            </Step>
-          ))}
-        </Stepper>
-
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={activeStep}
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            transition={{ duration: 0.3 }}
-          >
-            {renderStepContent(activeStep)}
-          </motion.div>
-        </AnimatePresence>
-      </DialogContent>
-
-      <DialogActions
-        sx={{
-          p: 3,
-          pt: 2,
-          borderTop: 1,
-          borderColor: "divider",
-          gap: 2,
-          flexDirection: { xs: "column", sm: "row" },
-        }}
-      >
-        <Button
-          onClick={handleClose}
-          variant="outlined"
-          fullWidth={isMobile}
-          size="large"
-          sx={{ borderRadius: 2 }}
+        <DialogActions
+          sx={{
+            p: 3,
+            pt: 2,
+            borderTop: 1,
+            borderColor: "divider",
+            gap: 2,
+          }}
         >
-          Cancel
-        </Button>
-        
-        {activeStep > 0 && (
           <Button
-            onClick={() => setActiveStep((prev) => prev - 1)}
+            onClick={handleClose}
             variant="outlined"
             fullWidth={isMobile}
             size="large"
             sx={{ borderRadius: 2 }}
           >
-            Back
+            Cancel
           </Button>
-        )}
-
-        {activeStep < steps.length - 1 ? (
-          <Button
-            onClick={() => setActiveStep((prev) => prev + 1)}
-            variant="contained"
-            fullWidth={isMobile}
-            size="large"
-            sx={{
-              borderRadius: 2,
-              bgcolor: PRIMARY,
-              "&:hover": { bgcolor: SECONDARY },
-            }}
-          >
-            Continue
-          </Button>
-        ) : (
           <Button
             onClick={handleSubmit}
             variant="contained"
@@ -1729,9 +1454,449 @@ const ManualLocationDialog = ({ open, onClose, onSubmit, loading }) => {
           >
             {loading ? "Creating..." : "Create Visit"}
           </Button>
-        )}
-      </DialogActions>
-    </Dialog>
+        </DialogActions>
+      </Dialog>
+    </>
+  );
+};
+
+// ========== EDIT VISIT DIALOG ==========
+const EditVisitDialog = ({ open, onClose, visit, onSubmit, loading }) => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const [formData, setFormData] = useState({
+    locationName: "",
+    remarks: "",
+    latitude: "",
+    longitude: "",
+  });
+  const [errors, setErrors] = useState({});
+  const [photo, setPhoto] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState(null);
+  const [removeCurrentPhoto, setRemoveCurrentPhoto] = useState(false);
+  const [gettingLocation, setGettingLocation] = useState(false);
+  const [showCamera, setShowCamera] = useState(false);
+
+  useEffect(() => {
+    if (visit) {
+      setFormData({
+        locationName: visit.locationName || "",
+        remarks: visit.remarks || "",
+        latitude: visit.location?.lat?.toString() || "",
+        longitude: visit.location?.lng?.toString() || "",
+      });
+      if (visit.photoUrl) {
+        setPreviewUrl(visit.photoUrl);
+      }
+    }
+  }, [visit]);
+
+  const handleInputChange = (field) => (event) => {
+    setFormData((prev) => ({ ...prev, [field]: event.target.value }));
+    if (errors[field]) {
+      setErrors((prev) => ({ ...prev, [field]: null }));
+    }
+  };
+
+  const handleCapturePhoto = (capturedFile, capturedPreview) => {
+    setPhoto(capturedFile);
+    setPreviewUrl(capturedPreview);
+    setRemoveCurrentPhoto(false);
+    setShowCamera(false);
+  };
+
+  const handleRemovePhoto = () => {
+    if (previewUrl && previewUrl.startsWith('blob:')) {
+      URL.revokeObjectURL(previewUrl);
+    }
+    setPhoto(null);
+    setPreviewUrl(null);
+    setRemoveCurrentPhoto(true);
+  };
+
+  const handleGetCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      setErrors((prev) => ({ ...prev, location: "Geolocation not supported" }));
+      return;
+    }
+
+    setGettingLocation(true);
+    setErrors((prev) => ({ ...prev, location: null }));
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setFormData((prev) => ({
+          ...prev,
+          latitude: position.coords.latitude.toString(),
+          longitude: position.coords.longitude.toString(),
+        }));
+        setGettingLocation(false);
+      },
+      (error) => {
+        let errorMsg = "Unable to get location";
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            errorMsg = "Location permission denied. Please enable location access.";
+            break;
+          case error.POSITION_UNAVAILABLE:
+            errorMsg = "Location information is unavailable.";
+            break;
+          case error.TIMEOUT:
+            errorMsg = "Location request timed out.";
+            break;
+          default:
+            errorMsg = "An unknown error occurred.";
+        }
+        setErrors((prev) => ({ ...prev, location: errorMsg }));
+        setGettingLocation(false);
+      },
+      { 
+        enableHighAccuracy: true, 
+        timeout: 15000, 
+        maximumAge: 0 
+      }
+    );
+  };
+
+  const handleSubmit = () => {
+    const newErrors = {};
+    
+    if (!formData.latitude) newErrors.latitude = "Latitude is required";
+    if (!formData.longitude) newErrors.longitude = "Longitude is required";
+    if (!formData.locationName) newErrors.locationName = "Location name is required";
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+
+    onSubmit(formData, photo, removeCurrentPhoto);
+  };
+
+  const handleClose = () => {
+    if (previewUrl && previewUrl.startsWith('blob:')) {
+      URL.revokeObjectURL(previewUrl);
+    }
+    setFormData({
+      locationName: "",
+      remarks: "",
+      latitude: "",
+      longitude: "",
+    });
+    setPhoto(null);
+    setPreviewUrl(null);
+    setRemoveCurrentPhoto(false);
+    setErrors({});
+    setGettingLocation(false);
+    setShowCamera(false);
+    onClose();
+  };
+
+  return (
+    <>
+      {/* Camera Dialog */}
+      <Dialog
+        open={showCamera}
+        onClose={() => setShowCamera(false)}
+        maxWidth="md"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 4,
+          },
+        }}
+      >
+        <DialogTitle sx={{ borderBottom: 1, borderColor: 'divider' }}>
+          <Stack direction="row" alignItems="center" justifyContent="space-between">
+            <Typography variant="h6" fontWeight={600}>
+              Take Photo
+            </Typography>
+            <IconButton onClick={() => setShowCamera(false)}>
+              <Close />
+            </IconButton>
+          </Stack>
+        </DialogTitle>
+        <DialogContent>
+          <WebcamCapture 
+            onCapture={handleCapturePhoto} 
+            onClose={() => setShowCamera(false)} 
+          />
+        </DialogContent>
+      </Dialog>
+
+      {/* Main Edit Dialog */}
+      <Dialog
+        open={open}
+        onClose={handleClose}
+        maxWidth="sm"
+        fullWidth
+        fullScreen={isMobile}
+        PaperProps={{
+          sx: {
+            borderRadius: isMobile ? 0 : 4,
+          },
+        }}
+      >
+        <DialogTitle
+          sx={{
+            pb: 2,
+            borderBottom: 1,
+            borderColor: "divider",
+          }}
+        >
+          <Stack direction="row" alignItems="center" justifyContent="space-between">
+            <Box display="flex" alignItems="center" gap={2}>
+              <Box
+                sx={{
+                  width: 48,
+                  height: 48,
+                  borderRadius: 2,
+                  background: `linear-gradient(135deg, ${alpha(PRIMARY, 0.15)} 0%, ${alpha(PRIMARY, 0.05)} 100%)`,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  color: PRIMARY,
+                }}
+              >
+                <EditLocationAlt sx={{ fontSize: 28 }} />
+              </Box>
+              <Box>
+                <Typography variant="h5" fontWeight={700}>
+                  Edit Visit
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Update visit information
+                </Typography>
+              </Box>
+            </Box>
+            <IconButton onClick={handleClose} size="large">
+              <Close />
+            </IconButton>
+          </Stack>
+        </DialogTitle>
+
+        <DialogContent sx={{ py: 3 }}>
+          <Stack spacing={3}>
+            <Alert severity="info" sx={{ borderRadius: 2 }}>
+              <AlertTitle>Update Location</AlertTitle>
+              Modify the coordinates or use your current location
+            </Alert>
+
+            <Box sx={{ display: "flex", gap: 2, alignItems: "center", flexWrap: "wrap" }}>
+              <Button
+                variant="contained"
+                startIcon={gettingLocation ? <CircularProgress size={20} /> : <MyLocation />}
+                onClick={handleGetCurrentLocation}
+                disabled={gettingLocation}
+                sx={{
+                  borderRadius: 2,
+                  bgcolor: PRIMARY,
+                  "&:hover": { bgcolor: SECONDARY },
+                  minWidth: 200,
+                }}
+              >
+                {gettingLocation ? "Getting Location..." : "Use Current Location"}
+              </Button>
+              <Typography variant="body2" color="text.secondary">
+                or enter manually
+              </Typography>
+            </Box>
+
+            {errors.location && (
+              <Alert severity="error" sx={{ borderRadius: 2 }}>
+                {errors.location}
+              </Alert>
+            )}
+
+            <Grid container spacing={2}>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  label="Latitude *"
+                  value={formData.latitude}
+                  onChange={handleInputChange("latitude")}
+                  fullWidth
+                  size="medium"
+                  type="number"
+                  inputProps={{ step: "0.000001" }}
+                  error={!!errors.latitude}
+                  helperText={errors.latitude}
+                  sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <PinDrop sx={{ color: "text.secondary" }} />
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  label="Longitude *"
+                  value={formData.longitude}
+                  onChange={handleInputChange("longitude")}
+                  fullWidth
+                  size="medium"
+                  type="number"
+                  inputProps={{ step: "0.000001" }}
+                  error={!!errors.longitude}
+                  helperText={errors.longitude}
+                  sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <PinDrop sx={{ color: "text.secondary", transform: "rotate(45deg)" }} />
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+              </Grid>
+            </Grid>
+
+            <TextField
+              label="Location Name *"
+              value={formData.locationName}
+              onChange={handleInputChange("locationName")}
+              fullWidth
+              size="medium"
+              placeholder="Enter location name"
+              error={!!errors.locationName}
+              helperText={errors.locationName}
+              sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <LocationOn sx={{ color: "text.secondary" }} />
+                  </InputAdornment>
+                ),
+              }}
+            />
+
+            <TextField
+              label="Remarks"
+              value={formData.remarks}
+              onChange={handleInputChange("remarks")}
+              fullWidth
+              multiline
+              rows={3}
+              size="medium"
+              placeholder="Enter any remarks about this visit..."
+              sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <Note sx={{ color: "text.secondary" }} />
+                  </InputAdornment>
+                ),
+              }}
+            />
+
+            <Box>
+              <Typography variant="subtitle2" fontWeight={600} gutterBottom>
+                Photo
+              </Typography>
+              
+              {!previewUrl ? (
+                <Button
+                  variant="outlined"
+                  startIcon={<PhotoCamera />}
+                  onClick={() => setShowCamera(true)}
+                  fullWidth
+                  sx={{
+                    p: 2,
+                    border: `2px dashed ${alpha(PRIMARY, 0.3)}`,
+                    borderRadius: 2,
+                    color: PRIMARY,
+                    '&:hover': {
+                      borderColor: PRIMARY,
+                      bgcolor: alpha(PRIMARY, 0.05),
+                    }
+                  }}
+                >
+                  Take New Photo
+                </Button>
+              ) : (
+                <Box sx={{ position: "relative", mt: 1 }}>
+                  <img
+                    src={previewUrl}
+                    alt="Preview"
+                    style={{
+                      width: "100%",
+                      maxHeight: 200,
+                      objectFit: "contain",
+                      borderRadius: 8,
+                    }}
+                  />
+                  <Stack direction="row" spacing={1} sx={{ position: "absolute", top: 8, right: 8 }}>
+                    <IconButton
+                      size="small"
+                      sx={{
+                        bgcolor: "rgba(255,255,255,0.9)",
+                        "&:hover": { bgcolor: "white" },
+                      }}
+                      onClick={() => setShowCamera(true)}
+                    >
+                      <PhotoCamera />
+                    </IconButton>
+                    <IconButton
+                      size="small"
+                      sx={{
+                        bgcolor: "rgba(255,255,255,0.9)",
+                        "&:hover": { bgcolor: "white" },
+                      }}
+                      onClick={handleRemovePhoto}
+                    >
+                      <Delete />
+                    </IconButton>
+                  </Stack>
+                </Box>
+              )}
+              
+              {errors.photo && (
+                <FormHelperText error sx={{ mt: 1 }}>
+                  {errors.photo}
+                </FormHelperText>
+              )}
+            </Box>
+          </Stack>
+        </DialogContent>
+
+        <DialogActions
+          sx={{
+            p: 3,
+            pt: 2,
+            borderTop: 1,
+            borderColor: "divider",
+            gap: 2,
+          }}
+        >
+          <Button
+            onClick={handleClose}
+            variant="outlined"
+            fullWidth={isMobile}
+            size="large"
+            sx={{ borderRadius: 2 }}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleSubmit}
+            variant="contained"
+            fullWidth={isMobile}
+            size="large"
+            disabled={loading}
+            startIcon={loading ? <CircularProgress size={20} /> : <Save />}
+            sx={{
+              borderRadius: 2,
+              bgcolor: SUCCESS,
+              "&:hover": { bgcolor: "#2e7d32" },
+            }}
+          >
+            {loading ? "Updating..." : "Update Visit"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </>
   );
 };
 
@@ -2019,7 +2184,7 @@ const LocationTracker = React.memo(({ visit, onLocationUpdate, userRole, onManua
           <CardContent sx={{ p: 3 }}>
             <Stack spacing={3}>
               {/* Header */}
-              <Box display="flex" alignItems="center" justifyContent="space-between">
+              <Box display="flex" alignItems="center" justifyContent="space-between" flexWrap="wrap" gap={2}>
                 <Box display="flex" alignItems="center" gap={2}>
                   <Box
                     sx={{
@@ -2061,7 +2226,7 @@ const LocationTracker = React.memo(({ visit, onLocationUpdate, userRole, onManua
                   </Box>
                 </Box>
 
-                <Stack direction="row" spacing={1}>
+                <Stack direction="row" spacing={1} flexWrap="wrap">
                   {getUserPermissions(userRole).canAddManualLocation && (
                     <Tooltip title="Add Manual Location" arrow>
                       <IconButton
@@ -2361,7 +2526,7 @@ const LocationTracker = React.memo(({ visit, onLocationUpdate, userRole, onManua
                           color="text.secondary"
                           sx={{ flex: 0.2 }}
                         >
-                          {format(loc.timestamp, "HH:mm:ss")}
+                          {safeFormatTime(loc.timestamp, "HH:mm:ss")}
                         </TimelineOppositeContent>
                         <TimelineSeparator>
                           <TimelineDot
@@ -2417,7 +2582,7 @@ const ImageViewerModal = React.memo(({ open, onClose, imageUrl, title, images = 
     []
   );
   const handleRotateLeft = useCallback(
-    () => setRotation((prev) => (prev - 90) % 360),
+    () => setRotation((prev) => (prev - 90 + 360) % 360),
     []
   );
   const handleReset = useCallback(() => {
@@ -2658,7 +2823,7 @@ ImageViewerModal.displayName = "ImageViewerModal";
 
 // ========== ENHANCED VIEW VISIT DETAILS MODAL ==========
 const ViewVisitModal = React.memo(
-  ({ open, onClose, visit, userRole, showSnackbar, handleViewImage }) => {
+  ({ open, onClose, visit, userRole, showSnackbar, handleViewImage, onEdit, onDelete }) => {
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
     const [activeTab, setActiveTab] = useState(0);
@@ -2667,6 +2832,7 @@ const ViewVisitModal = React.memo(
     const { fetchAPI } = useAuth();
 
     const userRoleConfig = useMemo(() => getRoleConfig(userRole), [userRole]);
+    const permissions = useMemo(() => getUserPermissions(userRole), [userRole]);
 
     useEffect(() => {
       if (open && visit?._id && visit?.date) {
@@ -2696,6 +2862,18 @@ const ViewVisitModal = React.memo(
 
     const handleTabChange = (event, newValue) => {
       setActiveTab(newValue);
+    };
+
+    const handleEdit = () => {
+      if (onEdit) {
+        onEdit(visit);
+      }
+    };
+
+    const handleDelete = () => {
+      if (onDelete && window.confirm("Are you sure you want to delete this visit?")) {
+        onDelete(visit._id);
+      }
     };
 
     if (!visit) return null;
@@ -2806,7 +2984,7 @@ const ViewVisitModal = React.memo(
                       Visit Date
                     </Typography>
                     <Typography variant="body1">
-                      {formatDate(visit.visitedAt || visit.createdAt, "dd MMM yyyy, hh:mm a")}
+                      {safeFormatDate(visit.visitedAt || visit.createdAt, "dd MMM yyyy, hh:mm a")}
                     </Typography>
                   </Box>
                   <Box
@@ -2965,7 +3143,7 @@ const ViewVisitModal = React.memo(
                               First Visit
                             </Typography>
                             <Typography variant="body2">
-                              {dailySummary.firstVisitTime ? format(dailySummary.firstVisitTime, "hh:mm a") : "N/A"}
+                              {dailySummary.firstVisitTime ? safeFormatTime(dailySummary.firstVisitTime) : "N/A"}
                             </Typography>
                           </Grid>
                           <Grid item xs={6}>
@@ -2973,7 +3151,7 @@ const ViewVisitModal = React.memo(
                               Last Visit
                             </Typography>
                             <Typography variant="body2">
-                              {dailySummary.lastVisitTime ? format(dailySummary.lastVisitTime, "hh:mm a") : "N/A"}
+                              {dailySummary.lastVisitTime ? safeFormatTime(dailySummary.lastVisitTime) : "N/A"}
                             </Typography>
                           </Grid>
                         </Grid>
@@ -3022,7 +3200,7 @@ const ViewVisitModal = React.memo(
                             color="text.secondary"
                             sx={{ flex: 0.2 }}
                           >
-                            {format(location.visitedAt, "hh:mm a")}
+                            {safeFormatTime(location.visitedAt)}
                           </TimelineOppositeContent>
                           <TimelineSeparator>
                             <TimelineDot
@@ -3204,9 +3382,33 @@ const ViewVisitModal = React.memo(
                 </Typography>
               </Box>
             </Box>
-            <IconButton onClick={onClose} size="small" sx={{ color: "white" }}>
-              <Close />
-            </IconButton>
+            <Box display="flex" gap={1}>
+              {permissions.canEdit && (
+                <Tooltip title="Edit Visit">
+                  <IconButton
+                    onClick={handleEdit}
+                    size="small"
+                    sx={{ color: "white", "&:hover": { bgcolor: alpha("#fff", 0.1) } }}
+                  >
+                    <Edit />
+                  </IconButton>
+                </Tooltip>
+              )}
+              {permissions.canDelete && (
+                <Tooltip title="Delete Visit">
+                  <IconButton
+                    onClick={handleDelete}
+                    size="small"
+                    sx={{ color: "white", "&:hover": { bgcolor: alpha("#fff", 0.1) } }}
+                  >
+                    <Delete />
+                  </IconButton>
+                </Tooltip>
+              )}
+              <IconButton onClick={onClose} size="small" sx={{ color: "white" }}>
+                <Close />
+              </IconButton>
+            </Box>
           </Stack>
         </DialogTitle>
 
@@ -3303,366 +3505,6 @@ const ViewVisitModal = React.memo(
 );
 
 ViewVisitModal.displayName = "ViewVisitModal";
-
-// ========== CREATE VISIT DIALOG ==========
-const CreateVisitDialog = ({ open, onClose, onSubmit, loading }) => {
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
-  const [formData, setFormData] = useState({
-    latitude: "",
-    longitude: "",
-    locationName: "",
-    remarks: "",
-  });
-  const [errors, setErrors] = useState({});
-  const [photo, setPhoto] = useState(null);
-  const [previewUrl, setPreviewUrl] = useState(null);
-
-  const handleInputChange = (field) => (event) => {
-    setFormData((prev) => ({ ...prev, [field]: event.target.value }));
-    if (errors[field]) {
-      setErrors((prev) => ({ ...prev, [field]: null }));
-    }
-  };
-
-  const handlePhotoChange = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      const error = validateFile(file);
-      if (error) {
-        setErrors((prev) => ({ ...prev, photo: error }));
-        return;
-      }
-      setPhoto(file);
-      setPreviewUrl(URL.createObjectURL(file));
-      setErrors((prev) => ({ ...prev, photo: null }));
-    }
-  };
-
-  const handleGetCurrentLocation = () => {
-    if (!navigator.geolocation) {
-      setErrors((prev) => ({ ...prev, location: "Geolocation not supported" }));
-      return;
-    }
-
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        setFormData((prev) => ({
-          ...prev,
-          latitude: position.coords.latitude.toString(),
-          longitude: position.coords.longitude.toString(),
-        }));
-        setErrors((prev) => ({ ...prev, location: null }));
-      },
-      (error) => {
-        setErrors((prev) => ({ ...prev, location: error.message }));
-      },
-      { enableHighAccuracy: true }
-    );
-  };
-
-  const handleSubmit = () => {
-    const newErrors = {};
-    
-    if (!formData.latitude) newErrors.latitude = "Latitude is required";
-    if (!formData.longitude) newErrors.longitude = "Longitude is required";
-    if (!formData.locationName) newErrors.locationName = "Location name is required";
-
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      return;
-    }
-
-    onSubmit(formData, photo);
-  };
-
-  const handleClose = () => {
-    setFormData({
-      latitude: "",
-      longitude: "",
-      locationName: "",
-      remarks: "",
-    });
-    setPhoto(null);
-    setPreviewUrl(null);
-    setErrors({});
-    onClose();
-  };
-
-  return (
-    <Dialog
-      open={open}
-      onClose={handleClose}
-      maxWidth="sm"
-      fullWidth
-      fullScreen={isMobile}
-      PaperProps={{
-        sx: {
-          borderRadius: isMobile ? 0 : 4,
-        },
-      }}
-    >
-      <DialogTitle
-        sx={{
-          pb: 2,
-          borderBottom: 1,
-          borderColor: "divider",
-        }}
-      >
-        <Stack direction="row" alignItems="center" justifyContent="space-between">
-          <Box display="flex" alignItems="center" gap={2}>
-            <Box
-              sx={{
-                width: 48,
-                height: 48,
-                borderRadius: 2,
-                background: `linear-gradient(135deg, ${alpha(PRIMARY, 0.15)} 0%, ${alpha(PRIMARY, 0.05)} 100%)`,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: PRIMARY,
-              }}
-            >
-              <AddLocationAlt sx={{ fontSize: 28 }} />
-            </Box>
-            <Box>
-              <Typography variant="h5" fontWeight={700}>
-                Create New Visit
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Record a new field visit location
-              </Typography>
-            </Box>
-          </Box>
-          <IconButton onClick={handleClose} size="large">
-            <Close />
-          </IconButton>
-        </Stack>
-      </DialogTitle>
-
-      <DialogContent sx={{ py: 3 }}>
-        <Stack spacing={3}>
-          <Alert severity="info" sx={{ borderRadius: 2 }}>
-            <AlertTitle>Location Required</AlertTitle>
-            Enter the coordinates or use your current location
-          </Alert>
-
-          <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
-            <Button
-              variant="contained"
-              startIcon={<MyLocation />}
-              onClick={handleGetCurrentLocation}
-              sx={{
-                borderRadius: 2,
-                bgcolor: PRIMARY,
-                "&:hover": { bgcolor: SECONDARY },
-              }}
-            >
-              Use Current Location
-            </Button>
-            <Typography variant="body2" color="text.secondary">
-              or enter manually
-            </Typography>
-          </Box>
-
-          {errors.location && (
-            <Alert severity="error" sx={{ borderRadius: 2 }}>
-              {errors.location}
-            </Alert>
-          )}
-
-          <Grid container spacing={2}>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                label="Latitude *"
-                value={formData.latitude}
-                onChange={handleInputChange("latitude")}
-                fullWidth
-                size="medium"
-                type="number"
-                inputProps={{ step: "0.000001" }}
-                error={!!errors.latitude}
-                helperText={errors.latitude}
-                sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <PinDrop sx={{ color: "text.secondary" }} />
-                    </InputAdornment>
-                  ),
-                }}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                label="Longitude *"
-                value={formData.longitude}
-                onChange={handleInputChange("longitude")}
-                fullWidth
-                size="medium"
-                type="number"
-                inputProps={{ step: "0.000001" }}
-                error={!!errors.longitude}
-                helperText={errors.longitude}
-                sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <PinDrop sx={{ color: "text.secondary", transform: "rotate(45deg)" }} />
-                    </InputAdornment>
-                  ),
-                }}
-              />
-            </Grid>
-          </Grid>
-
-          <TextField
-            label="Location Name *"
-            value={formData.locationName}
-            onChange={handleInputChange("locationName")}
-            fullWidth
-            size="medium"
-            placeholder="Enter location name"
-            error={!!errors.locationName}
-            helperText={errors.locationName}
-            sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <LocationOn sx={{ color: "text.secondary" }} />
-                </InputAdornment>
-              ),
-            }}
-          />
-
-          <TextField
-            label="Remarks"
-            value={formData.remarks}
-            onChange={handleInputChange("remarks")}
-            fullWidth
-            multiline
-            rows={3}
-            size="medium"
-            placeholder="Enter any remarks about this visit..."
-            sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <Note sx={{ color: "text.secondary" }} />
-                </InputAdornment>
-              ),
-            }}
-          />
-
-          <Box>
-            <Typography variant="subtitle2" fontWeight={600} gutterBottom>
-              Photo (Optional)
-            </Typography>
-            <Box
-              sx={{
-                p: 2,
-                border: `2px dashed ${alpha(PRIMARY, 0.3)}`,
-                borderRadius: 2,
-                bgcolor: alpha(PRIMARY, 0.02),
-                textAlign: "center",
-                cursor: "pointer",
-                "&:hover": {
-                  borderColor: PRIMARY,
-                  bgcolor: alpha(PRIMARY, 0.05),
-                },
-              }}
-              component="label"
-            >
-              <input
-                type="file"
-                hidden
-                accept="image/*"
-                onChange={handlePhotoChange}
-              />
-              <CloudUpload sx={{ fontSize: 32, color: PRIMARY, mb: 1 }} />
-              <Typography variant="body2" fontWeight={600}>
-                Click to Upload Photo
-              </Typography>
-              <Typography variant="caption" color="text.secondary" display="block">
-                Max 10MB (JPG, PNG, WEBP)
-              </Typography>
-            </Box>
-            {errors.photo && (
-              <FormHelperText error sx={{ mt: 1 }}>
-                {errors.photo}
-              </FormHelperText>
-            )}
-            {previewUrl && (
-              <Box sx={{ mt: 2, position: "relative" }}>
-                <img
-                  src={previewUrl}
-                  alt="Preview"
-                  style={{
-                    width: "100%",
-                    maxHeight: 200,
-                    objectFit: "contain",
-                    borderRadius: 8,
-                  }}
-                />
-                <IconButton
-                  size="small"
-                  sx={{
-                    position: "absolute",
-                    top: 8,
-                    right: 8,
-                    bgcolor: "rgba(255,255,255,0.9)",
-                    "&:hover": { bgcolor: "white" },
-                  }}
-                  onClick={() => {
-                    setPhoto(null);
-                    setPreviewUrl(null);
-                  }}
-                >
-                  <Delete />
-                </IconButton>
-              </Box>
-            )}
-          </Box>
-        </Stack>
-      </DialogContent>
-
-      <DialogActions
-        sx={{
-          p: 3,
-          pt: 2,
-          borderTop: 1,
-          borderColor: "divider",
-          gap: 2,
-        }}
-      >
-        <Button
-          onClick={handleClose}
-          variant="outlined"
-          fullWidth={isMobile}
-          size="large"
-          sx={{ borderRadius: 2 }}
-        >
-          Cancel
-        </Button>
-        <Button
-          onClick={handleSubmit}
-          variant="contained"
-          fullWidth={isMobile}
-          size="large"
-          disabled={loading}
-          startIcon={loading ? <CircularProgress size={20} /> : <Save />}
-          sx={{
-            borderRadius: 2,
-            bgcolor: SUCCESS,
-            "&:hover": { bgcolor: "#2e7d32" },
-          }}
-        >
-          {loading ? "Creating..." : "Create Visit"}
-        </Button>
-      </DialogActions>
-    </Dialog>
-  );
-};
 
 // ========== LOADING SKELETON ==========
 const LoadingSkeleton = () => (
@@ -3773,6 +3615,7 @@ export default function VisitorTrackingPage() {
 
   // Modal States
   const [viewModalOpen, setViewModalOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
   const [imageViewerOpen, setImageViewerOpen] = useState(false);
   const [currentImageUrl, setCurrentImageUrl] = useState("");
   const [currentImages, setCurrentImages] = useState([]);
@@ -3783,6 +3626,8 @@ export default function VisitorTrackingPage() {
   const [createVisitDialogOpen, setCreateVisitDialogOpen] = useState(false);
   const [manualLocationLoading, setManualLocationLoading] = useState(false);
   const [createVisitLoading, setCreateVisitLoading] = useState(false);
+  const [updateVisitLoading, setUpdateVisitLoading] = useState(false);
+  const [deleteVisitLoading, setDeleteVisitLoading] = useState(false);
 
   // Snackbar Handler
   const showSnackbar = useCallback((message, severity = "success") => {
@@ -3968,6 +3813,86 @@ export default function VisitorTrackingPage() {
     [fetchAPI, showSnackbar]
   );
 
+  const handleEditClick = useCallback(
+    async (visit) => {
+      if (!visit?._id) {
+        showSnackbar("Invalid visit data", "error");
+        return;
+      }
+
+      try {
+        // Fetch latest visit data for editing
+        const response = await VisitService.getVisitById(fetchAPI, visit._id);
+        if (response?.result) {
+          setSelectedVisit(response.result);
+          setEditModalOpen(true);
+          setViewModalOpen(false);
+        }
+      } catch (error) {
+        console.error("Error fetching visit details for edit:", error);
+        showSnackbar("Failed to fetch visit details", "error");
+      }
+    },
+    [fetchAPI, showSnackbar]
+  );
+
+  const handleUpdateVisit = useCallback(async (formData, photo, removeCurrentPhoto) => {
+    if (!selectedVisit?._id) return;
+
+    try {
+      setUpdateVisitLoading(true);
+
+      const formDataToSend = new FormData();
+      formDataToSend.append('lat', formData.latitude);
+      formDataToSend.append('lng', formData.longitude);
+      formDataToSend.append('locationName', formData.locationName);
+      formDataToSend.append('remarks', formData.remarks);
+      
+      if (photo) {
+        formDataToSend.append('photo', photo);
+      } else if (removeCurrentPhoto) {
+        formDataToSend.append('removePhoto', 'true');
+      }
+
+      const response = await VisitService.updateVisit(fetchAPI, selectedVisit._id, formDataToSend);
+      
+      if (response?.result) {
+        showSnackbar("Visit updated successfully!", "success");
+        setEditModalOpen(false);
+        setViewModalOpen(false);
+        fetchVisitorData(page + 1);
+        fetchVisitStats();
+      }
+    } catch (error) {
+      console.error("Error updating visit:", error);
+      showSnackbar(error.message || "Failed to update visit", "error");
+    } finally {
+      setUpdateVisitLoading(false);
+    }
+  }, [fetchAPI, selectedVisit, showSnackbar, fetchVisitorData, fetchVisitStats, page]);
+
+  const handleDeleteVisit = useCallback(async (visitId) => {
+    if (!visitId) return;
+
+    try {
+      setDeleteVisitLoading(true);
+
+      const response = await VisitService.deleteVisit(fetchAPI, visitId);
+      
+      if (response?.success) {
+        showSnackbar("Visit deleted successfully!", "success");
+        setViewModalOpen(false);
+        fetchVisitorData(1);
+        fetchVisitStats();
+      }
+    } catch (error) {
+      console.error("Error deleting visit:", error);
+      showSnackbar(error.message || "Failed to delete visit", "error");
+    } finally {
+      setDeleteVisitLoading(false);
+    }
+  }, [fetchAPI, showSnackbar, fetchVisitorData, fetchVisitStats]);
+
   const handleCreateVisit = useCallback(async (formData, photo) => {
     try {
       setCreateVisitLoading(true);
@@ -4071,13 +3996,23 @@ export default function VisitorTrackingPage() {
         case "view":
           handleViewClick(selectedActionVisit);
           break;
+        case "edit":
+          if (userPermissions.canEdit) {
+            handleEditClick(selectedActionVisit);
+          }
+          break;
+        case "delete":
+          if (userPermissions.canDelete && window.confirm("Are you sure you want to delete this visit?")) {
+            handleDeleteVisit(selectedActionVisit._id);
+          }
+          break;
         default:
           break;
       }
 
       handleActionMenuClose();
     },
-    [selectedActionVisit, handleViewClick, handleActionMenuClose]
+    [selectedActionVisit, handleViewClick, handleEditClick, handleDeleteVisit, userPermissions]
   );
 
   const handleViewImage = useCallback(
@@ -4294,13 +4229,16 @@ export default function VisitorTrackingPage() {
         userRole={userRole}
         showSnackbar={showSnackbar}
         handleViewImage={handleViewImage}
+        onEdit={handleEditClick}
+        onDelete={handleDeleteVisit}
       />
 
-      <ManualLocationDialog
-        open={manualLocationDialogOpen}
-        onClose={() => setManualLocationDialogOpen(false)}
-        onSubmit={handleManualLocationSubmit}
-        loading={manualLocationLoading}
+      <EditVisitDialog
+        open={editModalOpen}
+        onClose={() => setEditModalOpen(false)}
+        visit={selectedVisit}
+        onSubmit={handleUpdateVisit}
+        loading={updateVisitLoading}
       />
 
       <CreateVisitDialog
@@ -4323,6 +4261,7 @@ export default function VisitorTrackingPage() {
           variant="filled"
           sx={{
             width: "100%",
+            color:"#fff",
             borderRadius: 2,
             boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
           }}
@@ -4353,6 +4292,30 @@ export default function VisitorTrackingPage() {
           </ListItemIcon>
           <ListItemText primary="View Details" />
         </MenuItem>
+        
+        {userPermissions.canEdit && (
+          <MenuItem
+            onClick={() => handleActionSelect("edit")}
+            sx={{ py: 1.5, px: 2 }}
+          >
+            <ListItemIcon>
+              <Edit fontSize="small" sx={{ color: INFO }} />
+            </ListItemIcon>
+            <ListItemText primary="Edit Visit" />
+          </MenuItem>
+        )}
+        
+        {userPermissions.canDelete && (
+          <MenuItem
+            onClick={() => handleActionSelect("delete")}
+            sx={{ py: 1.5, px: 2 }}
+          >
+            <ListItemIcon>
+              <Delete fontSize="small" sx={{ color: ERROR }} />
+            </ListItemIcon>
+            <ListItemText primary="Delete Visit" />
+          </MenuItem>
+        )}
       </Menu>
 
       {/* Main Content */}
@@ -4856,9 +4819,7 @@ export default function VisitorTrackingPage() {
                               <Typography variant="body2" fontWeight={500}>
                                 {visit.locationName}
                               </Typography>
-                              <Typography variant="caption" color="text.secondary" display="block">
-                                {visit.location?.lat?.toFixed(6)}, {visit.location?.lng?.toFixed(6)}
-                              </Typography>
+                              {/* REMOVED: Lat/Long display from list view */}
                             </Box>
                           </TableCell>
 
@@ -4877,10 +4838,10 @@ export default function VisitorTrackingPage() {
                           <TableCell>
                             <Box>
                               <Typography variant="body2" fontWeight={500}>
-                                {formatDate(visit.visitedAt, "dd MMM yyyy")}
+                                {safeFormatDateOnly(visit.visitedAt, "dd MMM yyyy")}
                               </Typography>
                               <Typography variant="caption" color="text.secondary">
-                                {formatDate(visit.visitedAt, "hh:mm a")}
+                                {safeFormatTime(visit.visitedAt)}
                               </Typography>
                             </Box>
                           </TableCell>
@@ -4908,6 +4869,25 @@ export default function VisitorTrackingPage() {
                                   <Visibility fontSize="small" />
                                 </IconButton>
                               </Tooltip>
+
+                              {userPermissions.canEdit && (
+                                <Tooltip title="Edit Visit" arrow>
+                                  <IconButton
+                                    size="small"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleEditClick(visit);
+                                    }}
+                                    sx={{
+                                      bgcolor: alpha(INFO, 0.1),
+                                      color: INFO,
+                                      "&:hover": { bgcolor: alpha(INFO, 0.2) },
+                                    }}
+                                  >
+                                    <Edit fontSize="small" />
+                                  </IconButton>
+                                </Tooltip>
+                              )}
 
                               {visit.photoUrl && (
                                 <Tooltip title="View Image" arrow>
@@ -4943,6 +4923,27 @@ export default function VisitorTrackingPage() {
                                     }}
                                   >
                                     <MyLocation fontSize="small" />
+                                  </IconButton>
+                                </Tooltip>
+                              )}
+
+                              {userPermissions.canDelete && (
+                                <Tooltip title="Delete Visit" arrow>
+                                  <IconButton
+                                    size="small"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      if (window.confirm("Are you sure you want to delete this visit?")) {
+                                        handleDeleteVisit(visit._id);
+                                      }
+                                    }}
+                                    sx={{
+                                      bgcolor: alpha(ERROR, 0.1),
+                                      color: ERROR,
+                                      "&:hover": { bgcolor: alpha(ERROR, 0.2) },
+                                    }}
+                                  >
+                                    <Delete fontSize="small" />
                                   </IconButton>
                                 </Tooltip>
                               )}
