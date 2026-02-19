@@ -35,7 +35,6 @@ import {
   Button,
   Tooltip,
   InputAdornment,
-  Pagination,
   FormControlLabel,
   Checkbox,
   useTheme,
@@ -44,7 +43,6 @@ import {
   Avatar,
   Divider,
   Paper,
-  TablePagination,
   LinearProgress,
   CardContent,
   Tab,
@@ -54,7 +52,8 @@ import {
   ListItem,
   ListItemIcon,
   ListItemText,
-  FormHelperText,
+  FormHelperText,Pagination,
+  TablePagination,
 } from "@mui/material";
 import {
   Edit,
@@ -99,17 +98,9 @@ import {
   Add,
   Delete,
   Save,
-  GetApp,
   DateRange,
   KeyboardArrowLeft,
   KeyboardArrowRight,
-  PictureAsPdf,
-  DescriptionOutlined,
-  AttachFile,
-  PictureAsPdfOutlined,
-  ReceiptLong,
-  CreditCard,
-  InsertDriveFile,
 } from "@mui/icons-material";
 import { useAuth } from "../contexts/AuthContext";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
@@ -119,7 +110,6 @@ import {
   format,
   isValid,
   parseISO,
-  isWithinInterval,
   startOfDay,
   endOfDay,
 } from "date-fns";
@@ -127,7 +117,10 @@ import { useNavigate } from "react-router-dom";
 
 // ========== CONSTANTS & CONFIGURATION ==========
 const PRIMARY_COLOR = "#4569ea";
-const SECONDARY = "#1a237e";
+const SECONDARY_COLOR = "#1a237e";
+const SUCCESS_COLOR = "#4caf50";
+const WARNING_COLOR = "#ff9800";
+const ERROR_COLOR = "#f44336";
 const ITEMS_PER_PAGE_OPTIONS = [10, 20, 50, 100];
 const DEFAULT_ITEMS_PER_PAGE = 20;
 
@@ -294,7 +287,7 @@ const ViewVisitModal = React.memo(
         content: (
           <Grid container spacing={3}>
             <Grid item xs={12} md={6}>
-              <Card sx={{ boxShadow: "none", height: "100%", width: "450px" }}>
+              <Card sx={{ boxShadow: "none", height: "100%" }}>
                 <CardContent>
                   <Typography
                     variant="h6"
@@ -315,6 +308,8 @@ const ViewVisitModal = React.memo(
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "space-between",
+                        flexWrap: "wrap",
+                        gap: 1,
                       }}
                     >
                       <Typography variant="body2" color="text.secondary">
@@ -329,6 +324,8 @@ const ViewVisitModal = React.memo(
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "space-between",
+                        flexWrap: "wrap",
+                        gap: 1,
                       }}
                     >
                       <Typography variant="body2" color="text.secondary">
@@ -343,6 +340,8 @@ const ViewVisitModal = React.memo(
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "space-between",
+                        flexWrap: "wrap",
+                        gap: 1,
                       }}
                     >
                       <Typography variant="body2" color="text.secondary">
@@ -357,6 +356,8 @@ const ViewVisitModal = React.memo(
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "space-between",
+                        flexWrap: "wrap",
+                        gap: 1,
                       }}
                     >
                       <Typography variant="body2" color="text.secondary">
@@ -366,26 +367,12 @@ const ViewVisitModal = React.memo(
                         {visit.address || "Not set"}
                       </Typography>
                     </Box>
-                    <Box
-                      sx={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                      }}
-                    >
-                      <Typography variant="body2" color="text.secondary">
-                        City
-                      </Typography>
-                      <Typography variant="body1">
-                        {visit.city || "Not set"}
-                      </Typography>
-                    </Box>
                   </Stack>
                 </CardContent>
               </Card>
             </Grid>
             <Grid item xs={12} md={6}>
-              <Card sx={{ boxShadow: "none", height: "100%", width: "350px" }}>
+              <Card sx={{ boxShadow: "none", height: "100%" }}>
                 <CardContent>
                   <Typography
                     variant="h6"
@@ -406,6 +393,8 @@ const ViewVisitModal = React.memo(
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "space-between",
+                        flexWrap: "wrap",
+                        gap: 1,
                       }}
                     >
                       <Typography variant="body2" color="text.secondary">
@@ -427,6 +416,8 @@ const ViewVisitModal = React.memo(
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "space-between",
+                        flexWrap: "wrap",
+                        gap: 1,
                       }}
                     >
                       <Typography variant="body2" color="text.secondary">
@@ -448,6 +439,8 @@ const ViewVisitModal = React.memo(
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "space-between",
+                        flexWrap: "wrap",
+                        gap: 1,
                       }}
                     >
                       <Typography variant="body2" color="text.secondary">
@@ -462,6 +455,8 @@ const ViewVisitModal = React.memo(
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "space-between",
+                        flexWrap: "wrap",
+                        gap: 1,
                       }}
                     >
                       <Typography variant="body2" color="text.secondary">
@@ -469,20 +464,6 @@ const ViewVisitModal = React.memo(
                       </Typography>
                       <Typography variant="body1">
                         {formatTime(visit.visitTime)}
-                      </Typography>
-                    </Box>
-                    <Box
-                      sx={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                      }}
-                    >
-                      <Typography variant="body2" color="text.secondary">
-                        Visit Location
-                      </Typography>
-                      <Typography variant="body1">
-                        {visit.visitLocation || "Not set"}
                       </Typography>
                     </Box>
                   </Stack>
@@ -543,23 +524,6 @@ const ViewVisitModal = React.memo(
                       style={{ whiteSpace: "pre-wrap" }}
                     >
                       {visit.visitNotes}
-                    </Typography>
-                  </Paper>
-                )}
-                {visit.notes && visit.notes !== visit.visitNotes && (
-                  <Paper sx={{ p: 3, bgcolor: "grey.50", borderRadius: 2 }}>
-                    <Typography
-                      variant="subtitle2"
-                      color="text.secondary"
-                      gutterBottom
-                    >
-                      Additional Notes
-                    </Typography>
-                    <Typography
-                      variant="body1"
-                      style={{ whiteSpace: "pre-wrap" }}
-                    >
-                      {visit.notes}
                     </Typography>
                   </Paper>
                 )}
@@ -671,7 +635,7 @@ const ViewVisitModal = React.memo(
             <Button
               onClick={onClose}
               variant="contained"
-              sx={{ borderRadius: 2, mt: 2, bgcolor: PRIMARY_COLOR }}
+              sx={{ borderRadius: 2, bgcolor: PRIMARY_COLOR }}
             >
               Close
             </Button>
@@ -942,7 +906,19 @@ const EditVisitModal = React.memo(
         <DialogActions
           sx={{ p: 3, pt: 2, borderTop: 1, borderColor: "divider", gap: 2 }}
         >
-          <Button onClick={onClose} variant="outlined" size="large" sx={{ background:"#fff", color:"#3451b3" , borderColor:"#3451b3" }}>
+          <Button 
+            onClick={onClose} 
+            variant="outlined" 
+            size="large" 
+            sx={{ 
+              bgcolor: "#fff", 
+              color: PRIMARY_COLOR, 
+              borderColor: PRIMARY_COLOR,
+              "&:hover": {
+                bgcolor: alpha(PRIMARY_COLOR, 0.05),
+              }
+            }}
+          >
             Cancel
           </Button>
           <Button
@@ -950,9 +926,13 @@ const EditVisitModal = React.memo(
             variant="contained"
             size="large"
             disabled={updating}
-            startIcon={updating ? <CircularProgress size={20} /> : <Save />}
+            startIcon={updating ? <CircularProgress size={20} sx={{ color: "#fff" }} /> : <Save />}
             sx={{
-              background: "#3451b3" , color:"#fff" ,
+              background: "#4569ea",
+              color: "#fff",
+              "&:hover": {
+                bgcolor: SECONDARY_COLOR,
+              },
             }}
           >
             {updating ? "Saving..." : "Save Changes"}
@@ -967,7 +947,7 @@ EditVisitModal.displayName = "EditVisitModal";
 
 // Loading Skeleton
 const LoadingSkeleton = () => (
-  <Box sx={{ p: 3 }}>
+  <Box sx={{ p: { xs: 2, sm: 3 } }}>
     <Grid container spacing={2} sx={{ mb: 3 }}>
       {[1, 2, 3, 4].map((item) => (
         <Grid item xs={6} sm={3} key={item}>
@@ -1469,7 +1449,7 @@ export default function TotalVisitsPage() {
           onClose={handleCloseSnackbar}
           severity={snackbar.severity}
           variant="filled"
-          sx={{ width: "100%", color: "#fff" }}
+          sx={{ width: "100%" }}
         >
           {snackbar.message}
         </Alert>
@@ -1501,14 +1481,16 @@ export default function TotalVisitsPage() {
 
           <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
             <Button
-              variant="outlined"
+              variant="contained"
               startIcon={<Refresh />}
               onClick={fetchVisitsData}
               disabled={loading}
               sx={{
-                background: "#3451b3",
+                background: "#4569ea",
                 color: "#fff",
-                border: "1px solid #3451b3",
+                "&:hover": {
+                  bgcolor: SECONDARY_COLOR,
+                },
               }}
             >
               Refresh
@@ -1519,18 +1501,17 @@ export default function TotalVisitsPage() {
         {/* Summary Cards */}
         <Grid container spacing={2} sx={{ mb: 4 }}>
           {summaryCards.map((card, index) => (
-            <Grid item xs={6} sm={3} key={index}>
+            <Grid item xs={6} sm={6} md={3} key={index}>
               <Card
                 sx={{
                   borderRadius: 3,
                   overflow: "visible",
                   position: "relative",
-                  width: "277px",
                   border: `1px solid ${alpha(card.color, 0.1)}`,
                   boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
                 }}
               >
-                <CardContent sx={{ p: 3 }}>
+                <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
                   <Stack spacing={1}>
                     <Box
                       sx={{
@@ -1541,8 +1522,8 @@ export default function TotalVisitsPage() {
                     >
                       <Box
                         sx={{
-                          width: 48,
-                          height: 48,
+                          width: { xs: 40, sm: 48 },
+                          height: { xs: 40, sm: 48 },
                           borderRadius: 2,
                           bgcolor: alpha(card.color, 0.1),
                           display: "flex",
@@ -1551,12 +1532,17 @@ export default function TotalVisitsPage() {
                           color: card.color,
                         }}
                       >
-                        {card.icon}
+                        {React.cloneElement(card.icon, { 
+                          sx: { fontSize: { xs: 20, sm: 24 } } 
+                        })}
                       </Box>
                       <Typography
                         variant="h4"
                         fontWeight={700}
-                        sx={{ color: card.color }}
+                        sx={{ 
+                          color: card.color,
+                          fontSize: { xs: "1.5rem", sm: "2rem" }
+                        }}
                       >
                         {card.value}
                       </Typography>
@@ -1578,7 +1564,7 @@ export default function TotalVisitsPage() {
 
         {/* Filters Card */}
         <Card sx={{ borderRadius: 3, mb: 4, overflow: "visible" }}>
-          <CardContent sx={{ p: 3 }}>
+          <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
             <Stack spacing={3}>
               {/* Top Filters Row */}
               <Stack
@@ -1597,7 +1583,7 @@ export default function TotalVisitsPage() {
                     InputProps={{
                       startAdornment: (
                         <InputAdornment position="start">
-                          <Search />
+                          <Search sx={{ color: "text.secondary" }} />
                         </InputAdornment>
                       ),
                       endAdornment: searchQuery && (
@@ -1614,7 +1600,11 @@ export default function TotalVisitsPage() {
                   />
                 </Box>
 
-                <Stack direction="row" spacing={2} flexWrap="wrap">
+                <Stack 
+                  direction={{ xs: "column", sm: "row" }} 
+                  spacing={2} 
+                  flexWrap="wrap"
+                >
                   <FormControl size="small" sx={{ minWidth: 150 }}>
                     <InputLabel>Period</InputLabel>
                     <Select
@@ -1651,9 +1641,12 @@ export default function TotalVisitsPage() {
                     onClick={() => setShowFilterPanel(!showFilterPanel)}
                     sx={{
                       display: { xs: "none", sm: "flex" },
-                      background: "#3451b3",
-                      color: "#fff",
-                      border: "1px solid #3451b3",
+                      borderColor: PRIMARY_COLOR,
+                      color: PRIMARY_COLOR,
+                      "&:hover": {
+                        borderColor: SECONDARY_COLOR,
+                        bgcolor: alpha(PRIMARY_COLOR, 0.05),
+                      },
                     }}
                   >
                     {showFilterPanel ? "Hide Filters" : "More Filters"}
@@ -1666,7 +1659,7 @@ export default function TotalVisitsPage() {
                 <Paper
                   variant="outlined"
                   sx={{
-                    p: 3,
+                    p: { xs: 2, sm: 3 },
                     borderRadius: 2,
                     borderColor: "divider",
                     bgcolor: "grey.50",
@@ -1739,6 +1732,12 @@ export default function TotalVisitsPage() {
                                   handleStatusCheckboxChange(status)
                                 }
                                 size="small"
+                                sx={{
+                                  color: PRIMARY_COLOR,
+                                  "&.Mui-checked": {
+                                    color: PRIMARY_COLOR,
+                                  },
+                                }}
                               />
                             }
                             label={
@@ -1766,13 +1765,22 @@ export default function TotalVisitsPage() {
                       variant="outlined"
                       onClick={handleClearFilters}
                       startIcon={<Clear />}
+                      sx={{
+                        borderColor: PRIMARY_COLOR,
+                        color: PRIMARY_COLOR,
+                      }}
                     >
                       Clear All
                     </Button>
                     <Button
                       variant="contained"
                       onClick={() => setShowFilterPanel(false)}
-                      sx={{ bgcolor: PRIMARY_COLOR }}
+                      sx={{ 
+                        bgcolor: PRIMARY_COLOR,
+                        "&:hover": {
+                          bgcolor: SECONDARY_COLOR,
+                        },
+                      }}
                     >
                       Apply Filters
                     </Button>
@@ -1790,16 +1798,25 @@ export default function TotalVisitsPage() {
                   <Typography
                     variant="caption"
                     color="text.secondary"
-                    sx={{ mb: 1 }}
+                    sx={{ mb: 1, display: "block" }}
                   >
                     Active Filters:
                   </Typography>
-                  <Stack direction="row" spacing={1} flexWrap="wrap">
+                  <Stack 
+                    direction="row" 
+                    spacing={1} 
+                    flexWrap="wrap" 
+                    useFlexGap
+                  >
                     {searchQuery && (
                       <Chip
                         label={`Search: ${searchQuery}`}
                         size="small"
                         onDelete={() => setSearchQuery("")}
+                        sx={{
+                          bgcolor: alpha(PRIMARY_COLOR, 0.1),
+                          color: PRIMARY_COLOR,
+                        }}
                       />
                     )}
                     {statusFilter !== "All" && (
@@ -1807,6 +1824,10 @@ export default function TotalVisitsPage() {
                         label={`Status: ${statusFilter}`}
                         size="small"
                         onDelete={() => setStatusFilter("All")}
+                        sx={{
+                          bgcolor: alpha(PRIMARY_COLOR, 0.1),
+                          color: PRIMARY_COLOR,
+                        }}
                       />
                     )}
                     {dateFilter.startDate && (
@@ -1822,6 +1843,10 @@ export default function TotalVisitsPage() {
                             startDate: null,
                           }))
                         }
+                        sx={{
+                          bgcolor: alpha(PRIMARY_COLOR, 0.1),
+                          color: PRIMARY_COLOR,
+                        }}
                       />
                     )}
                     {dateFilter.endDate && (
@@ -1837,6 +1862,10 @@ export default function TotalVisitsPage() {
                             endDate: null,
                           }))
                         }
+                        sx={{
+                          bgcolor: alpha(PRIMARY_COLOR, 0.1),
+                          color: PRIMARY_COLOR,
+                        }}
                       />
                     )}
                     {Object.keys(selectedStatuses).some(
@@ -1853,6 +1882,10 @@ export default function TotalVisitsPage() {
                             }, {}),
                           )
                         }
+                        sx={{
+                          bgcolor: alpha(PRIMARY_COLOR, 0.1),
+                          color: PRIMARY_COLOR,
+                        }}
                       />
                     )}
                     <Chip
@@ -1862,6 +1895,10 @@ export default function TotalVisitsPage() {
                       onClick={handleClearFilters}
                       deleteIcon={<Close />}
                       onDelete={handleClearFilters}
+                      sx={{
+                        borderColor: PRIMARY_COLOR,
+                        color: PRIMARY_COLOR,
+                      }}
                     />
                   </Stack>
                 </Box>
@@ -1876,7 +1913,7 @@ export default function TotalVisitsPage() {
             {/* Header */}
             <Box
               sx={{
-                p: 3,
+                p: { xs: 2, sm: 3 },
                 borderBottom: 1,
                 borderColor: "divider",
                 display: "flex",
@@ -1889,7 +1926,12 @@ export default function TotalVisitsPage() {
               <Typography variant="h6" fontWeight={600}>
                 Total Visits ({filteredVisits.length})
               </Typography>
-              <Stack direction="row" spacing={2} alignItems="center">
+              <Stack 
+                direction="row" 
+                spacing={2} 
+                alignItems="center"
+                flexWrap="wrap"
+              >
                 <Typography variant="body2" color="text.secondary">
                   Show:
                 </Typography>
@@ -1913,6 +1955,7 @@ export default function TotalVisitsPage() {
               sx={{
                 maxHeight: { xs: "60vh", md: "70vh" },
                 position: "relative",
+                overflowX: "auto",
               }}
             >
               {loading && allVisits.length > 0 && (
@@ -1924,7 +1967,7 @@ export default function TotalVisitsPage() {
               <Table stickyHeader size="medium">
                 <TableHead>
                   <TableRow>
-                    <TableCell>
+                    <TableCell sx={{ minWidth: 200 }}>
                       <Button
                         fullWidth
                         size="small"
@@ -1942,12 +1985,13 @@ export default function TotalVisitsPage() {
                           justifyContent: "flex-start",
                           fontWeight: 600,
                           color: "text.primary",
+                          textTransform: "none",
                         }}
                       >
                         Customer Details
                       </Button>
                     </TableCell>
-                    <TableCell>
+                    <TableCell sx={{ minWidth: 150 }}>
                       <Button
                         fullWidth
                         size="small"
@@ -1965,17 +2009,18 @@ export default function TotalVisitsPage() {
                           justifyContent: "flex-start",
                           fontWeight: 600,
                           color: "text.primary",
+                          textTransform: "none",
                         }}
                       >
                         Visit Date & Time
                       </Button>
                     </TableCell>
-                    <TableCell>
+                    <TableCell sx={{ minWidth: 150 }}>
                       <Typography variant="subtitle2" fontWeight={600}>
                         Location
                       </Typography>
                     </TableCell>
-                    <TableCell>
+                    <TableCell sx={{ minWidth: 130 }}>
                       <Button
                         fullWidth
                         size="small"
@@ -1993,17 +2038,18 @@ export default function TotalVisitsPage() {
                           justifyContent: "flex-start",
                           fontWeight: 600,
                           color: "text.primary",
+                          textTransform: "none",
                         }}
                       >
                         Visit Status
                       </Button>
                     </TableCell>
-                    <TableCell>
+                    <TableCell sx={{ minWidth: 130 }}>
                       <Typography variant="subtitle2" fontWeight={600}>
                         Lead Status
                       </Typography>
                     </TableCell>
-                    <TableCell>
+                    <TableCell sx={{ minWidth: 100 }}>
                       <Typography variant="subtitle2" fontWeight={600}>
                         Actions
                       </Typography>
@@ -2105,7 +2151,7 @@ export default function TotalVisitsPage() {
                                 bgcolor: visitStatusConfig.bg,
                                 color: visitStatusConfig.color,
                                 fontWeight: 600,
-                                minWidth: 120,
+                                minWidth: 100,
                               }}
                             />
                           </TableCell>
@@ -2120,7 +2166,7 @@ export default function TotalVisitsPage() {
                                 bgcolor: leadStatusConfig.bg,
                                 color: leadStatusConfig.color,
                                 fontWeight: 600,
-                                minWidth: 120,
+                                minWidth: 100,
                               }}
                             />
                           </TableCell>
@@ -2201,7 +2247,7 @@ export default function TotalVisitsPage() {
                             <Button
                               variant="outlined"
                               onClick={handleClearFilters}
-                              sx={{ mt: 2 }}
+                              sx={{ mt: 2, borderColor: PRIMARY_COLOR, color: PRIMARY_COLOR }}
                             >
                               Clear All Filters
                             </Button>
@@ -2218,19 +2264,30 @@ export default function TotalVisitsPage() {
             {filteredVisits.length > 0 && (
               <Box
                 sx={{
-                  p: 2,
+                  p: { xs: 2, sm: 3 },
                   borderTop: 1,
                   borderColor: "divider",
                   display: "flex",
+                  flexDirection: { xs: "column", sm: "row" },
                   justifyContent: "space-between",
                   alignItems: "center",
-                  flexWrap: "wrap",
                   gap: 2,
                 }}
               >
-                <Typography variant="body2" color="text.secondary" sx={{ background:"#3451b3", color:"#fff", px:2, py:1, borderRadius:4 }}>
-                  Showing{" "}
-                  {Math.min(page * rowsPerPage + 1, filteredVisits.length)} to{" "}
+                <Typography 
+                  variant="body2" 
+                  color="text.secondary"
+                  sx={{ 
+                    bgcolor: alpha(PRIMARY_COLOR, 0.1), 
+                    color: PRIMARY_COLOR, 
+                    px: 2, 
+                    py: 1, 
+                    borderRadius: 4,
+                    textAlign: "center",
+                    width: { xs: "100%", sm: "auto" }
+                  }}
+                >
+                  Showing {Math.min(page * rowsPerPage + 1, filteredVisits.length)} to{" "}
                   {Math.min((page + 1) * rowsPerPage, filteredVisits.length)} of{" "}
                   {filteredVisits.length} entries
                 </Typography>
@@ -2239,7 +2296,6 @@ export default function TotalVisitsPage() {
                   page={page + 1}
                   onChange={(event, value) => setPage(value - 1)}
                   showFirstButton
-                  color="#3451b3"
                   showLastButton
                   siblingCount={1}
                   boundaryCount={1}
@@ -2247,6 +2303,13 @@ export default function TotalVisitsPage() {
                   sx={{
                     "& .MuiPaginationItem-root": {
                       borderRadius: 2,
+                      "&.Mui-selected": {
+                        bgcolor: PRIMARY_COLOR,
+                        color: "#fff",
+                        "&:hover": {
+                          bgcolor: SECONDARY_COLOR,
+                        },
+                      },
                     },
                   }}
                 />

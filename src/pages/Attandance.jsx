@@ -30,7 +30,6 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  TablePagination,
   Avatar,
   Stack,
   Divider,
@@ -45,28 +44,26 @@ import {
   LinearProgress as MuiLinearProgress,
   Skeleton,
   Badge,
-  AvatarGroup,
   Menu,
   ListItemIcon,
   ListItemText,
   Backdrop,
-  Breadcrumbs,
-  Link,
   AlertTitle,
-  Stepper,
-  Step,
-  StepLabel,
-  StepContent,
   Radio,
   RadioGroup,
   FormControlLabel,
-  Switch,
-  ImageList,
-  ImageListItem,
-  ImageListItemBar,
-  Fade,Snackbar,Pagination,
+  Snackbar,
+  Pagination,
   Zoom,
   Grow,
+  Drawer,
+  SwipeableDrawer,
+  List,
+  ListItem,
+  ListItemButton,
+  Collapse,
+  Rating,
+  Fade,
 } from '@mui/material';
 
 // Import Timeline components
@@ -93,7 +90,6 @@ import {
   Person as PersonIcon,
   Today as TodayIcon,
   FilterList as FilterIcon,
-  BarChart as ChartIcon,
   Visibility as ViewIcon,
   Search as SearchIcon,
   EventAvailable as EventIcon,
@@ -190,22 +186,26 @@ import {
   WbSunny,
   WbCloudy,
   NightsStay,
+  Menu as MenuIcon,
+  VisibilityOff,
 } from '@mui/icons-material';
 
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
-import { format, parseISO, isToday, differenceInMinutes, startOfWeek, startOfMonth, subDays } from 'date-fns';
+import { format, parseISO, isToday, differenceInMinutes, startOfWeek, startOfMonth, subDays, isSameDay } from 'date-fns';
 import { useAuth } from '../contexts/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 
 // ========== CONSTANTS & CONFIGURATION ==========
-const PRIMARY = '#3a5ac8';
-const SECONDARY = '#2c489e';
+const PRIMARY = '#4569ea';
+const SECONDARY = '#1a237e';
 const SUCCESS = '#4caf50';
 const WARNING = '#ff9800';
 const ERROR = '#f44336';
 const INFO = '#2196f3';
+const BG_LIGHT = '#f8fafd';
 
 const STATUS_CONFIG = {
   present: {
@@ -257,7 +257,7 @@ const ROLE_CONFIG = {
     bg: alpha(PRIMARY, 0.1),
     lightBg: alpha(PRIMARY, 0.05),
     icon: <Business sx={{ fontSize: 16 }} />,
-    gradient: 'linear-gradient(135deg, #3a5ac8 0%, #5c7ed6 100%)',
+    gradient: `linear-gradient(135deg, ${PRIMARY} 0%, ${SECONDARY} 100%)`,
   },
   ZSM: {
     label: 'ZSM',
@@ -282,37 +282,6 @@ const ROLE_CONFIG = {
     lightBg: alpha(SUCCESS, 0.05),
     icon: <PersonIcon sx={{ fontSize: 16 }} />,
     gradient: 'linear-gradient(135deg, #2e7d32 0%, #4caf50 100%)',
-  },
-};
-
-// Transport Mode for KM Calculation (if needed)
-const TRANSPORT_MODES = {
-  WALKING: 'walking',
-  DRIVING: 'driving',
-  BICYCLING: 'bicycling',
-  PUBLIC_TRANSPORT: 'public_transport',
-};
-
-const TRANSPORT_MODE_CONFIG = {
-  [TRANSPORT_MODES.WALKING]: {
-    label: 'Walking',
-    icon: <DirectionsWalk sx={{ fontSize: 18 }} />,
-    color: SUCCESS,
-  },
-  [TRANSPORT_MODES.BICYCLING]: {
-    label: 'Bicycling',
-    icon: <TwoWheeler sx={{ fontSize: 18 }} />,
-    color: WARNING,
-  },
-  [TRANSPORT_MODES.DRIVING]: {
-    label: 'Driving',
-    icon: <DirectionsCar sx={{ fontSize: 18 }} />,
-    color: INFO,
-  },
-  [TRANSPORT_MODES.PUBLIC_TRANSPORT]: {
-    label: 'Public Transport',
-    icon: <DirectionsCar sx={{ fontSize: 18 }} />,
-    color: '#9c27b0',
   },
 };
 
@@ -377,15 +346,239 @@ const getRoleConfig = (role) => {
   };
 };
 
-const getTransportModeConfig = (mode) => {
-  return TRANSPORT_MODE_CONFIG[mode] || {
-    label: 'Other',
-    icon: <DirectionsCar sx={{ fontSize: 18 }} />,
-    color: '#757575',
-  };
+// ========== MOBILE ATTENDANCE CARD ==========
+const MobileAttendanceCard = ({ record, onView, onEdit, onDelete, canEdit, canDelete, isTeam }) => {
+  const theme = useTheme();
+  const statusConfig = getStatusConfig(record.status);
+  const roleConfig = getRoleConfig(record.user?.role);
+  const workingHours = calculateWorkingHours(record.punchInTime, record.punchOutTime);
+  const isTodayRecord = record.date && isToday(parseISO(record.date));
+  const [expanded, setExpanded] = useState(false);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.95 }}
+      transition={{ duration: 0.2 }}
+    >
+      <Card
+        sx={{
+          mb: 2,
+          borderRadius: 3,
+          border: `1px solid ${alpha(PRIMARY, 0.1)}`,
+          overflow: 'hidden',
+          position: 'relative',
+          bgcolor: 'white',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.03)',
+          '&::before': {
+            content: '""',
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: 4,
+            height: '100%',
+            bgcolor: isTodayRecord ? PRIMARY : 'transparent',
+          },
+        }}
+      >
+        <CardContent sx={{ p: 2 }}>
+          {/* Header */}
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flex: 1 }}>
+              <Badge
+                overlap="circular"
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                badgeContent={
+                  <Box
+                    sx={{
+                      width: 12,
+                      height: 12,
+                      borderRadius: '50%',
+                      bgcolor: record.punchOutTime ? SUCCESS : WARNING,
+                      border: '2px solid white',
+                    }}
+                  />
+                }
+              >
+                <Avatar
+                  sx={{
+                    bgcolor: alpha(PRIMARY, 0.1),
+                    color: PRIMARY,
+                    fontWeight: 600,
+                    width: 48,
+                    height: 48,
+                  }}
+                >
+                  {record.user?.firstName?.[0] || 'A'}
+                  {record.user?.lastName?.[0] || ''}
+                </Avatar>
+              </Badge>
+              <Box sx={{ flex: 1 }}>
+                <Typography variant="subtitle1" fontWeight={700} sx={{ color: PRIMARY }}>
+                  {record.user?.firstName} {record.user?.lastName}
+                </Typography>
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  {roleConfig.icon}
+                  {roleConfig.label}
+                </Typography>
+              </Box>
+            </Box>
+            <Chip
+              label={statusConfig.label}
+              icon={statusConfig.icon}
+              size="small"
+              sx={{
+                bgcolor: statusConfig.bg,
+                color: statusConfig.color,
+                fontWeight: 600,
+                height: 28,
+              }}
+            />
+          </Box>
+
+          {/* Date and Time Info */}
+          <Grid container spacing={1} sx={{ mb: 2 }}>
+            <Grid item xs={4}>
+              <Box sx={{ textAlign: 'center', p: 1, bgcolor: alpha(PRIMARY, 0.03), borderRadius: 2 }}>
+                <Typography variant="caption" color="text.secondary" display="block">
+                  Date
+                </Typography>
+                <Typography variant="body2" fontWeight={600}>
+                  {formatDate(record.date, 'dd MMM')}
+                </Typography>
+              </Box>
+            </Grid>
+            <Grid item xs={4}>
+              <Box sx={{ textAlign: 'center', p: 1, bgcolor: alpha(PRIMARY, 0.03), borderRadius: 2 }}>
+                <Typography variant="caption" color="text.secondary" display="block">
+                  In
+                </Typography>
+                <Typography variant="body2" fontWeight={600} color={PRIMARY}>
+                  {formatTime(record.punchInTime, 'HH:mm')}
+                </Typography>
+              </Box>
+            </Grid>
+            <Grid item xs={4}>
+              <Box sx={{ textAlign: 'center', p: 1, bgcolor: alpha(PRIMARY, 0.03), borderRadius: 2 }}>
+                <Typography variant="caption" color="text.secondary" display="block">
+                  Out
+                </Typography>
+                <Typography variant="body2" fontWeight={600}>
+                  {formatTime(record.punchOutTime, 'HH:mm')}
+                </Typography>
+              </Box>
+            </Grid>
+          </Grid>
+
+          {/* Expanded Details */}
+          <AnimatePresence>
+            {expanded && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.2 }}
+              >
+                <Box sx={{ mt: 2, pt: 2, borderTop: `1px solid ${alpha(PRIMARY, 0.1)}` }}>
+                  <Grid container spacing={2}>
+                    <Grid item xs={6}>
+                      <Typography variant="caption" color="text.secondary">
+                        Working Hours
+                      </Typography>
+                      <Typography variant="body2" fontWeight={600} color={PRIMARY}>
+                        {formatDuration(workingHours)}
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={6}>
+                      <Typography variant="caption" color="text.secondary">
+                        Status
+                      </Typography>
+                      <Typography variant="body2" fontWeight={600}>
+                        {statusConfig.label}
+                      </Typography>
+                    </Grid>
+                    {record.notes && (
+                      <Grid item xs={12}>
+                        <Typography variant="caption" color="text.secondary">
+                          Notes
+                        </Typography>
+                        <Typography variant="body2" sx={{ bgcolor: alpha(PRIMARY, 0.03), p: 1, borderRadius: 2, mt: 0.5 }}>
+                          {record.notes}
+                        </Typography>
+                      </Grid>
+                    )}
+                  </Grid>
+                </Box>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Actions */}
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2 }}>
+            <Button
+              size="small"
+              onClick={() => setExpanded(!expanded)}
+              sx={{ color: PRIMARY }}
+            >
+              {expanded ? 'Show Less' : 'View Details'}
+            </Button>
+            
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <Tooltip title="View Full Details">
+                <IconButton
+                  size="small"
+                  onClick={() => onView(record)}
+                  sx={{
+                    bgcolor: alpha(PRIMARY, 0.1),
+                    color: PRIMARY,
+                    '&:hover': { bgcolor: alpha(PRIMARY, 0.2) },
+                  }}
+                >
+                  <Visibility fontSize="small" />
+                </IconButton>
+              </Tooltip>
+
+              {!isTeam && canEdit && (
+                <Tooltip title="Edit">
+                  <IconButton
+                    size="small"
+                    onClick={() => onEdit(record)}
+                    sx={{
+                      bgcolor: alpha(INFO, 0.1),
+                      color: INFO,
+                      '&:hover': { bgcolor: alpha(INFO, 0.2) },
+                    }}
+                  >
+                    <EditIcon fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+              )}
+
+              {!isTeam && canDelete && (
+                <Tooltip title="Delete">
+                  <IconButton
+                    size="small"
+                    onClick={() => onDelete(record._id)}
+                    sx={{
+                      bgcolor: alpha(ERROR, 0.1),
+                      color: ERROR,
+                      '&:hover': { bgcolor: alpha(ERROR, 0.2) },
+                    }}
+                  >
+                    <DeleteIcon fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+              )}
+            </Box>
+          </Box>
+        </CardContent>
+      </Card>
+    </motion.div>
+  );
 };
 
-// ========== ENHANCED PUNCH IN/OUT CARD ==========
+// ========== PUNCH IN/OUT CARD ==========
 const PunchInOutCard = ({
   onPunchIn,
   onPunchOut,
@@ -419,7 +612,7 @@ const PunchInOutCard = ({
         elevation={0}
         sx={{
           borderRadius: 4,
-          background: `linear-gradient(145deg, #ffffff 0%, ${alpha(PRIMARY, 0.02)} 100%)`,
+          bgcolor: 'white',
           border: `1px solid ${alpha(PRIMARY, 0.1)}`,
           mb: 4,
           position: 'relative',
@@ -432,9 +625,9 @@ const PunchInOutCard = ({
             right: 0,
             height: 4,
             background: status === 'punched-in'
-              ? `linear-gradient(90deg, ${SUCCESS} 0%, ${PRIMARY} 50%, ${INFO} 100%)`
+              ? `linear-gradient(90deg, ${SUCCESS} 0%, ${PRIMARY} 100%)`
               : status === 'punched-out'
-              ? `linear-gradient(90deg, ${INFO} 0%, ${SUCCESS} 50%, ${WARNING} 100%)`
+              ? `linear-gradient(90deg, ${INFO} 0%, ${SUCCESS} 100%)`
               : `linear-gradient(90deg, ${alpha(PRIMARY, 0.3)} 0%, ${alpha(PRIMARY, 0.1)} 100%)`,
           },
         }}
@@ -449,15 +642,11 @@ const PunchInOutCard = ({
                     width: { xs: 56, sm: 64 },
                     height: { xs: 56, sm: 64 },
                     borderRadius: 3,
-                    background: status === 'punched-in'
-                      ? `linear-gradient(135deg, ${alpha(SUCCESS, 0.2)} 0%, ${alpha(PRIMARY, 0.1)} 100%)`
-                      : status === 'punched-out'
-                      ? `linear-gradient(135deg, ${alpha(INFO, 0.2)} 0%, ${alpha(PRIMARY, 0.1)} 100%)`
-                      : `linear-gradient(135deg, ${alpha(PRIMARY, 0.15)} 0%, ${alpha(PRIMARY, 0.05)} 100%)`,
+                    bgcolor: alpha(PRIMARY, 0.1),
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    color: status === 'punched-in' ? SUCCESS : status === 'punched-out' ? INFO : PRIMARY,
+                    color: PRIMARY,
                   }}
                 >
                   {status === 'punched-in' ? (
@@ -469,7 +658,7 @@ const PunchInOutCard = ({
                   )}
                 </Box>
                 <Box>
-                  <Typography variant="h6" fontWeight={700}>
+                  <Typography variant="h6" fontWeight={700} sx={{ color: PRIMARY }}>
                     {status === 'punched-in' 
                       ? '📍 Currently Working' 
                       : status === 'punched-out'
@@ -510,13 +699,13 @@ const PunchInOutCard = ({
                     startIcon={loading ? <CircularProgress size={20} /> : <CloseIcon />}
                     sx={{
                       borderRadius: 3,
-                      px: 3,
+                      px: { xs: 2, sm: 3 },
                       py: 1.2,
-                      background: `linear-gradient(45deg, #d32f2f 30%, #f44336 90%)`,
-                      boxShadow: '0 4px 12px rgba(211,47,47,0.3)',
+                      bgcolor: ERROR,
+                      '&:hover': { bgcolor: '#d32f2f' },
                     }}
                   >
-                    Punch Out
+                    {isMobile ? 'Out' : 'Punch Out'}
                   </Button>
                 ) : (
                   <Button
@@ -526,16 +715,13 @@ const PunchInOutCard = ({
                     startIcon={loading ? <CircularProgress size={20} /> : <FingerprintIcon />}
                     sx={{
                       borderRadius: 3,
-                      px: 3,
+                      px: { xs: 2, sm: 3 },
                       py: 1.2,
-                      background: `linear-gradient(45deg, ${PRIMARY} 30%, ${SECONDARY} 90%)`,
-                      boxShadow: `0 4px 12px ${alpha(PRIMARY, 0.3)}`,
-                      '&:hover': {
-                        background: `linear-gradient(45deg, ${SECONDARY} 30%, ${PRIMARY} 90%)`,
-                      },
+                      bgcolor: PRIMARY,
+                      '&:hover': { bgcolor: SECONDARY },
                     }}
                   >
-                    {status === 'punched-out' ? 'Already Punched Out' : 'Punch In'}
+                    {isMobile ? (status === 'punched-out' ? 'Done' : 'In') : (status === 'punched-out' ? 'Already Punched Out' : 'Punch In')}
                   </Button>
                 )}
               </Stack>
@@ -553,7 +739,7 @@ const PunchInOutCard = ({
                   <Box
                     sx={{
                       p: 2.5,
-                      bgcolor: alpha(PRIMARY, 0.03),
+                      bgcolor: alpha(PRIMARY, 0.02),
                       borderRadius: 3,
                       display: 'grid',
                       gridTemplateColumns: {
@@ -613,7 +799,7 @@ const PunchInOutCard = ({
   );
 };
 
-// ========== ENHANCED ATTENDANCE STATS ==========
+// ========== ATTENDANCE STATS ==========
 const AttendanceStats = ({ refreshTrigger }) => {
   const theme = useTheme();
   const { fetchAPI } = useAuth();
@@ -677,7 +863,7 @@ const AttendanceStats = ({ refreshTrigger }) => {
       title: 'Attendance Rate',
       value: `${stats?.attendanceRate || 0}%`,
       icon: <PercentIcon />,
-      color: INFO,
+      color: PRIMARY,
       subText: 'Overall compliance',
       trend: stats?.rateTrend || '+2%',
       trendUp: true,
@@ -686,12 +872,12 @@ const AttendanceStats = ({ refreshTrigger }) => {
 
   if (loading) {
     return (
-      <Grid container spacing={3} sx={{ mb: 4 }}>
+      <Grid container spacing={2} sx={{ mb: 4 }}>
         {[1, 2, 3, 4].map((item) => (
-          <Grid item xs={12} sm={6} lg={3} key={item}>
+          <Grid item xs={6} sm={6} md={3} key={item}>
             <Skeleton 
               variant="rectangular" 
-              height={160} 
+              height={140} 
               sx={{ borderRadius: 3 }} 
             />
           </Grid>
@@ -707,7 +893,6 @@ const AttendanceStats = ({ refreshTrigger }) => {
         sx={{ 
           mb: 4, 
           borderRadius: 3,
-          border: `1px solid ${alpha(ERROR, 0.2)}`,
         }}
       >
         <AlertTitle>Error Loading Statistics</AlertTitle>
@@ -717,9 +902,9 @@ const AttendanceStats = ({ refreshTrigger }) => {
   }
 
   return (
-    <Grid container spacing={3} sx={{ mb: 4 }}>
+    <Grid container spacing={2} sx={{ mb: 4 }}>
       {statCards.map((stat, index) => (
-        <Grid item xs={12} sm={6} lg={3} key={index}>
+        <Grid item xs={6} sm={6} md={3} key={index}>
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -729,12 +914,12 @@ const AttendanceStats = ({ refreshTrigger }) => {
             <Card
               elevation={0}
               sx={{
-                borderRadius: 4,
+                borderRadius: 3,
                 overflow: 'hidden',
                 position: 'relative',
                 border: `1px solid ${alpha(stat.color, 0.2)}`,
                 height: '100%',
-                background: `linear-gradient(135deg, ${alpha(stat.color, 0.05)} 0%, ${alpha(stat.color, 0.02)} 100%)`,
+                bgcolor: 'white',
               }}
             >
               <Box
@@ -744,19 +929,19 @@ const AttendanceStats = ({ refreshTrigger }) => {
                   left: 0,
                   right: 0,
                   height: 4,
-                  background: `linear-gradient(90deg, ${stat.color} 0%, ${alpha(stat.color, 0.5)} 100%)`,
+                  bgcolor: stat.color,
                 }}
               />
               
-              <CardContent sx={{ p: 2.5 }}>
-                <Stack spacing={1.5}>
+              <CardContent sx={{ p: 2 }}>
+                <Stack spacing={1}>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                     <Box
                       sx={{
-                        width: 48,
-                        height: 48,
+                        width: 40,
+                        height: 40,
                         borderRadius: 2,
-                        background: `linear-gradient(135deg, ${alpha(stat.color, 0.2)} 0%, ${alpha(stat.color, 0.1)} 100%)`,
+                        bgcolor: alpha(stat.color, 0.1),
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
@@ -768,9 +953,9 @@ const AttendanceStats = ({ refreshTrigger }) => {
                     
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                       {stat.trendUp ? (
-                        <TrendingUp sx={{ fontSize: 16, color: SUCCESS }} />
+                        <TrendingUp sx={{ fontSize: 14, color: SUCCESS }} />
                       ) : (
-                        <TrendingDown sx={{ fontSize: 16, color: ERROR }} />
+                        <TrendingDown sx={{ fontSize: 14, color: ERROR }} />
                       )}
                       <Typography 
                         variant="caption" 
@@ -785,10 +970,10 @@ const AttendanceStats = ({ refreshTrigger }) => {
                   </Box>
 
                   <Box>
-                    <Typography variant="h4" fontWeight={700} sx={{ color: stat.color }}>
+                    <Typography variant="h5" fontWeight={700} sx={{ color: stat.color }}>
                       {stat.value}
                     </Typography>
-                    <Typography variant="subtitle2" fontWeight={600} sx={{ mt: 0.5 }}>
+                    <Typography variant="body2" fontWeight={600} sx={{ mt: 0.5 }}>
                       {stat.title}
                     </Typography>
                     <Typography variant="caption" color="text.secondary" display="block">
@@ -832,7 +1017,7 @@ const AttendanceDetailsModal = ({ open, onClose, record, onEdit, onDelete }) => 
       fullScreen={isMobile}
       PaperProps={{
         sx: {
-          borderRadius: isMobile ? 0 : 4,
+          borderRadius: isMobile ? 0 : 3,
           maxHeight: '90vh',
           overflow: 'hidden',
         },
@@ -910,11 +1095,202 @@ const AttendanceDetailsModal = ({ open, onClose, record, onEdit, onDelete }) => 
         <Box sx={{ p: 3, maxHeight: '70vh', overflow: 'auto' }}>
           <Stack spacing={3}>
             {/* Employee Info Card */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3 }}
+            <Card
+              elevation={0}
+              sx={{
+                borderRadius: 3,
+                border: `1px solid ${alpha(PRIMARY, 0.1)}`,
+                overflow: 'hidden',
+              }}
             >
+              <Box
+                sx={{
+                  p: 2,
+                  bgcolor: alpha(PRIMARY, 0.02),
+                  borderBottom: `1px solid ${alpha(PRIMARY, 0.1)}`,
+                }}
+              >
+                <Typography
+                  variant="h6"
+                  fontWeight={600}
+                  sx={{ display: 'flex', alignItems: 'center', gap: 1, color: PRIMARY }}
+                >
+                  <PersonIcon /> Employee Information
+                </Typography>
+              </Box>
+              <CardContent sx={{ p: 3 }}>
+                <Grid container spacing={2}>
+                  <Grid item xs={12} sm={6}>
+                    <Typography variant="caption" color="text.secondary">
+                      Full Name
+                    </Typography>
+                    <Typography variant="body1" fontWeight={600}>
+                      {record.user?.firstName} {record.user?.lastName}
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <Typography variant="caption" color="text.secondary">
+                      Email
+                    </Typography>
+                    <Typography variant="body1">
+                      {record.user?.email || 'Not set'}
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <Typography variant="caption" color="text.secondary">
+                      Role
+                    </Typography>
+                    <Chip
+                      label={roleConfig.label}
+                      icon={roleConfig.icon}
+                      size="small"
+                      sx={{
+                        bgcolor: roleConfig.bg,
+                        color: roleConfig.color,
+                        fontWeight: 600,
+                        mt: 0.5,
+                      }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <Typography variant="caption" color="text.secondary">
+                      Date
+                    </Typography>
+                    <Typography variant="body1">
+                      {formatDate(record.date, 'dd MMM yyyy')}
+                    </Typography>
+                  </Grid>
+                </Grid>
+              </CardContent>
+            </Card>
+
+            {/* Attendance Details Card */}
+            <Card
+              elevation={0}
+              sx={{
+                borderRadius: 3,
+                border: `1px solid ${alpha(SUCCESS, 0.1)}`,
+                overflow: 'hidden',
+              }}
+            >
+              <Box
+                sx={{
+                  p: 2,
+                  bgcolor: alpha(SUCCESS, 0.02),
+                  borderBottom: `1px solid ${alpha(SUCCESS, 0.1)}`,
+                }}
+              >
+                <Typography
+                  variant="h6"
+                  fontWeight={600}
+                  sx={{ display: 'flex', alignItems: 'center', gap: 1, color: SUCCESS }}
+                >
+                  <AccessTimeIcon /> Attendance Details
+                </Typography>
+              </Box>
+              <CardContent sx={{ p: 3 }}>
+                <Grid container spacing={2}>
+                  <Grid item xs={6} sm={3}>
+                    <Paper
+                      sx={{
+                        p: 2,
+                        textAlign: 'center',
+                        bgcolor: alpha(PRIMARY, 0.02),
+                        borderRadius: 2,
+                      }}
+                    >
+                      <Typography variant="caption" color="text.secondary">
+                        Punch In
+                      </Typography>
+                      <Typography variant="h6" fontWeight={700} sx={{ color: PRIMARY }}>
+                        {formatTime(record.punchInTime, 'HH:mm')}
+                      </Typography>
+                    </Paper>
+                  </Grid>
+                  <Grid item xs={6} sm={3}>
+                    <Paper
+                      sx={{
+                        p: 2,
+                        textAlign: 'center',
+                        bgcolor: alpha(INFO, 0.02),
+                        borderRadius: 2,
+                      }}
+                    >
+                      <Typography variant="caption" color="text.secondary">
+                        Punch Out
+                      </Typography>
+                      <Typography variant="h6" fontWeight={700} sx={{ color: INFO }}>
+                        {formatTime(record.punchOutTime, 'HH:mm')}
+                      </Typography>
+                    </Paper>
+                  </Grid>
+                  <Grid item xs={6} sm={3}>
+                    <Paper
+                      sx={{
+                        p: 2,
+                        textAlign: 'center',
+                        bgcolor: alpha(WARNING, 0.02),
+                        borderRadius: 2,
+                      }}
+                    >
+                      <Typography variant="caption" color="text.secondary">
+                        Working Hours
+                      </Typography>
+                      <Typography variant="h6" fontWeight={700} sx={{ color: WARNING }}>
+                        {formatDuration(workingHours)}
+                      </Typography>
+                    </Paper>
+                  </Grid>
+                  <Grid item xs={6} sm={3}>
+                    <Paper
+                      sx={{
+                        p: 2,
+                        textAlign: 'center',
+                        bgcolor: alpha(statusConfig.color, 0.02),
+                        borderRadius: 2,
+                      }}
+                    >
+                      <Typography variant="caption" color="text.secondary">
+                        Status
+                      </Typography>
+                      <Chip
+                        label={statusConfig.label}
+                        icon={statusConfig.icon}
+                        size="small"
+                        sx={{
+                          bgcolor: statusConfig.bg,
+                          color: statusConfig.color,
+                          fontWeight: 600,
+                          mt: 0.5,
+                        }}
+                      />
+                    </Paper>
+                  </Grid>
+                </Grid>
+
+                {record.notes && (
+                  <Box sx={{ mt: 3 }}>
+                    <Typography variant="subtitle2" fontWeight={600} gutterBottom>
+                      Notes
+                    </Typography>
+                    <Paper
+                      sx={{
+                        p: 2,
+                        bgcolor: alpha(PRIMARY, 0.02),
+                        borderRadius: 2,
+                      }}
+                    >
+                      <Typography variant="body2" style={{ whiteSpace: 'pre-wrap' }}>
+                        {record.notes}
+                      </Typography>
+                    </Paper>
+                  </Box>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Location Timeline */}
+            {record.locationUpdates && record.locationUpdates.length > 0 && (
               <Card
                 elevation={0}
                 sx={{
@@ -926,7 +1302,7 @@ const AttendanceDetailsModal = ({ open, onClose, record, onEdit, onDelete }) => 
                 <Box
                   sx={{
                     p: 2,
-                    background: `linear-gradient(135deg, ${alpha(PRIMARY, 0.05)} 0%, ${alpha(PRIMARY, 0.02)} 100%)`,
+                    bgcolor: alpha(PRIMARY, 0.02),
                     borderBottom: `1px solid ${alpha(PRIMARY, 0.1)}`,
                   }}
                 >
@@ -935,253 +1311,43 @@ const AttendanceDetailsModal = ({ open, onClose, record, onEdit, onDelete }) => 
                     fontWeight={600}
                     sx={{ display: 'flex', alignItems: 'center', gap: 1, color: PRIMARY }}
                   >
-                    <PersonIcon /> Employee Information
+                    <TimelineIcon /> Location Timeline
                   </Typography>
                 </Box>
                 <CardContent sx={{ p: 3 }}>
-                  <Grid container spacing={2}>
-                    <Grid item xs={12} sm={6}>
-                      <Typography variant="caption" color="text.secondary">
-                        Full Name
-                      </Typography>
-                      <Typography variant="body1" fontWeight={600}>
-                        {record.user?.firstName} {record.user?.lastName}
-                      </Typography>
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
-                      <Typography variant="caption" color="text.secondary">
-                        Email
-                      </Typography>
-                      <Typography variant="body1">
-                        {record.user?.email || 'Not set'}
-                      </Typography>
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
-                      <Typography variant="caption" color="text.secondary">
-                        Role
-                      </Typography>
-                      <Chip
-                        label={roleConfig.label}
-                        icon={roleConfig.icon}
-                        size="small"
-                        sx={{
-                          bgcolor: roleConfig.bg,
-                          color: roleConfig.color,
-                          fontWeight: 600,
-                          mt: 0.5,
-                        }}
-                      />
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
-                      <Typography variant="caption" color="text.secondary">
-                        Date
-                      </Typography>
-                      <Typography variant="body1">
-                        {formatDate(record.date, 'dd MMM yyyy')}
-                      </Typography>
-                    </Grid>
-                  </Grid>
+                  <Timeline>
+                    {record.locationUpdates.map((location, index) => (
+                      <TimelineItem key={index}>
+                        <TimelineOppositeContent
+                          variant="caption"
+                          color="text.secondary"
+                          sx={{ flex: 0.2 }}
+                        >
+                          {formatTime(location.timestamp, 'HH:mm')}
+                        </TimelineOppositeContent>
+                        <TimelineSeparator>
+                          <TimelineDot
+                            sx={{
+                              bgcolor: index === record.locationUpdates.length - 1 ? SUCCESS : PRIMARY,
+                            }}
+                          />
+                          {index < record.locationUpdates.length - 1 && (
+                            <TimelineConnector sx={{ bgcolor: alpha(PRIMARY, 0.2) }} />
+                          )}
+                        </TimelineSeparator>
+                        <TimelineContent>
+                          <Typography variant="body2" fontWeight={600}>
+                            {location.lat.toFixed(6)}, {location.lng.toFixed(6)}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary" display="block">
+                            ±{Math.round(location.accuracy)}m
+                          </Typography>
+                        </TimelineContent>
+                      </TimelineItem>
+                    ))}
+                  </Timeline>
                 </CardContent>
               </Card>
-            </motion.div>
-
-            {/* Attendance Details Card */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: 0.1 }}
-            >
-              <Card
-                elevation={0}
-                sx={{
-                  borderRadius: 3,
-                  border: `1px solid ${alpha(SUCCESS, 0.1)}`,
-                  overflow: 'hidden',
-                }}
-              >
-                <Box
-                  sx={{
-                    p: 2,
-                    background: `linear-gradient(135deg, ${alpha(SUCCESS, 0.05)} 0%, ${alpha(SUCCESS, 0.02)} 100%)`,
-                    borderBottom: `1px solid ${alpha(SUCCESS, 0.1)}`,
-                  }}
-                >
-                  <Typography
-                    variant="h6"
-                    fontWeight={600}
-                    sx={{ display: 'flex', alignItems: 'center', gap: 1, color: SUCCESS }}
-                  >
-                    <AccessTimeIcon /> Attendance Details
-                  </Typography>
-                </Box>
-                <CardContent sx={{ p: 3 }}>
-                  <Grid container spacing={3}>
-                    <Grid item xs={12} sm={6} md={3}>
-                      <Paper
-                        sx={{
-                          p: 2,
-                          textAlign: 'center',
-                          bgcolor: alpha(PRIMARY, 0.02),
-                          borderRadius: 2,
-                        }}
-                      >
-                        <Typography variant="caption" color="text.secondary">
-                          Punch In
-                        </Typography>
-                        <Typography variant="h6" fontWeight={700} sx={{ color: PRIMARY }}>
-                          {formatTime(record.punchInTime)}
-                        </Typography>
-                      </Paper>
-                    </Grid>
-                    <Grid item xs={12} sm={6} md={3}>
-                      <Paper
-                        sx={{
-                          p: 2,
-                          textAlign: 'center',
-                          bgcolor: alpha(INFO, 0.02),
-                          borderRadius: 2,
-                        }}
-                      >
-                        <Typography variant="caption" color="text.secondary">
-                          Punch Out
-                        </Typography>
-                        <Typography variant="h6" fontWeight={700} sx={{ color: INFO }}>
-                          {formatTime(record.punchOutTime)}
-                        </Typography>
-                      </Paper>
-                    </Grid>
-                    <Grid item xs={12} sm={6} md={3}>
-                      <Paper
-                        sx={{
-                          p: 2,
-                          textAlign: 'center',
-                          bgcolor: alpha(WARNING, 0.02),
-                          borderRadius: 2,
-                        }}
-                      >
-                        <Typography variant="caption" color="text.secondary">
-                          Working Hours
-                        </Typography>
-                        <Typography variant="h6" fontWeight={700} sx={{ color: WARNING }}>
-                          {formatDuration(workingHours)}
-                        </Typography>
-                      </Paper>
-                    </Grid>
-                    <Grid item xs={12} sm={6} md={3}>
-                      <Paper
-                        sx={{
-                          p: 2,
-                          textAlign: 'center',
-                          bgcolor: alpha(statusConfig.color, 0.02),
-                          borderRadius: 2,
-                        }}
-                      >
-                        <Typography variant="caption" color="text.secondary">
-                          Status
-                        </Typography>
-                        <Chip
-                          label={statusConfig.label}
-                          icon={statusConfig.icon}
-                          size="small"
-                          sx={{
-                            bgcolor: statusConfig.bg,
-                            color: statusConfig.color,
-                            fontWeight: 600,
-                            mt: 0.5,
-                          }}
-                        />
-                      </Paper>
-                    </Grid>
-                  </Grid>
-
-                  {record.notes && (
-                    <Box sx={{ mt: 3 }}>
-                      <Typography variant="subtitle2" fontWeight={600} gutterBottom>
-                        Notes
-                      </Typography>
-                      <Paper
-                        sx={{
-                          p: 2,
-                          bgcolor: alpha(PRIMARY, 0.02),
-                          borderRadius: 2,
-                        }}
-                      >
-                        <Typography variant="body2" style={{ whiteSpace: 'pre-wrap' }}>
-                          {record.notes}
-                        </Typography>
-                      </Paper>
-                    </Box>
-                  )}
-                </CardContent>
-              </Card>
-            </motion.div>
-
-            {/* Timeline Card (if there's location data) */}
-            {record.locationUpdates && record.locationUpdates.length > 0 && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: 0.2 }}
-              >
-                <Card
-                  elevation={0}
-                  sx={{
-                    borderRadius: 3,
-                    border: `1px solid ${alpha(PRIMARY, 0.1)}`,
-                    overflow: 'hidden',
-                  }}
-                >
-                  <Box
-                    sx={{
-                      p: 2,
-                      background: `linear-gradient(135deg, ${alpha(PRIMARY, 0.05)} 0%, ${alpha(PRIMARY, 0.02)} 100%)`,
-                      borderBottom: `1px solid ${alpha(PRIMARY, 0.1)}`,
-                    }}
-                  >
-                    <Typography
-                      variant="h6"
-                      fontWeight={600}
-                      sx={{ display: 'flex', alignItems: 'center', gap: 1, color: PRIMARY }}
-                    >
-                      <TimelineIcon /> Location Timeline
-                    </Typography>
-                  </Box>
-                  <CardContent sx={{ p: 3 }}>
-                    <Timeline>
-                      {record.locationUpdates.map((location, index) => (
-                        <TimelineItem key={index}>
-                          <TimelineOppositeContent
-                            variant="caption"
-                            color="text.secondary"
-                            sx={{ flex: 0.2 }}
-                          >
-                            {formatTime(location.timestamp)}
-                          </TimelineOppositeContent>
-                          <TimelineSeparator>
-                            <TimelineDot
-                              sx={{
-                                bgcolor: index === record.locationUpdates.length - 1 ? SUCCESS : PRIMARY,
-                                boxShadow: `0 0 0 4px ${alpha(index === record.locationUpdates.length - 1 ? SUCCESS : PRIMARY, 0.2)}`,
-                              }}
-                            />
-                            {index < record.locationUpdates.length - 1 && (
-                              <TimelineConnector sx={{ bgcolor: alpha(PRIMARY, 0.2) }} />
-                            )}
-                          </TimelineSeparator>
-                          <TimelineContent>
-                            <Typography variant="body2" fontWeight={600}>
-                              {location.lat.toFixed(6)}, {location.lng.toFixed(6)}
-                            </Typography>
-                            <Typography variant="caption" color="text.secondary" display="block">
-                              ±{Math.round(location.accuracy)}m • {location.speed ? `${(location.speed * 3.6).toFixed(1)} km/h` : '0 km/h'}
-                            </Typography>
-                          </TimelineContent>
-                        </TimelineItem>
-                      ))}
-                    </Timeline>
-                  </CardContent>
-                </Card>
-              </motion.div>
             )}
           </Stack>
         </Box>
@@ -1193,7 +1359,7 @@ const AttendanceDetailsModal = ({ open, onClose, record, onEdit, onDelete }) => 
           pt: 2,
           borderTop: 1,
           borderColor: 'divider',
-          bgcolor: 'background.paper',
+          bgcolor: 'white',
         }}
       >
         <Box
@@ -1316,7 +1482,7 @@ const AttendanceFormDialog = ({ open, onClose, onSubmit, loading, initialData, m
       fullScreen={isMobile}
       PaperProps={{
         sx: {
-          borderRadius: isMobile ? 0 : 4,
+          borderRadius: isMobile ? 0 : 3,
         },
       }}
     >
@@ -1334,7 +1500,7 @@ const AttendanceFormDialog = ({ open, onClose, onSubmit, loading, initialData, m
                 width: 48,
                 height: 48,
                 borderRadius: 2,
-                background: `linear-gradient(135deg, ${alpha(PRIMARY, 0.15)} 0%, ${alpha(PRIMARY, 0.05)} 100%)`,
+                bgcolor: alpha(PRIMARY, 0.1),
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -1344,7 +1510,7 @@ const AttendanceFormDialog = ({ open, onClose, onSubmit, loading, initialData, m
               {mode === 'edit' ? <EditIcon sx={{ fontSize: 28 }} /> : <AddIcon sx={{ fontSize: 28 }} />}
             </Box>
             <Box>
-              <Typography variant="h5" fontWeight={700}>
+              <Typography variant="h6" fontWeight={700}>
                 {mode === 'edit' ? 'Edit Attendance Record' : 'Create Attendance Record'}
               </Typography>
               <Typography variant="body2" color="text.secondary">
@@ -1471,13 +1637,6 @@ const AttendanceFormDialog = ({ open, onClose, onSubmit, loading, initialData, m
                     </Box>
                     <Box>
                       <Typography variant="body2">{config.label}</Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        {key === 'present' && 'On-time attendance'}
-                        {key === 'absent' && 'No show'}
-                        {key === 'late' && 'Arrived after scheduled time'}
-                        {key === 'half-day' && 'Partial day attendance'}
-                        {key === 'on-leave' && 'Approved leave'}
-                      </Typography>
                     </Box>
                   </Stack>
                 </MenuItem>
@@ -1547,7 +1706,6 @@ const ExportReportDialog = ({ open, onClose, onExport, loading }) => {
     start: new Date(),
     end: new Date()
   });
-  const [employeeType, setEmployeeType] = useState('all');
 
   const handleExport = () => {
     const params = new URLSearchParams();
@@ -1572,10 +1730,6 @@ const ExportReportDialog = ({ open, onClose, onExport, loading }) => {
       }
     }
 
-    if (employeeType !== 'all') {
-      params.append('employeeType', employeeType);
-    }
-
     onExport({ formatType, queryString: params.toString() });
   };
 
@@ -1588,7 +1742,7 @@ const ExportReportDialog = ({ open, onClose, onExport, loading }) => {
       fullScreen={isMobile}
       PaperProps={{
         sx: {
-          borderRadius: isMobile ? 0 : 4,
+          borderRadius: isMobile ? 0 : 3,
         },
       }}
     >
@@ -1606,7 +1760,7 @@ const ExportReportDialog = ({ open, onClose, onExport, loading }) => {
                 width: 48,
                 height: 48,
                 borderRadius: 2,
-                background: `linear-gradient(135deg, ${alpha(PRIMARY, 0.15)} 0%, ${alpha(PRIMARY, 0.05)} 100%)`,
+                bgcolor: alpha(PRIMARY, 0.1),
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -1616,11 +1770,11 @@ const ExportReportDialog = ({ open, onClose, onExport, loading }) => {
               <DownloadIcon sx={{ fontSize: 28 }} />
             </Box>
             <Box>
-              <Typography variant="h5" fontWeight={700}>
+              <Typography variant="h6" fontWeight={700}>
                 Export Report
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                Download attendance data in your preferred format
+                Download attendance data
               </Typography>
             </Box>
           </Box>
@@ -1647,7 +1801,7 @@ const ExportReportDialog = ({ open, onClose, onExport, loading }) => {
                   daily: { label: 'Daily', icon: <TodayIcon />, color: PRIMARY },
                   weekly: { label: 'Weekly', icon: <CalendarToday />, color: SUCCESS },
                   monthly: { label: 'Monthly', icon: <CalendarToday />, color: INFO },
-                  custom: { label: 'Custom Range', icon: <TuneIcon />, color: WARNING },
+                  custom: { label: 'Custom', icon: <TuneIcon />, color: WARNING },
                 };
                 return (
                   <FormControlLabel
@@ -1667,14 +1821,6 @@ const ExportReportDialog = ({ open, onClose, onExport, loading }) => {
                         <Typography variant="body2">{config[type]?.label}</Typography>
                       </Stack>
                     }
-                    sx={{
-                      mr: 0,
-                      p: 1,
-                      borderRadius: 2,
-                      border: '1px solid',
-                      borderColor: reportType === type ? config[type]?.color : 'divider',
-                      bgcolor: reportType === type ? alpha(config[type]?.color, 0.05) : 'transparent',
-                    }}
                   />
                 );
               })}
@@ -1717,54 +1863,6 @@ const ExportReportDialog = ({ open, onClose, onExport, loading }) => {
 
           <Box>
             <Typography variant="subtitle2" fontWeight={600} gutterBottom>
-              Employee Type
-            </Typography>
-            <RadioGroup
-              row
-              value={employeeType}
-              onChange={(e) => setEmployeeType(e.target.value)}
-              sx={{ flexWrap: 'wrap', gap: 1 }}
-            >
-              {['all', 'TEAM', 'ASM', 'ZSM', 'Head_office'].map((type) => {
-                const config = type === 'all' 
-                  ? { label: 'All Employees', icon: <PeopleIcon />, color: PRIMARY }
-                  : getRoleConfig(type);
-                return (
-                  <FormControlLabel
-                    key={type}
-                    value={type}
-                    control={
-                      <Radio
-                        sx={{
-                          color: config.color,
-                          '&.Mui-checked': { color: config.color },
-                        }}
-                      />
-                    }
-                    label={
-                      <Stack direction="row" alignItems="center" spacing={0.5}>
-                        {config.icon}
-                        <Typography variant="body2">
-                          {type === 'all' ? 'All Employees' : type.replace('_', ' ')}
-                        </Typography>
-                      </Stack>
-                    }
-                    sx={{
-                      mr: 0,
-                      p: 1,
-                      borderRadius: 2,
-                      border: '1px solid',
-                      borderColor: employeeType === type ? config.color : 'divider',
-                      bgcolor: employeeType === type ? alpha(config.color, 0.05) : 'transparent',
-                    }}
-                  />
-                );
-              })}
-            </RadioGroup>
-          </Box>
-
-          <Box>
-            <Typography variant="subtitle2" fontWeight={600} gutterBottom>
               Format
             </Typography>
             <Stack direction="row" spacing={2}>
@@ -1779,13 +1877,9 @@ const ExportReportDialog = ({ open, onClose, onExport, loading }) => {
                   bgcolor: formatType === 'excel' ? SUCCESS : 'transparent',
                   borderColor: SUCCESS,
                   color: formatType === 'excel' ? 'white' : SUCCESS,
-                  '&:hover': { 
-                    bgcolor: formatType === 'excel' ? '#2e7d32' : alpha(SUCCESS, 0.1),
-                    borderColor: SUCCESS,
-                  },
                 }}
               >
-                Excel (.xlsx)
+                Excel
               </Button>
               <Button
                 variant={formatType === 'pdf' ? 'contained' : 'outlined'}
@@ -1798,13 +1892,9 @@ const ExportReportDialog = ({ open, onClose, onExport, loading }) => {
                   bgcolor: formatType === 'pdf' ? ERROR : 'transparent',
                   borderColor: ERROR,
                   color: formatType === 'pdf' ? 'white' : ERROR,
-                  '&:hover': { 
-                    bgcolor: formatType === 'pdf' ? '#c62828' : alpha(ERROR, 0.1),
-                    borderColor: ERROR,
-                  },
                 }}
               >
-                PDF (.pdf)
+                PDF
               </Button>
             </Stack>
           </Box>
@@ -1851,22 +1941,23 @@ const ExportReportDialog = ({ open, onClose, onExport, loading }) => {
 
 // ========== LOADING SKELETON ==========
 const LoadingSkeleton = () => (
-  <Box sx={{ p: 3 }}>
-    <Grid container spacing={3} sx={{ mb: 4 }}>
+  <Box sx={{ p: 2 }}>
+    <Grid container spacing={2} sx={{ mb: 3 }}>
       {[1, 2, 3, 4].map((item) => (
-        <Grid item xs={12} sm={6} lg={3} key={item}>
-          <Skeleton variant="rectangular" height={160} sx={{ borderRadius: 3 }} />
+        <Grid item xs={6} sm={6} md={3} key={item}>
+          <Skeleton variant="rectangular" height={140} sx={{ borderRadius: 3 }} />
         </Grid>
       ))}
     </Grid>
-    <Skeleton variant="rectangular" height={56} sx={{ borderRadius: 3, mb: 3 }} />
-    <Skeleton variant="rectangular" height={400} sx={{ borderRadius: 3, mb: 2 }} />
+    <Skeleton variant="rectangular" height={56} sx={{ borderRadius: 3, mb: 2 }} />
+    <Skeleton variant="rectangular" height={400} sx={{ borderRadius: 3 }} />
   </Box>
 );
 
 // ========== MAIN ATTENDANCE PAGE ==========
 export default function AttendancePage() {
   const theme = useTheme();
+  const navigate = useNavigate();
   const { fetchAPI, safeFetchAPI, getUserRole, user } = useAuth();
   const userRole = getUserRole();
   
@@ -1877,9 +1968,10 @@ export default function AttendancePage() {
   // States
   const [loading, setLoading] = useState(false);
   const [attendanceData, setAttendanceData] = useState([]);
+  const [mobileViewData, setMobileViewData] = useState([]);
   const [pagination, setPagination] = useState({
     page: 1,
-    limit: 10,
+    limit: isMobile ? 5 : 10,
     total: 0,
     pages: 0
   });
@@ -1891,15 +1983,6 @@ export default function AttendancePage() {
   const [formDialogOpen, setFormDialogOpen] = useState(false);
   const [currentAttendance, setCurrentAttendance] = useState(null);
   const [formMode, setFormMode] = useState('create');
-  const [formData, setFormData] = useState({
-    userId: '',
-    date: format(new Date(), 'yyyy-MM-dd'),
-    punchInTime: '',
-    punchOutTime: '',
-    status: 'present',
-    notes: '',
-  });
-  const [validationErrors, setValidationErrors] = useState({});
   
   // Filter states
   const [selectedTab, setSelectedTab] = useState(0);
@@ -1912,14 +1995,15 @@ export default function AttendancePage() {
   const [showFilterPanel, setShowFilterPanel] = useState(false);
   const [sortConfig, setSortConfig] = useState({ key: 'date', direction: 'desc' });
   
+  // Mobile filter drawer
+  const [filterDrawerOpen, setFilterDrawerOpen] = useState(false);
+  
   // Other states
   const [reportDialogOpen, setReportDialogOpen] = useState(false);
   const [exportLoading, setExportLoading] = useState(false);
   const [users, setUsers] = useState([]);
   const [currentPunchStatus, setCurrentPunchStatus] = useState(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
-  const [actionMenuAnchor, setActionMenuAnchor] = useState(null);
-  const [selectedActionRecord, setSelectedActionRecord] = useState(null);
   
   // Role checks
   const isAdmin = ['Head_office', 'ZSM'].includes(userRole);
@@ -2005,7 +2089,9 @@ export default function AttendancePage() {
       const result = await fetchAPI(`/attendance?${params.toString()}`);
 
       if (result?.success) {
-        setAttendanceData(result.result?.records || []);
+        const records = result.result?.records || [];
+        setAttendanceData(records);
+        setMobileViewData(records);
         setPagination(result.result?.pagination || {
           page: pageNum,
           limit: pagination.limit,
@@ -2029,6 +2115,14 @@ export default function AttendancePage() {
       fetchAttendanceData(1);
     }
   }, [fetchAttendanceData, refreshTrigger, userRole]);
+
+  // Update pagination limit when screen size changes
+  useEffect(() => {
+    setPagination(prev => ({
+      ...prev,
+      limit: isMobile ? 5 : 10
+    }));
+  }, [isMobile]);
 
   // Fetch users for admin
   useEffect(() => {
@@ -2086,7 +2180,6 @@ export default function AttendancePage() {
   // Open details dialog
   const handleViewDetails = useCallback(async (record) => {
     try {
-      // Fetch latest record data
       const response = await fetchAPI(`/attendance/${record._id}`);
       if (response?.success && response.result) {
         setCurrentAttendance(response.result);
@@ -2113,13 +2206,11 @@ export default function AttendancePage() {
 
       let response;
       if (formMode === 'edit') {
-        // Format data for update API
         const updateData = {
           status: formData.status,
           notes: formData.notes
         };
 
-        // Add manual punch times if changed
         if (formData.punchInTime && formData.date) {
           const punchInDate = new Date(formData.date);
           const [hours, minutes] = formData.punchInTime.split(':');
@@ -2139,7 +2230,6 @@ export default function AttendancePage() {
           body: JSON.stringify(updateData)
         });
       } else {
-        // Create new attendance
         response = await fetchAPI('/attendance/manual', {
           method: 'POST',
           body: JSON.stringify(formData)
@@ -2197,10 +2287,10 @@ export default function AttendancePage() {
       const result = await fetchAPI(`/attendance/export?${queryString}`);
       
       if (result?.success && result.result?.downloadUrl) {
-        // Open download URL in new tab
         window.open(result.result.downloadUrl, '_blank');
         setSuccess('Report exported successfully!');
         setTimeout(() => setSuccess(null), 3000);
+        setReportDialogOpen(false);
       } else {
         throw new Error(result?.message || 'Failed to export report');
       }
@@ -2209,43 +2299,7 @@ export default function AttendancePage() {
       setTimeout(() => setError(null), 3000);
     } finally {
       setExportLoading(false);
-      setReportDialogOpen(false);
     }
-  };
-
-  // Handle action menu
-  const handleActionMenuOpen = (event, record) => {
-    setActionMenuAnchor(event.currentTarget);
-    setSelectedActionRecord(record);
-  };
-
-  const handleActionMenuClose = () => {
-    setActionMenuAnchor(null);
-    setSelectedActionRecord(null);
-  };
-
-  const handleActionSelect = (action) => {
-    if (!selectedActionRecord) return;
-
-    switch (action) {
-      case 'view':
-        handleViewDetails(selectedActionRecord);
-        break;
-      case 'edit':
-        if (canEdit) {
-          handleOpenForm('edit', selectedActionRecord);
-        }
-        break;
-      case 'delete':
-        if (canDelete) {
-          handleDelete(selectedActionRecord._id);
-        }
-        break;
-      default:
-        break;
-    }
-
-    handleActionMenuClose();
   };
 
   // Handle page change
@@ -2277,6 +2331,7 @@ export default function AttendancePage() {
     setSelectedTab(0);
     setSortConfig({ key: 'date', direction: 'desc' });
     setShowFilterPanel(false);
+    setFilterDrawerOpen(false);
     setPagination(prev => ({ ...prev, page: 1 }));
     setTimeout(() => setRefreshTrigger(prev => prev + 1), 0);
   };
@@ -2293,11 +2348,109 @@ export default function AttendancePage() {
 
   // Tabs configuration
   const tabs = [
-    { label: 'All Records', icon: <Description /> },
+    { label: 'All', icon: <Description /> },
     { label: 'Today', icon: <TodayIcon /> },
-    { label: 'This Week', icon: <CalendarToday /> },
-    { label: 'This Month', icon: <CalendarToday /> }
+    { label: 'Week', icon: <CalendarToday /> },
+    { label: 'Month', icon: <CalendarToday /> }
   ];
+
+  // Mobile Filter Drawer
+  const FilterDrawer = () => (
+    <SwipeableDrawer
+      anchor="bottom"
+      open={filterDrawerOpen}
+      onClose={() => setFilterDrawerOpen(false)}
+      onOpen={() => setFilterDrawerOpen(true)}
+      disableSwipeToOpen={false}
+      PaperProps={{
+        sx: {
+          borderTopLeftRadius: 20,
+          borderTopRightRadius: 20,
+          maxHeight: '80vh',
+        }
+      }}
+    >
+      <Box sx={{ p: 3 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+          <Typography variant="h6" fontWeight={700} sx={{ color: PRIMARY }}>
+            Filters
+          </Typography>
+          <IconButton onClick={() => setFilterDrawerOpen(false)}>
+            <CloseIcon />
+          </IconButton>
+        </Box>
+
+        <Stack spacing={3}>
+          <FormControl fullWidth size="small">
+            <InputLabel>Status</InputLabel>
+            <Select
+              value={filterStatus}
+              label="Status"
+              onChange={(e) => {
+                setFilterStatus(e.target.value);
+                setPagination(prev => ({ ...prev, page: 1 }));
+              }}
+            >
+              <MenuItem value="all">All Status</MenuItem>
+              {Object.entries(STATUS_CONFIG).map(([key, config]) => (
+                <MenuItem key={key} value={key}>
+                  <Stack direction="row" alignItems="center" spacing={1}>
+                    <Box sx={{ color: config.color }}>{config.icon}</Box>
+                    <Typography>{config.label}</Typography>
+                  </Stack>
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+
+          <DatePicker
+            label="Start Date"
+            value={dateFilter.startDate}
+            onChange={(date) => setDateFilter(prev => ({ ...prev, startDate: date }))}
+            slotProps={{
+              textField: {
+                fullWidth: true,
+                size: 'small',
+              },
+            }}
+          />
+
+          <DatePicker
+            label="End Date"
+            value={dateFilter.endDate}
+            onChange={(date) => setDateFilter(prev => ({ ...prev, endDate: date }))}
+            minDate={dateFilter.startDate}
+            slotProps={{
+              textField: {
+                fullWidth: true,
+                size: 'small',
+              },
+            }}
+          />
+
+          <Button
+            variant="contained"
+            onClick={() => {
+              setPagination(prev => ({ ...prev, page: 1 }));
+              setRefreshTrigger(prev => prev + 1);
+              setFilterDrawerOpen(false);
+            }}
+            sx={{ bgcolor: PRIMARY }}
+          >
+            Apply Filters
+          </Button>
+
+          <Button
+            variant="outlined"
+            onClick={handleClearFilters}
+            startIcon={<ClearIcon />}
+          >
+            Clear All
+          </Button>
+        </Stack>
+      </Box>
+    </SwipeableDrawer>
+  );
 
   // Access Check
   if (!hasAccess(userRole)) {
@@ -2364,85 +2517,69 @@ export default function AttendancePage() {
 
   return (
     <LocalizationProvider dateAdapter={AdapterDateFns}>
-      <Box sx={{ width: '100%' }}>
+      <Box sx={{ width: '100%',  minHeight: '100vh' }}>
         {/* Header Section */}
-        <Box sx={{ p: { xs: 2, sm: 3 }, minHeight: '100vh' }}>
+        <Box sx={{ p: { xs: 2, sm: 3 } }}>
           <Stack
             direction={{ xs: 'column', sm: 'row' }}
-            spacing={3}
-            sx={{ mb: 4 }}
+            spacing={2}
+            sx={{ mb: 3 }}
             justifyContent="space-between"
             alignItems={{ xs: 'stretch', sm: 'center' }}
           >
             <Box>
               <Typography
-                variant="h4"
+                variant={isMobile ? "h5" : "h4"}
                 fontWeight={800}
                 gutterBottom
-                sx={{
-                  background: 'black',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                }}
+                sx={{ color: PRIMARY }}
               >
                 Attendance Management
               </Typography>
-              <Typography variant="body1" color="text.secondary">
+              <Typography variant="body2" color="text.secondary">
                 Track and manage employee attendance records
               </Typography>
             </Box>
 
-            <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
               <Button
                 variant="outlined"
+                size={isMobile ? "small" : "medium"}
                 startIcon={<RefreshIcon />}
                 onClick={() => setRefreshTrigger(prev => prev + 1)}
                 disabled={loading}
-                sx={{ borderRadius: 3, px: 3, py: 1.2 }}
+                sx={{ borderRadius: 2 }}
               >
-                Refresh
+                {isMobile ? '' : 'Refresh'}
               </Button>
 
               {(isAdmin || isASM) && (
                 <>
                   <Button
                     variant="contained"
+                    size={isMobile ? "small" : "medium"}
                     startIcon={<AddIcon />}
                     onClick={() => handleOpenForm('create')}
                     sx={{
-                      borderRadius: 3,
-                      px: 3,
-                      py: 1.2,
-                      background: PRIMARY,
-                      boxShadow: `0 4px 12px ${alpha(PRIMARY, 0.3)}`,
+                      borderRadius: 2,
+                      bgcolor: PRIMARY,
                     }}
                   >
-                    Add Record
+                    {isMobile ? '' : 'Add'}
                   </Button>
 
                   <Button
                     variant="outlined"
+                    size={isMobile ? "small" : "medium"}
                     startIcon={<DownloadIcon />}
                     onClick={() => setReportDialogOpen(true)}
                     disabled={exportLoading}
-                    sx={{ borderRadius: 3, px: 3, py: 1.2 }}
+                    sx={{ borderRadius: 2 }}
                   >
-                    Export
+                    {isMobile ? '' : 'Export'}
                   </Button>
                 </>
               )}
-              <Chip
-                label={getRoleConfig(userRole).label}
-                icon={getRoleConfig(userRole).icon}
-                size="medium"
-                sx={{
-                  bgcolor: alpha(PRIMARY, 0.15),
-                  color: PRIMARY,
-                  fontWeight: 600,
-                  borderRadius: 2,
-                  px: 1,
-                }}
-              />
             </Box>
           </Stack>
 
@@ -2467,14 +2604,8 @@ export default function AttendancePage() {
                 <Alert
                   severity="error"
                   onClose={handleCloseSnackbar}
-                  sx={{
-                    mb: 2,
-                    borderRadius: 3,
-                    border: `1px solid ${alpha(ERROR, 0.2)}`,
-                  }}
-                  icon={<WarningIcon />}
+                  sx={{ mb: 2, borderRadius: 2 }}
                 >
-                  <AlertTitle>Error</AlertTitle>
                   {error}
                 </Alert>
               </Slide>
@@ -2485,14 +2616,8 @@ export default function AttendancePage() {
                 <Alert
                   severity="success"
                   onClose={handleCloseSnackbar}
-                  sx={{
-                    mb: 2,
-                    borderRadius: 3,
-                    border: `1px solid ${alpha(SUCCESS, 0.2)}`,
-                  }}
-                  icon={<CheckCircleIcon />}
+                  sx={{ mb: 2, borderRadius: 2 }}
                 >
-                  <AlertTitle>Success</AlertTitle>
                   {success}
                 </Alert>
               </Slide>
@@ -2506,10 +2631,11 @@ export default function AttendancePage() {
               borderRadius: 3,
               border: `1px solid ${alpha(PRIMARY, 0.1)}`,
               overflow: 'hidden',
+              bgcolor: 'white',
             }}
           >
             {/* Tabs */}
-            <Box sx={{ borderBottom: 1, borderColor: 'divider', px: 2, pt: 2 }}>
+            <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
               <Tabs
                 value={selectedTab}
                 onChange={(e, newValue) => {
@@ -2521,10 +2647,10 @@ export default function AttendancePage() {
                 scrollButtons={isMobile ? 'auto' : false}
                 sx={{
                   '& .MuiTab-root': {
-                    minHeight: 64,
+                    minHeight: 56,
                     fontWeight: 600,
                     textTransform: 'none',
-                    fontSize: '0.875rem',
+                    fontSize: isMobile ? '0.75rem' : '0.875rem',
                   },
                   '& .Mui-selected': {
                     color: `${PRIMARY} !important`,
@@ -2542,533 +2668,424 @@ export default function AttendancePage() {
             </Box>
 
             {/* Search and Filters */}
-            <Box sx={{ p: 3 }}>
-              <Stack spacing={3}>
+            <Box sx={{ p: 2 }}>
+              <Stack spacing={2}>
                 <Stack
-                  direction={{ xs: 'column', md: 'row' }}
-                  spacing={2}
-                  justifyContent="space-between"
-                  alignItems={{ xs: 'stretch', md: 'center' }}
+                  direction="row"
+                  spacing={1}
+                  alignItems="center"
                 >
-                  <Box sx={{ width: { xs: '100%', md: 350 } }}>
-                    <TextField
-                      fullWidth
-                      size="medium"
-                      placeholder="Search by name or email..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      InputProps={{
-                        startAdornment: (
-                          <InputAdornment position="start">
-                            <SearchIcon sx={{ color: 'text.secondary' }} />
-                          </InputAdornment>
-                        ),
-                        endAdornment: searchQuery && (
-                          <InputAdornment position="end">
-                            <IconButton size="small" onClick={() => setSearchQuery('')}>
-                              <CloseIcon />
-                            </IconButton>
-                          </InputAdornment>
-                        ),
-                        sx: {
-                          borderRadius: 3,
-                          bgcolor: alpha(PRIMARY, 0.02),
-                          '&:hover': {
-                            bgcolor: alpha(PRIMARY, 0.04),
-                          },
-                        },
-                      }}
-                    />
-                  </Box>
+                  <TextField
+                    fullWidth
+                    size="small"
+                    placeholder="Search by name..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <SearchIcon sx={{ fontSize: 20, color: 'text.secondary' }} />
+                        </InputAdornment>
+                      ),
+                      endAdornment: searchQuery && (
+                        <InputAdornment position="end">
+                          <IconButton size="small" onClick={() => setSearchQuery('')}>
+                            <CloseIcon fontSize="small" />
+                          </IconButton>
+                        </InputAdornment>
+                      ),
+                      sx: { borderRadius: 2 },
+                    }}
+                  />
 
-                  <Stack direction="row" spacing={2} flexWrap="wrap">
-                    <FormControl size="medium" sx={{ minWidth: 150 }}>
-                      <InputLabel>Status</InputLabel>
-                      <Select
-                        value={filterStatus}
-                        label="Status"
-                        onChange={(e) => {
-                          setFilterStatus(e.target.value);
-                          setPagination(prev => ({ ...prev, page: 1 }));
-                          setTimeout(() => setRefreshTrigger(prev => prev + 1), 0);
-                        }}
+                  {isMobile ? (
+                    <IconButton
+                      onClick={() => setFilterDrawerOpen(true)}
+                      sx={{
+                        bgcolor: alpha(PRIMARY, 0.1),
+                        color: PRIMARY,
+                        borderRadius: 2,
+                      }}
+                    >
+                      <TuneIcon />
+                    </IconButton>
+                  ) : (
+                    <>
+                      <FormControl size="small" sx={{ minWidth: 120 }}>
+                        <InputLabel>Status</InputLabel>
+                        <Select
+                          value={filterStatus}
+                          label="Status"
+                          onChange={(e) => {
+                            setFilterStatus(e.target.value);
+                            setPagination(prev => ({ ...prev, page: 1 }));
+                            setRefreshTrigger(prev => prev + 1);
+                          }}
+                          sx={{ borderRadius: 2 }}
+                        >
+                          <MenuItem value="all">All</MenuItem>
+                          {Object.keys(STATUS_CONFIG).map((key) => (
+                            <MenuItem key={key} value={key}>
+                              {STATUS_CONFIG[key].label}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+
+                      <Button
+                        variant="outlined"
+                        startIcon={<TuneIcon />}
+                        onClick={() => setShowFilterPanel(!showFilterPanel)}
+                        size="small"
                         sx={{ borderRadius: 2 }}
                       >
-                        <MenuItem value="all">All Status</MenuItem>
-                        {Object.entries(STATUS_CONFIG).map(([key, config]) => (
-                          <MenuItem key={key} value={key}>
-                            <Stack direction="row" alignItems="center" spacing={1}>
-                              <Box sx={{ color: config.color }}>{config.icon}</Box>
-                              <Typography>{config.label}</Typography>
-                            </Stack>
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
-
-                    <Button
-                      variant="outlined"
-                      startIcon={<TuneIcon />}
-                      onClick={() => setShowFilterPanel(!showFilterPanel)}
-                      sx={{
-                        borderRadius: 2,
-                        px: 3,
-                        borderWidth: 2,
-                        '&:hover': { borderWidth: 2 },
-                      }}
-                    >
-                      {showFilterPanel ? 'Hide Filters' : 'More Filters'}
-                    </Button>
-
-                    <Button
-                      variant="outlined"
-                      color="error"
-                      startIcon={<ClearIcon />}
-                      onClick={handleClearFilters}
-                      sx={{ borderRadius: 2, px: 3, borderWidth: 2 }}
-                    >
-                      Clear
-                    </Button>
-                  </Stack>
+                        Filters
+                      </Button>
+                    </>
+                  )}
                 </Stack>
 
-                {/* Advanced Filter Panel */}
-                <AnimatePresence>
-                  {showFilterPanel && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      exit={{ opacity: 0, height: 0 }}
-                      transition={{ duration: 0.3 }}
-                    >
-                      <Box
-                        sx={{
-                          p: 3,
-                          bgcolor: alpha(PRIMARY, 0.02),
-                          borderRadius: 3,
-                          border: `1px solid ${alpha(PRIMARY, 0.1)}`,
-                        }}
-                      >
-                        <Typography variant="subtitle1" fontWeight={600} gutterBottom>
-                          Date Range Filter
-                        </Typography>
-                        <Grid container spacing={3}>
-                          <Grid item xs={12} sm={6}>
-                            <DatePicker
-                              label="Start Date"
-                              value={dateFilter.startDate}
-                              onChange={(date) => {
-                                setDateFilter(prev => ({ ...prev, startDate: date }));
-                                setPagination(prev => ({ ...prev, page: 1 }));
-                              }}
-                              slotProps={{
-                                textField: {
-                                  fullWidth: true,
-                                  size: 'medium',
-                                  sx: { '& .MuiOutlinedInput-root': { borderRadius: 3 } },
-                                },
-                              }}
-                            />
-                          </Grid>
-                          <Grid item xs={12} sm={6}>
-                            <DatePicker
-                              label="End Date"
-                              value={dateFilter.endDate}
-                              onChange={(date) => {
-                                setDateFilter(prev => ({ ...prev, endDate: date }));
-                                setPagination(prev => ({ ...prev, page: 1 }));
-                              }}
-                              minDate={dateFilter.startDate}
-                              slotProps={{
-                                textField: {
-                                  fullWidth: true,
-                                  size: 'medium',
-                                  sx: { '& .MuiOutlinedInput-root': { borderRadius: 3 } },
-                                },
-                              }}
-                            />
-                          </Grid>
-                        </Grid>
-                      </Box>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-
-                {/* Active Filters Chips */}
-                {(searchQuery || filterStatus !== 'all' || dateFilter.startDate || dateFilter.endDate) && (
-                  <Box>
-                    <Stack direction="row" spacing={1} flexWrap="wrap">
-                      {searchQuery && (
-                        <Chip
-                          label={`Search: ${searchQuery}`}
-                          size="small"
-                          onDelete={() => setSearchQuery('')}
-                          sx={{ borderRadius: 1.5 }}
+                {/* Desktop Filter Panel */}
+                {!isMobile && showFilterPanel && (
+                  <Box
+                    sx={{
+                      p: 2,
+                      bgcolor: alpha(PRIMARY, 0.02),
+                      borderRadius: 2,
+                    }}
+                  >
+                    <Typography variant="subtitle2" fontWeight={600} gutterBottom>
+                      Date Range
+                    </Typography>
+                    <Grid container spacing={2}>
+                      <Grid item xs={12} sm={6}>
+                        <DatePicker
+                          label="Start Date"
+                          value={dateFilter.startDate}
+                          onChange={(date) => setDateFilter(prev => ({ ...prev, startDate: date }))}
+                          slotProps={{
+                            textField: {
+                              fullWidth: true,
+                              size: 'small',
+                            },
+                          }}
                         />
-                      )}
-                      {filterStatus !== 'all' && (
-                        <Chip
-                          label={`Status: ${STATUS_CONFIG[filterStatus]?.label || filterStatus}`}
-                          size="small"
-                          onDelete={() => {
-                            setFilterStatus('all');
+                      </Grid>
+                      <Grid item xs={12} sm={6}>
+                        <DatePicker
+                          label="End Date"
+                          value={dateFilter.endDate}
+                          onChange={(date) => setDateFilter(prev => ({ ...prev, endDate: date }))}
+                          minDate={dateFilter.startDate}
+                          slotProps={{
+                            textField: {
+                              fullWidth: true,
+                              size: 'small',
+                            },
+                          }}
+                        />
+                      </Grid>
+                      <Grid item xs={12}>
+                        <Button
+                          variant="contained"
+                          onClick={() => {
                             setPagination(prev => ({ ...prev, page: 1 }));
                             setRefreshTrigger(prev => prev + 1);
                           }}
-                          sx={{
-                            borderRadius: 1.5,
-                            bgcolor: alpha(STATUS_CONFIG[filterStatus]?.color || PRIMARY, 0.1),
-                            color: STATUS_CONFIG[filterStatus]?.color || PRIMARY,
-                          }}
-                        />
-                      )}
-                      {dateFilter.startDate && (
-                        <Chip
-                          label={`From: ${format(dateFilter.startDate, 'dd MMM yyyy')}`}
                           size="small"
-                          onDelete={() => {
-                            setDateFilter(prev => ({ ...prev, startDate: null }));
-                            setPagination(prev => ({ ...prev, page: 1 }));
-                            setRefreshTrigger(prev => prev + 1);
-                          }}
-                          sx={{ borderRadius: 1.5 }}
-                        />
-                      )}
-                      {dateFilter.endDate && (
-                        <Chip
-                          label={`To: ${format(dateFilter.endDate, 'dd MMM yyyy')}`}
+                          sx={{ mr: 1 }}
+                        >
+                          Apply
+                        </Button>
+                        <Button
+                          variant="outlined"
+                          onClick={handleClearFilters}
                           size="small"
-                          onDelete={() => {
-                            setDateFilter(prev => ({ ...prev, endDate: null }));
-                            setPagination(prev => ({ ...prev, page: 1 }));
-                            setRefreshTrigger(prev => prev + 1);
-                          }}
-                          sx={{ borderRadius: 1.5 }}
-                        />
-                      )}
-                      <Chip
-                        label="Clear All"
-                        size="small"
-                        variant="outlined"
-                        onClick={handleClearFilters}
-                        sx={{ borderRadius: 1.5 }}
-                      />
-                    </Stack>
+                        >
+                          Clear
+                        </Button>
+                      </Grid>
+                    </Grid>
                   </Box>
                 )}
               </Stack>
             </Box>
 
-            {/* Table */}
-            <TableContainer sx={{ maxHeight: { xs: 'calc(100vh - 350px)', md: 'calc(100vh - 300px)' } }}>
-              {loading && (
-                <MuiLinearProgress sx={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 1 }} />
-              )}
-              
-              <Table stickyHeader>
-                <TableHead>
-                  <TableRow sx={{ bgcolor: alpha(PRIMARY, 0.04) }}>
-                    <TableCell sx={{ fontWeight: 700, py: 2 }}>
-                      <Button
-                        size="small"
-                        onClick={() => handleSort('user')}
-                        endIcon={
-                          sortConfig.key === 'user' && (
-                            sortConfig.direction === 'asc' ? <ArrowUpward fontSize="small" /> : <ArrowDownward fontSize="small" />
-                          )
-                        }
-                        sx={{ fontWeight: 700, textTransform: 'none', color: 'text.primary' }}
+            {/* Content - Mobile Cards or Desktop Table */}
+            {isMobile ? (
+              <Box sx={{ p: 2 }}>
+                <AnimatePresence>
+                  {mobileViewData.length > 0 ? (
+                    mobileViewData.map((record) => (
+                      <MobileAttendanceCard
+                        key={record._id}
+                        record={record}
+                        onView={handleViewDetails}
+                        onEdit={(rec) => handleOpenForm('edit', rec)}
+                        onDelete={handleDelete}
+                        canEdit={canEdit}
+                        canDelete={canDelete}
+                        isTeam={isTeam}
+                      />
+                    ))
+                  ) : (
+                    <Box sx={{ textAlign: 'center', py: 6 }}>
+                      <Box
+                        sx={{
+                          width: 80,
+                          height: 80,
+                          borderRadius: '50%',
+                          bgcolor: alpha(PRIMARY, 0.1),
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          color: PRIMARY,
+                          mx: 'auto',
+                          mb: 2,
+                        }}
                       >
-                        Employee
-                      </Button>
-                    </TableCell>
-                    <TableCell sx={{ fontWeight: 700, py: 2 }}>
-                      <Button
-                        size="small"
-                        onClick={() => handleSort('date')}
-                        endIcon={
-                          sortConfig.key === 'date' && (
-                            sortConfig.direction === 'asc' ? <ArrowUpward fontSize="small" /> : <ArrowDownward fontSize="small" />
-                          )
-                        }
-                        sx={{ fontWeight: 700, textTransform: 'none', color: 'text.primary' }}
-                      >
-                        Date
-                      </Button>
-                    </TableCell>
-                    <TableCell sx={{ fontWeight: 700, py: 2 }}>Punch In</TableCell>
-                    <TableCell sx={{ fontWeight: 700, py: 2 }}>Punch Out</TableCell>
-                    <TableCell sx={{ fontWeight: 700, py: 2 }}>Hours</TableCell>
-                    <TableCell sx={{ fontWeight: 700, py: 2 }}>Status</TableCell>
-                    {!isTeam && <TableCell align="center" sx={{ fontWeight: 700, py: 2 }}>Actions</TableCell>}
-                  </TableRow>
-                </TableHead>
-                
-                <TableBody>
-                  {attendanceData.length > 0 ? (
-                    attendanceData.map((row) => {
-                      const statusConfig = getStatusConfig(row.status);
-                      const roleConfig = getRoleConfig(row.user?.role);
-                      const isTodayRecord = row.date && isToday(parseISO(row.date));
-                      const workingHours = calculateWorkingHours(row.punchInTime, row.punchOutTime);
+                        <SearchIcon sx={{ fontSize: 40 }} />
+                      </Box>
+                      <Typography variant="h6" fontWeight={600} gutterBottom>
+                        No Records Found
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        {searchQuery || filterStatus !== 'all' || dateFilter.startDate || dateFilter.endDate
+                          ? 'Try adjusting your filters'
+                          : 'No attendance data available'}
+                      </Typography>
+                    </Box>
+                  )}
+                </AnimatePresence>
 
-                      return (
-                        <TableRow
-                          key={row._id}
-                          hover
-                          sx={{
-                            '&:hover': { bgcolor: alpha(PRIMARY, 0.02) },
-                            bgcolor: isTodayRecord ? alpha(PRIMARY, 0.04) : 'inherit',
-                            cursor: 'pointer',
-                            transition: 'background-color 0.2s',
-                          }}
-                          onClick={() => handleViewDetails(row)}
-                        >
-                          <TableCell>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                              <Avatar
-                                sx={{
-                                  bgcolor: roleConfig.bg,
-                                  color: roleConfig.color,
-                                  fontWeight: 600,
-                                  width: 44,
-                                  height: 44,
-                                }}
-                              >
-                                {row.user?.firstName?.[0] || 'A'}
-                                {row.user?.lastName?.[0] || ''}
-                              </Avatar>
-                              <Box>
-                                <Typography variant="body1" fontWeight={600}>
-                                  {row.user?.firstName} {row.user?.lastName}
-                                </Typography>
-                                <Typography variant="caption" color="text.secondary">
-                                  {roleConfig.label}
-                                </Typography>
-                              </Box>
-                            </Box>
-                          </TableCell>
-                          
-                          <TableCell>
-                            <Stack spacing={0.5}>
-                              <Typography variant="body2" fontWeight={500}>
-                                {formatDate(row.date, 'dd MMM yyyy')}
-                              </Typography>
-                              {isTodayRecord && (
-                                <Chip
-                                  size="small"
-                                  label="Today"
-                                  sx={{
-                                    height: 20,
-                                    fontSize: '0.625rem',
-                                    bgcolor: alpha(PRIMARY, 0.1),
-                                    color: PRIMARY,
-                                    fontWeight: 600,
-                                  }}
-                                />
-                              )}
-                            </Stack>
-                          </TableCell>
-                          
-                          <TableCell>
-                            <Typography variant="body2" fontWeight={500}>
-                              {formatTime(row.punchInTime)}
-                            </Typography>
-                          </TableCell>
-                          
-                          <TableCell>
-                            <Typography variant="body2" fontWeight={500}>
-                              {formatTime(row.punchOutTime)}
-                            </Typography>
-                          </TableCell>
-                          
-                          <TableCell>
-                            <Typography variant="body2" fontWeight={600} color={PRIMARY}>
-                              {formatDuration(workingHours)}
-                            </Typography>
-                          </TableCell>
-                          
-                          <TableCell>
-                            <Chip
-                              label={statusConfig.label}
-                              icon={statusConfig.icon}
-                              size="small"
+                {/* Mobile Pagination */}
+                {pagination.total > 0 && (
+                  <Box sx={{ mt: 3, display: 'flex', justifyContent: 'center' }}>
+                    <Pagination
+                      count={pagination.pages}
+                      page={pagination.page}
+                      onChange={handlePageChange}
+                      color="primary"
+                      size="small"
+                      siblingCount={0}
+                      boundaryCount={1}
+                    />
+                  </Box>
+                )}
+              </Box>
+            ) : (
+              <>
+                {/* Desktop Table */}
+                <TableContainer>
+                  {loading && <MuiLinearProgress sx={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 1 }} />}
+                  
+                  <Table stickyHeader>
+                    <TableHead>
+                      <TableRow sx={{ bgcolor: alpha(PRIMARY, 0.04) }}>
+                        <TableCell sx={{ fontWeight: 700 }}>Employee</TableCell>
+                        <TableCell sx={{ fontWeight: 700 }}>Date</TableCell>
+                        <TableCell sx={{ fontWeight: 700 }}>Punch In</TableCell>
+                        <TableCell sx={{ fontWeight: 700 }}>Punch Out</TableCell>
+                        <TableCell sx={{ fontWeight: 700 }}>Hours</TableCell>
+                        <TableCell sx={{ fontWeight: 700 }}>Status</TableCell>
+                        {!isTeam && <TableCell align="center" sx={{ fontWeight: 700 }}>Actions</TableCell>}
+                      </TableRow>
+                    </TableHead>
+                    
+                    <TableBody>
+                      {attendanceData.length > 0 ? (
+                        attendanceData.map((row) => {
+                          const statusConfig = getStatusConfig(row.status);
+                          const roleConfig = getRoleConfig(row.user?.role);
+                          const isTodayRecord = row.date && isToday(parseISO(row.date));
+                          const workingHours = calculateWorkingHours(row.punchInTime, row.punchOutTime);
+
+                          return (
+                            <TableRow
+                              key={row._id}
+                              hover
                               sx={{
-                                bgcolor: statusConfig.bg,
-                                color: statusConfig.color,
-                                fontWeight: 600,
-                                minWidth: 90,
-                                borderRadius: 1.5,
+                                '&:hover': { bgcolor: alpha(PRIMARY, 0.02) },
+                                bgcolor: isTodayRecord ? alpha(PRIMARY, 0.04) : 'inherit',
+                                cursor: 'pointer',
                               }}
-                            />
-                          </TableCell>
-                          
-                          {!isTeam && (
-                            <TableCell align="center" onClick={(e) => e.stopPropagation()}>
-                              <Stack direction="row" spacing={1} justifyContent="center">
-                                <Tooltip title="View Details" arrow>
-                                  <IconButton
-                                    size="small"
-                                    onClick={() => handleViewDetails(row)}
+                              onClick={() => handleViewDetails(row)}
+                            >
+                              <TableCell>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                                  <Avatar
                                     sx={{
                                       bgcolor: alpha(PRIMARY, 0.1),
                                       color: PRIMARY,
-                                      '&:hover': { bgcolor: alpha(PRIMARY, 0.2) },
+                                      width: 40,
+                                      height: 40,
                                     }}
                                   >
-                                    <Visibility fontSize="small" />
-                                  </IconButton>
-                                </Tooltip>
+                                    {row.user?.firstName?.[0] || 'A'}
+                                  </Avatar>
+                                  <Box>
+                                    <Typography variant="body2" fontWeight={600}>
+                                      {row.user?.firstName} {row.user?.lastName}
+                                    </Typography>
+                                    <Typography variant="caption" color="text.secondary">
+                                      {roleConfig.label}
+                                    </Typography>
+                                  </Box>
+                                </Box>
+                              </TableCell>
+                              
+                              <TableCell>
+                                <Typography variant="body2">
+                                  {formatDate(row.date, 'dd MMM yyyy')}
+                                </Typography>
+                              </TableCell>
+                              
+                              <TableCell>
+                                <Typography variant="body2" fontWeight={500}>
+                                  {formatTime(row.punchInTime, 'HH:mm')}
+                                </Typography>
+                              </TableCell>
+                              
+                              <TableCell>
+                                <Typography variant="body2">
+                                  {formatTime(row.punchOutTime, 'HH:mm')}
+                                </Typography>
+                              </TableCell>
+                              
+                              <TableCell>
+                                <Typography variant="body2" fontWeight={600} color={PRIMARY}>
+                                  {formatDuration(workingHours)}
+                                </Typography>
+                              </TableCell>
+                              
+                              <TableCell>
+                                <Chip
+                                  label={statusConfig.label}
+                                  size="small"
+                                  sx={{
+                                    bgcolor: statusConfig.bg,
+                                    color: statusConfig.color,
+                                    fontWeight: 600,
+                                  }}
+                                />
+                              </TableCell>
+                              
+                              {!isTeam && (
+                                <TableCell align="center" onClick={(e) => e.stopPropagation()}>
+                                  <Stack direction="row" spacing={1} justifyContent="center">
+                                    <Tooltip title="View">
+                                      <IconButton
+                                        size="small"
+                                        onClick={() => handleViewDetails(row)}
+                                        sx={{ color: PRIMARY }}
+                                      >
+                                        <Visibility fontSize="small" />
+                                      </IconButton>
+                                    </Tooltip>
 
-                                {canEdit && (
-                                  <Tooltip title="Edit" arrow>
-                                    <IconButton
-                                      size="small"
-                                      onClick={() => handleOpenForm('edit', row)}
-                                      sx={{
-                                        bgcolor: alpha(INFO, 0.1),
-                                        color: INFO,
-                                        '&:hover': { bgcolor: alpha(INFO, 0.2) },
-                                      }}
-                                    >
-                                      <EditIcon fontSize="small" />
-                                    </IconButton>
-                                  </Tooltip>
-                                )}
+                                    {canEdit && (
+                                      <Tooltip title="Edit">
+                                        <IconButton
+                                          size="small"
+                                          onClick={() => handleOpenForm('edit', row)}
+                                          sx={{ color: INFO }}
+                                        >
+                                          <EditIcon fontSize="small" />
+                                        </IconButton>
+                                      </Tooltip>
+                                    )}
 
-                                {canDelete && (
-                                  <Tooltip title="Delete" arrow>
-                                    <IconButton
-                                      size="small"
-                                      onClick={() => handleDelete(row._id)}
-                                      sx={{
-                                        bgcolor: alpha(ERROR, 0.1),
-                                        color: ERROR,
-                                        '&:hover': { bgcolor: alpha(ERROR, 0.2) },
-                                      }}
-                                    >
-                                      <DeleteIcon fontSize="small" />
-                                    </IconButton>
-                                  </Tooltip>
-                                )}
-                              </Stack>
-                            </TableCell>
-                          )}
-                        </TableRow>
-                      );
-                    })
-                  ) : (
-                    <TableRow>
-                      <TableCell colSpan={isTeam ? 6 : 7} align="center" sx={{ py: 6 }}>
-                        <motion.div
-                          initial={{ opacity: 0, scale: 0.9 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          transition={{ duration: 0.5 }}
-                        >
-                          <Box sx={{ textAlign: 'center' }}>
-                            <Box
-                              sx={{
-                                width: 80,
-                                height: 80,
-                                borderRadius: '50%',
-                                bgcolor: alpha(PRIMARY, 0.1),
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                color: PRIMARY,
-                                mx: 'auto',
-                                mb: 2,
-                              }}
-                            >
-                              <SearchIcon sx={{ fontSize: 40 }} />
-                            </Box>
-                            <Typography variant="h6" fontWeight={600} gutterBottom>
-                              No Records Found
-                            </Typography>
-                            <Typography variant="body2" color="text.secondary">
-                              {searchQuery || filterStatus !== 'all' || dateFilter.startDate || dateFilter.endDate
-                                ? 'Try adjusting your filters'
-                                : 'No attendance data available'}
-                            </Typography>
-                            {(isAdmin || isASM) && (
-                              <Button
-                                variant="contained"
-                                startIcon={<AddIcon />}
-                                onClick={() => handleOpenForm('create')}
-                                sx={{ mt: 3, borderRadius: 3 }}
+                                    {canDelete && (
+                                      <Tooltip title="Delete">
+                                        <IconButton
+                                          size="small"
+                                          onClick={() => handleDelete(row._id)}
+                                          sx={{ color: ERROR }}
+                                        >
+                                          <DeleteIcon fontSize="small" />
+                                        </IconButton>
+                                      </Tooltip>
+                                    )}
+                                  </Stack>
+                                </TableCell>
+                              )}
+                            </TableRow>
+                          );
+                        })
+                      ) : (
+                        <TableRow>
+                          <TableCell colSpan={isTeam ? 6 : 7} align="center" sx={{ py: 6 }}>
+                            <Box sx={{ textAlign: 'center' }}>
+                              <Box
+                                sx={{
+                                  width: 80,
+                                  height: 80,
+                                  borderRadius: '50%',
+                                  bgcolor: alpha(PRIMARY, 0.1),
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  color: PRIMARY,
+                                  mx: 'auto',
+                                  mb: 2,
+                                }}
                               >
-                                Add First Record
-                              </Button>
-                            )}
-                          </Box>
-                        </motion.div>
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </TableContainer>
+                                <SearchIcon sx={{ fontSize: 40 }} />
+                              </Box>
+                              <Typography variant="h6" fontWeight={600} gutterBottom>
+                                No Records Found
+                              </Typography>
+                              <Typography variant="body2" color="text.secondary">
+                                {searchQuery || filterStatus !== 'all' || dateFilter.startDate || dateFilter.endDate
+                                  ? 'Try adjusting your filters'
+                                  : 'No attendance data available'}
+                              </Typography>
+                            </Box>
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
 
-            {/* Pagination */}
-            {pagination.total > 0 && (
-              <Box
-                sx={{
-                  p: 2.5,
-                  borderTop: 1,
-                  borderColor: 'divider',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  flexWrap: 'wrap',
-                  gap: 2,
-                  bgcolor: alpha(PRIMARY, 0.02),
-                }}
-              >
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                  <Typography variant="body2" color="text.secondary">
-                    Showing <strong>{((pagination.page - 1) * pagination.limit) + 1}</strong> to{' '}
-                    <strong>{Math.min(pagination.page * pagination.limit, pagination.total)}</strong> of{' '}
-                    <strong>{pagination.total}</strong> entries
-                  </Typography>
-                  <FormControl size="small" sx={{ minWidth: 120 }}>
-                    <Select
-                      value={pagination.limit}
-                      onChange={handleRowsPerPageChange}
-                      sx={{ borderRadius: 2 }}
-                    >
-                      {[5, 10, 25, 50].map((option) => (
-                        <MenuItem key={option} value={option}>
-                          {option} per page
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                </Box>
+                {/* Desktop Pagination */}
+                {pagination.total > 0 && (
+                  <Box
+                    sx={{
+                      p: 2,
+                      borderTop: 1,
+                      borderColor: 'divider',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                    }}
+                  >
+                    <Typography variant="body2" color="text.secondary">
+                      Showing {((pagination.page - 1) * pagination.limit) + 1} to{' '}
+                      {Math.min(pagination.page * pagination.limit, pagination.total)} of{' '}
+                      {pagination.total} entries
+                    </Typography>
 
-                <Pagination
-                  count={pagination.pages}
-                  page={pagination.page}
-                  onChange={handlePageChange}
-                  color="primary"
-                  showFirstButton
-                  showLastButton
-                  siblingCount={1}
-                  boundaryCount={1}
-                  sx={{
-                    '& .MuiPaginationItem-root': {
-                      borderRadius: 2,
-                    },
-                  }}
-                />
-              </Box>
+                    <Pagination
+                      count={pagination.pages}
+                      page={pagination.page}
+                      onChange={handlePageChange}
+                      color="primary"
+                      siblingCount={1}
+                      boundaryCount={1}
+                    />
+                  </Box>
+                )}
+              </>
             )}
           </Card>
         </Box>
       </Box>
 
-      {/* ========== DIALOGS ========== */}
+      {/* Mobile Filter Drawer */}
+      <FilterDrawer />
 
-      {/* Attendance Details Modal */}
+      {/* Dialogs */}
       <AttendanceDetailsModal
         open={detailsDialogOpen}
         onClose={() => setDetailsDialogOpen(false)}
@@ -3080,7 +3097,6 @@ export default function AttendancePage() {
         onDelete={handleDelete}
       />
 
-      {/* Create/Edit Form Dialog */}
       <AttendanceFormDialog
         open={formDialogOpen}
         onClose={() => setFormDialogOpen(false)}
@@ -3091,73 +3107,12 @@ export default function AttendancePage() {
         users={users}
       />
 
-      {/* Export Report Dialog */}
       <ExportReportDialog
         open={reportDialogOpen}
         onClose={() => setReportDialogOpen(false)}
         onExport={handleExportReport}
         loading={exportLoading}
       />
-
-      {/* Snackbar */}
-      <Snackbar
-        open={!!error || !!success}
-        autoHideDuration={6000}
-        onClose={handleCloseSnackbar}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-      >
-        <Alert
-          onClose={handleCloseSnackbar}
-          severity={error ? 'error' : 'success'}
-          variant="filled"
-          sx={{
-            width: '100%',
-            borderRadius: 2,
-            boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-          }}
-        >
-          {error || success}
-        </Alert>
-      </Snackbar>
-
-      {/* Action Menu */}
-      <Menu
-        anchorEl={actionMenuAnchor}
-        open={Boolean(actionMenuAnchor)}
-        onClose={handleActionMenuClose}
-        PaperProps={{
-          sx: {
-            borderRadius: 3,
-            boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
-            minWidth: 200,
-          },
-        }}
-      >
-        <MenuItem onClick={() => handleActionSelect('view')} sx={{ py: 1.5, px: 2 }}>
-          <ListItemIcon>
-            <Visibility fontSize="small" sx={{ color: PRIMARY }} />
-          </ListItemIcon>
-          <ListItemText primary="View Details" />
-        </MenuItem>
-        
-        {canEdit && (
-          <MenuItem onClick={() => handleActionSelect('edit')} sx={{ py: 1.5, px: 2 }}>
-            <ListItemIcon>
-              <EditIcon fontSize="small" sx={{ color: INFO }} />
-            </ListItemIcon>
-            <ListItemText primary="Edit Record" />
-          </MenuItem>
-        )}
-        
-        {canDelete && (
-          <MenuItem onClick={() => handleActionSelect('delete')} sx={{ py: 1.5, px: 2 }}>
-            <ListItemIcon>
-              <DeleteIcon fontSize="small" sx={{ color: ERROR }} />
-            </ListItemIcon>
-            <ListItemText primary="Delete Record" />
-          </MenuItem>
-        )}
-      </Menu>
 
       {/* Mobile FAB */}
       {(isAdmin || isASM) && isMobile && (
@@ -3169,50 +3124,14 @@ export default function AttendancePage() {
             bottom: 80,
             right: 16,
             zIndex: 1000,
-            boxShadow: theme.shadows[8],
+            bgcolor: PRIMARY,
+            '&:hover': { bgcolor: SECONDARY },
           }}
           onClick={() => handleOpenForm('create')}
         >
           <AddIcon />
         </Fab>
       )}
-
-      {/* Loading Overlay */}
-      <AnimatePresence>
-        {loading && attendanceData.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
-          >
-            <Backdrop
-              open={loading}
-              sx={{
-                position: 'fixed',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                bgcolor: 'rgba(255, 255, 255, 0.9)',
-                zIndex: 9999,
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <CircularProgress size={60} sx={{ color: PRIMARY, mb: 2 }} />
-              <Typography variant="h6" fontWeight={600} sx={{ color: PRIMARY }}>
-                Loading Attendance Data...
-              </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                Please wait
-              </Typography>
-            </Backdrop>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </LocalizationProvider>
   );
 }

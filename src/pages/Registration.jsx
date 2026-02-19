@@ -337,19 +337,19 @@ const ImageViewerModal = React.memo(({ open, onClose, imageUrl, title }) => {
 
   const handleZoomIn = useCallback(
     () => setZoom((prev) => Math.min(prev + 0.25, 3)),
-    []
+    [],
   );
   const handleZoomOut = useCallback(
     () => setZoom((prev) => Math.max(prev - 0.25, 0.5)),
-    []
+    [],
   );
   const handleRotateRight = useCallback(
     () => setRotation((prev) => (prev + 90) % 360),
-    []
+    [],
   );
   const handleRotateLeft = useCallback(
     () => setRotation((prev) => (prev - 90) % 360),
-    []
+    [],
   );
   const handleReset = useCallback(() => {
     setZoom(1);
@@ -363,7 +363,7 @@ const ImageViewerModal = React.memo(({ open, onClose, imageUrl, title }) => {
 
   const isImage = useMemo(
     () => imageUrl && /\.(jpg|jpeg|png|gif|bmp|webp)$/i.test(imageUrl),
-    [imageUrl]
+    [imageUrl],
   );
 
   const handleDownload = useCallback(() => {
@@ -542,7 +542,7 @@ const FileUploadField = React.memo(
       (event) => {
         onFileChange(field, event);
       },
-      [field, onFileChange]
+      [field, onFileChange],
     );
 
     const handleViewClick = useCallback(() => {
@@ -647,7 +647,7 @@ const FileUploadField = React.memo(
         />
       </Box>
     );
-  }
+  },
 );
 
 FileUploadField.displayName = "FileUploadField";
@@ -703,15 +703,21 @@ const DocumentCard = React.memo(
         </Stack>
       </Card>
     );
-  }
+  },
 );
 
 DocumentCard.displayName = "DocumentCard";
 
-
 // View Registration Modal with Tabs
 const ViewRegistrationModal = React.memo(
-  ({ open, onClose, registration, userRole, showSnackbar, handleViewDocument }) => {
+  ({
+    open,
+    onClose,
+    registration,
+    userRole,
+    showSnackbar,
+    handleViewDocument,
+  }) => {
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
     const [activeTab, setActiveTab] = useState(0);
@@ -769,7 +775,7 @@ const ViewRegistrationModal = React.memo(
         content: (
           <Grid container spacing={3}>
             <Grid item xs={12} md={6}>
-              <Card sx={{ boxShadow:"none", height: "100%" , width:"400px" }}>
+              <Card sx={{ boxShadow: "none", height: "100%", width: "400px" }}>
                 <CardContent>
                   <Typography
                     variant="h6"
@@ -855,7 +861,7 @@ const ViewRegistrationModal = React.memo(
               </Card>
             </Grid>
             <Grid item xs={12} md={6}>
-              <Card sx={{ boxShadow:"none", height: "100%" , width:"380px" }}>
+              <Card sx={{ boxShadow: "none", height: "100%", width: "380px" }}>
                 <CardContent>
                   <Typography
                     variant="h6"
@@ -892,7 +898,7 @@ const ViewRegistrationModal = React.memo(
                       sx={{
                         display: "flex",
                         alignItems: "center",
-                        justifyContent:"space-between",
+                        justifyContent: "space-between",
                         pb: 1.5,
                         borderBottom: "1px solid",
                         borderColor: "divider",
@@ -909,7 +915,7 @@ const ViewRegistrationModal = React.memo(
                       sx={{
                         display: "flex",
                         alignItems: "center",
-                        justifyContent:"space-between",
+                        justifyContent: "space-between",
                         pb: 1.5,
                         borderBottom: "1px solid",
                         borderColor: "divider",
@@ -921,21 +927,21 @@ const ViewRegistrationModal = React.memo(
                       <Chip
                         label={
                           getRegistrationStatusColor(
-                            displayData.registrationStatus
+                            displayData.registrationStatus,
                           ).label
                         }
                         icon={
                           getRegistrationStatusColor(
-                            displayData.registrationStatus
+                            displayData.registrationStatus,
                           ).icon
                         }
                         size="small"
                         sx={{
                           bgcolor: getRegistrationStatusColor(
-                            displayData.registrationStatus
+                            displayData.registrationStatus,
                           ).bg,
                           color: getRegistrationStatusColor(
-                            displayData.registrationStatus
+                            displayData.registrationStatus,
                           ).color,
                           fontWeight: 600,
                         }}
@@ -945,7 +951,7 @@ const ViewRegistrationModal = React.memo(
                       sx={{
                         display: "flex",
                         alignItems: "center",
-                        justifyContent:"space-between",
+                        justifyContent: "space-between",
                       }}
                     >
                       <Typography variant="body2" color="text.secondary">
@@ -967,7 +973,7 @@ const ViewRegistrationModal = React.memo(
               </Card>
             </Grid>
             <Grid item xs={12}>
-              <Card sx={{ boxShadow:"none", width:"250px" }}>
+              <Card sx={{ boxShadow: "none", width: "250px" }}>
                 <CardContent>
                   <Typography
                     variant="h6"
@@ -1058,9 +1064,9 @@ const ViewRegistrationModal = React.memo(
             <Typography variant="h6" gutterBottom sx={{ mb: 3 }}>
               Uploaded Documents
             </Typography>
-            <Grid container spacing={2} sx={{boxShadow:"none"}}>
+            <Grid container spacing={2} sx={{ boxShadow: "none" }}>
               {displayData.uploadDocument?.url && (
-                <Grid item xs={12} sm={6} md={4} sx={{ width :"300px"}}>
+                <Grid item xs={12} sm={6} md={4} sx={{ width: "300px" }}>
                   <DocumentCard
                     title="Registration Document"
                     url={displayData.uploadDocument.url}
@@ -1072,7 +1078,7 @@ const ViewRegistrationModal = React.memo(
                 </Grid>
               )}
               {displayData.aadhaar?.url && (
-                <Grid item xs={12} sm={6} md={4} sx={{ width :"300px"}}>
+                <Grid item xs={12} sm={6} md={4} sx={{ width: "300px" }}>
                   <DocumentCard
                     title="Aadhaar Card"
                     url={displayData.aadhaar.url}
@@ -1084,7 +1090,7 @@ const ViewRegistrationModal = React.memo(
                 </Grid>
               )}
               {displayData.panCard?.url && (
-                <Grid item xs={12} sm={6} md={4} sx={{ width :"300px"}}>
+                <Grid item xs={12} sm={6} md={4} sx={{ width: "300px" }}>
                   <DocumentCard
                     title="PAN Card"
                     url={displayData.panCard.url}
@@ -1096,7 +1102,7 @@ const ViewRegistrationModal = React.memo(
                 </Grid>
               )}
               {displayData.passbook?.url && (
-                <Grid item xs={12} sm={6} md={4} sx={{ width :"300px"}}>
+                <Grid item xs={12} sm={6} md={4} sx={{ width: "300px" }}>
                   <DocumentCard
                     title="Bank Passbook"
                     url={displayData.passbook.url}
@@ -1108,7 +1114,14 @@ const ViewRegistrationModal = React.memo(
                 </Grid>
               )}
               {displayData.otherDocuments?.map((doc, index) => (
-                <Grid item xs={12} sm={6} md={4} key={index} sx={{ width :"300px"}}>
+                <Grid
+                  item
+                  xs={12}
+                  sm={6}
+                  md={4}
+                  key={index}
+                  sx={{ width: "300px" }}
+                >
                   <DocumentCard
                     title={doc.name || `Document ${index + 1}`}
                     url={doc.url}
@@ -1145,7 +1158,7 @@ const ViewRegistrationModal = React.memo(
         label: "Notes",
         icon: <Note />,
         content: (
-          <Card sx={{ boxShadow:"none" }}>
+          <Card sx={{ boxShadow: "none" }}>
             <CardContent>
               <Typography variant="h6" gutterBottom>
                 Registration Notes
@@ -1297,7 +1310,7 @@ const ViewRegistrationModal = React.memo(
         </DialogActions>
       </Dialog>
     );
-  }
+  },
 );
 
 ViewRegistrationModal.displayName = "ViewRegistrationModal";
@@ -1332,8 +1345,8 @@ const EditRegistrationModal = React.memo(
           dateOfRegistration: registration.dateOfRegistration
             ? parseISO(registration.dateOfRegistration)
             : registration.createdAt
-            ? parseISO(registration.createdAt)
-            : null,
+              ? parseISO(registration.createdAt)
+              : null,
           registrationStatus: registration.registrationStatus || "pending",
           registrationNotes: registration.registrationNotes || "",
           status: registration.status || "Registration",
@@ -1349,7 +1362,7 @@ const EditRegistrationModal = React.memo(
         pincode: validatePincode(formData.pincode),
         solarRequirement: validateRequiredField(
           formData.solarRequirement,
-          "Solar requirement"
+          "Solar requirement",
         ),
       };
 
@@ -1378,7 +1391,7 @@ const EditRegistrationModal = React.memo(
         if (formData.dateOfRegistration) {
           payload.dateOfRegistration = format(
             formData.dateOfRegistration,
-            "yyyy-MM-dd"
+            "yyyy-MM-dd",
           );
         }
 
@@ -1388,7 +1401,7 @@ const EditRegistrationModal = React.memo(
             method: "PUT",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload),
-          }
+          },
         );
 
         if (response?.success) {
@@ -1404,7 +1417,15 @@ const EditRegistrationModal = React.memo(
       } finally {
         setLoading(false);
       }
-    }, [formData, validateForm, registration, fetchAPI, showSnackbar, onSave, onClose]);
+    }, [
+      formData,
+      validateForm,
+      registration,
+      fetchAPI,
+      showSnackbar,
+      onSave,
+      onClose,
+    ]);
 
     if (!registration) return null;
 
@@ -1432,7 +1453,7 @@ const EditRegistrationModal = React.memo(
                   bgcolor: `${PRIMARY}15`,
                   display: "flex",
                   alignItems: "center",
-                  justifyContent:"center",
+                  justifyContent: "center",
                   color: PRIMARY,
                 }}
               >
@@ -1456,7 +1477,7 @@ const EditRegistrationModal = React.memo(
         <DialogContent sx={{ py: 3 }}>
           <Stack spacing={3} sx={{ mt: 2 }}>
             <Grid container spacing={3}>
-              <Grid item xs={12} md={6} sx={{width:"300px"}}>
+              <Grid item xs={12} md={6} sx={{ width: "300px" }}>
                 <TextField
                   label="Address"
                   value={formData.address}
@@ -1482,7 +1503,7 @@ const EditRegistrationModal = React.memo(
                   }}
                 />
               </Grid>
-              <Grid item xs={12} md={6} sx={{width:"300px"}}>
+              <Grid item xs={12} md={6} sx={{ width: "300px" }}>
                 <TextField
                   label="City"
                   value={formData.city}
@@ -1499,7 +1520,7 @@ const EditRegistrationModal = React.memo(
             </Grid>
 
             <Grid container spacing={3}>
-              <Grid item xs={12} md={6} sx={{width:"300px"}}>
+              <Grid item xs={12} md={6} sx={{ width: "300px" }}>
                 <TextField
                   label="Pincode"
                   value={formData.pincode}
@@ -1517,7 +1538,7 @@ const EditRegistrationModal = React.memo(
                   inputProps={{ maxLength: 6 }}
                 />
               </Grid>
-              <Grid item xs={12} md={6} sx={{width:"300px"}}>
+              <Grid item xs={12} md={6} sx={{ width: "300px" }}>
                 <FormControl fullWidth size="small">
                   <InputLabel>Solar Requirement</InputLabel>
                   <Select
@@ -1544,7 +1565,7 @@ const EditRegistrationModal = React.memo(
             </Grid>
 
             <Grid container spacing={3}>
-              <Grid item xs={12} md={6} sx={{width:"300px"}}>
+              <Grid item xs={12} md={6} sx={{ width: "300px" }}>
                 <DatePicker
                   label="Registration Date"
                   value={formData.dateOfRegistration}
@@ -1559,7 +1580,7 @@ const EditRegistrationModal = React.memo(
                   }}
                 />
               </Grid>
-              <Grid item xs={12} md={6} sx={{width:"300px"}}>
+              <Grid item xs={12} md={6} sx={{ width: "300px" }}>
                 <FormControl fullWidth size="small">
                   <InputLabel>Registration Status</InputLabel>
                   <Select
@@ -1593,14 +1614,17 @@ const EditRegistrationModal = React.memo(
             </Grid>
 
             <Grid container spacing={3}>
-              <Grid item xs={12} md={6} sx={{width:"300px"}}>
+              <Grid item xs={12} md={6} sx={{ width: "300px" }}>
                 <FormControl fullWidth size="small">
                   <InputLabel>Lead Status</InputLabel>
                   <Select
                     value={formData.status}
                     label="Lead Status"
                     onChange={(e) =>
-                      setFormData((prev) => ({ ...prev, status: e.target.value }))
+                      setFormData((prev) => ({
+                        ...prev,
+                        status: e.target.value,
+                      }))
                     }
                   >
                     {LEAD_STATUS_OPTIONS.map((status) => {
@@ -1653,14 +1677,14 @@ const EditRegistrationModal = React.memo(
             size="large"
             disabled={loading}
             startIcon={loading ? <CircularProgress size={20} /> : <Save />}
-            sx={{ bgcolor: PRIMARY, px: 4, "&:hover": { bgcolor: "#2d4bb9" } }}
+            sx={{ background: "#4569ea", px: 4, "&:hover": { bgcolor: "#2d4bb9" } }}
           >
             {loading ? "Saving..." : "Save Changes"}
           </Button>
         </DialogActions>
       </Dialog>
     );
-  }
+  },
 );
 
 EditRegistrationModal.displayName = "EditRegistrationModal";
@@ -1679,7 +1703,11 @@ const DocumentUploadModal = React.memo(
     const [validationErrors, setValidationErrors] = useState({});
 
     const documentTypes = [
-      { value: "registration", label: "Registration Document", icon: <Description /> },
+      {
+        value: "registration",
+        label: "Registration Document",
+        icon: <Description />,
+      },
       { value: "aadhaar", label: "Aadhaar Card", icon: <BadgeIcon /> },
       { value: "panCard", label: "PAN Card", icon: <CreditCard /> },
       { value: "passbook", label: "Bank Passbook", icon: <ReceiptLong /> },
@@ -1734,7 +1762,7 @@ const DocumentUploadModal = React.memo(
           {
             method: "POST",
             body: formData,
-          }
+          },
         );
 
         clearInterval(progressInterval);
@@ -1791,7 +1819,7 @@ const DocumentUploadModal = React.memo(
                   bgcolor: `${PRIMARY}15`,
                   display: "flex",
                   alignItems: "center",
-                  justifyContent:"center",
+                  justifyContent: "center",
                   color: PRIMARY,
                 }}
               >
@@ -1879,9 +1907,7 @@ const DocumentUploadModal = React.memo(
                 </Stack>
               ) : (
                 <Stack spacing={2} alignItems="center">
-                  <CloudUpload
-                    sx={{ fontSize: 48, color: "text.secondary" }}
-                  />
+                  <CloudUpload sx={{ fontSize: 48, color: "text.secondary" }} />
                   <Typography variant="body1">
                     Click to select a document
                   </Typography>
@@ -1894,7 +1920,9 @@ const DocumentUploadModal = React.memo(
 
             {validationErrors.document && (
               <Alert severity="error" sx={{ mt: 1 }}>
-                <Typography variant="body2">{validationErrors.document}</Typography>
+                <Typography variant="body2">
+                  {validationErrors.document}
+                </Typography>
               </Alert>
             )}
 
@@ -1924,7 +1952,9 @@ const DocumentUploadModal = React.memo(
             variant="contained"
             size="large"
             disabled={loading || !documentFile}
-            startIcon={loading ? <CircularProgress size={20} /> : <CloudUpload />}
+            startIcon={
+              loading ? <CircularProgress size={20} /> : <CloudUpload />
+            }
             sx={{ bgcolor: PRIMARY, px: 4, "&:hover": { bgcolor: "#2d4bb9" } }}
           >
             {loading ? "Uploading..." : "Upload Document"}
@@ -1932,7 +1962,7 @@ const DocumentUploadModal = React.memo(
         </DialogActions>
       </Dialog>
     );
-  }
+  },
 );
 
 DocumentUploadModal.displayName = "DocumentUploadModal";
@@ -1968,7 +1998,7 @@ export default function RegistrationPage() {
   const userRole = getUserRole();
   const userPermissions = useMemo(
     () => getUserPermissions(userRole),
-    [userRole]
+    [userRole],
   );
 
   const isXSmall = useMediaQuery(theme.breakpoints.down("sm"));
@@ -1999,7 +2029,8 @@ export default function RegistrationPage() {
 
   // Filter States
   const [searchQuery, setSearchQuery] = useState("");
-  const [registrationStatusFilter, setRegistrationStatusFilter] = useState("All");
+  const [registrationStatusFilter, setRegistrationStatusFilter] =
+    useState("All");
   const [leadStatusFilter, setLeadStatusFilter] = useState("All");
   const [showFilterPanel, setShowFilterPanel] = useState(false);
   const [dateFilter, setDateFilter] = useState({
@@ -2022,7 +2053,8 @@ export default function RegistrationPage() {
   const [currentImageUrl, setCurrentImageUrl] = useState("");
   const [selectedRegistration, setSelectedRegistration] = useState(null);
   const [actionMenuAnchor, setActionMenuAnchor] = useState(null);
-  const [selectedActionRegistration, setSelectedActionRegistration] = useState(null);
+  const [selectedActionRegistration, setSelectedActionRegistration] =
+    useState(null);
 
   // Snackbar Handler
   const showSnackbar = useCallback((message, severity = "success") => {
@@ -2054,7 +2086,7 @@ export default function RegistrationPage() {
       }
 
       const response = await fetchAPI(
-        `/lead/registrationSummary?${params.toString()}`
+        `/lead/registrationSummary?${params.toString()}`,
       );
 
       if (response?.success) {
@@ -2069,25 +2101,25 @@ export default function RegistrationPage() {
               reg.assignedManager === user._id ||
               reg.assignedUser === user._id ||
               reg.assignedUser?._id === user._id ||
-              reg.createdBy === user._id
+              reg.createdBy === user._id,
           );
         }
 
         const totalRegistrations = filteredRegs.length;
         const pendingRegistrations = filteredRegs.filter(
-          (reg) => reg.registrationStatus?.toLowerCase() === "pending"
+          (reg) => reg.registrationStatus?.toLowerCase() === "pending",
         ).length;
         const completedRegistrations = filteredRegs.filter(
-          (reg) => reg.registrationStatus?.toLowerCase() === "completed"
+          (reg) => reg.registrationStatus?.toLowerCase() === "completed",
         ).length;
         const inProgressRegistrations = filteredRegs.filter(
-          (reg) => reg.registrationStatus?.toLowerCase() === "in_progress"
+          (reg) => reg.registrationStatus?.toLowerCase() === "in_progress",
         ).length;
         const approvedRegistrations = filteredRegs.filter(
-          (reg) => reg.registrationStatus?.toLowerCase() === "approved"
+          (reg) => reg.registrationStatus?.toLowerCase() === "approved",
         ).length;
         const rejectedRegistrations = filteredRegs.filter(
-          (reg) => reg.registrationStatus?.toLowerCase() === "rejected"
+          (reg) => reg.registrationStatus?.toLowerCase() === "rejected",
         ).length;
 
         setRegistrationsData({
@@ -2102,12 +2134,17 @@ export default function RegistrationPage() {
           },
         });
       } else {
-        throw new Error(response?.message || "Failed to fetch registrations data");
+        throw new Error(
+          response?.message || "Failed to fetch registrations data",
+        );
       }
     } catch (err) {
       console.error("Error fetching registrations:", err);
       setError(err.message || "Network error. Please try again.");
-      showSnackbar(err.message || "Failed to fetch registrations data", "error");
+      showSnackbar(
+        err.message || "Failed to fetch registrations data",
+        "error",
+      );
     } finally {
       setLoading(false);
     }
@@ -2128,14 +2165,14 @@ export default function RegistrationPage() {
             (reg.email?.toLowerCase() || "").includes(query) ||
             (reg.phone || "").includes(query) ||
             (reg.address?.toLowerCase() || "").includes(query) ||
-            (reg.city?.toLowerCase() || "").includes(query)
+            (reg.city?.toLowerCase() || "").includes(query),
         );
       }
 
       // Registration Status filter
       if (registrationStatusFilter !== "All") {
         filtered = filtered.filter(
-          (reg) => reg.registrationStatus === registrationStatusFilter
+          (reg) => reg.registrationStatus === registrationStatusFilter,
         );
       }
 
@@ -2159,8 +2196,8 @@ export default function RegistrationPage() {
             const regDate = reg.dateOfRegistration
               ? parseISO(reg.dateOfRegistration)
               : reg.createdAt
-              ? parseISO(reg.createdAt)
-              : null;
+                ? parseISO(reg.createdAt)
+                : null;
             if (!regDate || !isValid(regDate)) return false;
             return isWithinInterval(regDate, { start, end });
           } catch {
@@ -2243,7 +2280,7 @@ export default function RegistrationPage() {
       setSelectedRegistration(registration);
       setViewModalOpen(true);
     },
-    [showSnackbar]
+    [showSnackbar],
   );
 
   const handleEditClick = useCallback(
@@ -2255,14 +2292,14 @@ export default function RegistrationPage() {
       if (!userPermissions.canEdit) {
         showSnackbar(
           "You don't have permission to edit this registration",
-          "error"
+          "error",
         );
         return;
       }
       setSelectedRegistration(registration);
       setEditModalOpen(true);
     },
-    [userPermissions, showSnackbar]
+    [userPermissions, showSnackbar],
   );
 
   const handleStatusUpdateClick = useCallback(
@@ -2274,14 +2311,14 @@ export default function RegistrationPage() {
       if (!userPermissions.canUpdateStatus) {
         showSnackbar(
           "You don't have permission to update registration status",
-          "error"
+          "error",
         );
         return;
       }
       setSelectedRegistration(registration);
       setStatusUpdateModalOpen(true);
     },
-    [userPermissions, showSnackbar]
+    [userPermissions, showSnackbar],
   );
 
   const handleDocumentUploadClick = useCallback(
@@ -2291,16 +2328,13 @@ export default function RegistrationPage() {
         return;
       }
       if (!userPermissions.canUploadDocs) {
-        showSnackbar(
-          "You don't have permission to upload documents",
-          "error"
-        );
+        showSnackbar("You don't have permission to upload documents", "error");
         return;
       }
       setSelectedRegistration(registration);
       setDocumentUploadModalOpen(true);
     },
-    [userPermissions, showSnackbar]
+    [userPermissions, showSnackbar],
   );
 
   const handleStatusUpdate = useCallback(
@@ -2313,7 +2347,7 @@ export default function RegistrationPage() {
         showSnackbar("Failed to refresh data", "error");
       }
     },
-    [fetchRegistrationsData, showSnackbar]
+    [fetchRegistrationsData, showSnackbar],
   );
 
   const handleRegistrationUpdate = useCallback(
@@ -2326,7 +2360,7 @@ export default function RegistrationPage() {
         showSnackbar("Failed to refresh data", "error");
       }
     },
-    [fetchRegistrationsData, showSnackbar]
+    [fetchRegistrationsData, showSnackbar],
   );
 
   const handleDocumentUpload = useCallback(
@@ -2339,7 +2373,7 @@ export default function RegistrationPage() {
         showSnackbar("Failed to refresh data", "error");
       }
     },
-    [fetchRegistrationsData, showSnackbar]
+    [fetchRegistrationsData, showSnackbar],
   );
 
   const handleActionMenuOpen = useCallback((event, registration) => {
@@ -2382,7 +2416,7 @@ export default function RegistrationPage() {
       handleStatusUpdateClick,
       handleDocumentUploadClick,
       handleActionMenuClose,
-    ]
+    ],
   );
 
   const handleViewDocument = useCallback(
@@ -2394,7 +2428,7 @@ export default function RegistrationPage() {
       setCurrentImageUrl(documentUrl);
       setImageViewerOpen(true);
     },
-    [showSnackbar]
+    [showSnackbar],
   );
 
   const handleCloseSnackbar = useCallback(() => {
@@ -2422,7 +2456,7 @@ export default function RegistrationPage() {
 
   const totalPages = useMemo(
     () => Math.ceil(filteredRegistrations.length / rowsPerPage),
-    [filteredRegistrations.length, rowsPerPage]
+    [filteredRegistrations.length, rowsPerPage],
   );
 
   const summaryCards = useMemo(
@@ -2448,8 +2482,15 @@ export default function RegistrationPage() {
         icon: <CheckCircle />,
         subText: "Completed registrations",
       },
+            {
+        label: "Rejected",
+        value: registrationsData.summary.rejectedRegistrations,
+        color: PRIMARY,
+        icon: <CheckCircle />,
+        subText: "Rejected registrations",
+      },
     ],
-    [registrationsData.summary]
+    [registrationsData.summary],
   );
 
   // Access Check
@@ -2490,7 +2531,11 @@ export default function RegistrationPage() {
         <Alert
           severity="error"
           action={
-            <Button color="inherit" size="small" onClick={fetchRegistrationsData}>
+            <Button
+              color="inherit"
+              size="small"
+              onClick={fetchRegistrationsData}
+            >
               Retry
             </Button>
           }
@@ -2616,7 +2661,8 @@ export default function RegistrationPage() {
               Registration Management
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Track and manage all customer registrations and solar installations
+              Track and manage all customer registrations and solar
+              installations
             </Typography>
           </Box>
 
@@ -2635,18 +2681,17 @@ export default function RegistrationPage() {
         {/* Summary Cards */}
         <Grid container spacing={2} sx={{ mb: 4 }}>
           {summaryCards.map((card, index) => (
-            <Grid item xs={6} sm={4} md={2} key={index}>
+            <Grid item xs={6} sm={6} md={3} key={index}>
               <Card
                 sx={{
                   borderRadius: 3,
                   overflow: "visible",
                   position: "relative",
-                  width:"376px",
                   border: `1px solid ${alpha(card.color, 0.1)}`,
-                  boxShadow: "0 4px 8px rgba(0,0,0,0.05)",
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
                 }}
               >
-                <CardContent sx={{ p: 2 }}>
+                <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
                   <Stack spacing={1}>
                     <Box
                       sx={{
@@ -2657,22 +2702,27 @@ export default function RegistrationPage() {
                     >
                       <Box
                         sx={{
-                          width: 40,
-                          height: 40,
+                          width: { xs: 40, sm: 48 },
+                          height: { xs: 40, sm: 48 },
                           borderRadius: 2,
-                          bgcolor: `${card.color}15`,
+                          bgcolor: alpha(card.color, 0.1),
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "center",
                           color: card.color,
                         }}
                       >
-                        {card.icon}
+                        {React.cloneElement(card.icon, {
+                          sx: { fontSize: { xs: 20, sm: 24 } },
+                        })}
                       </Box>
                       <Typography
-                        variant="h6"
+                        variant="h4"
                         fontWeight={700}
-                        sx={{ color: card.color }}
+                        sx={{
+                          color: card.color,
+                          fontSize: { xs: "1.5rem", sm: "2rem" },
+                        }}
                       >
                         {card.value}
                       </Typography>
@@ -2750,7 +2800,9 @@ export default function RegistrationPage() {
                     <Select
                       value={registrationStatusFilter}
                       label="Registration Status"
-                      onChange={(e) => setRegistrationStatusFilter(e.target.value)}
+                      onChange={(e) =>
+                        setRegistrationStatusFilter(e.target.value)
+                      }
                     >
                       <MenuItem value="All">All Status</MenuItem>
                       {REGISTRATION_STATUS_OPTIONS.map((status) => {
@@ -2928,7 +2980,7 @@ export default function RegistrationPage() {
                       <Chip
                         label={`From: ${format(
                           dateFilter.startDate,
-                          "dd MMM yyyy"
+                          "dd MMM yyyy",
                         )}`}
                         size="small"
                         onDelete={() =>
@@ -2943,7 +2995,7 @@ export default function RegistrationPage() {
                       <Chip
                         label={`To: ${format(
                           dateFilter.endDate,
-                          "dd MMM yyyy"
+                          "dd MMM yyyy",
                         )}`}
                         size="small"
                         onDelete={() =>
@@ -3081,10 +3133,10 @@ export default function RegistrationPage() {
                   {paginatedRegistrations.length > 0 ? (
                     paginatedRegistrations.map((registration) => {
                       const regStatusConfig = getRegistrationStatusColor(
-                        registration.registrationStatus
+                        registration.registrationStatus,
                       );
                       const leadStatusConfig = getLeadStatusConfig(
-                        registration.status
+                        registration.status,
                       );
 
                       return (
@@ -3142,17 +3194,25 @@ export default function RegistrationPage() {
                                 variant="caption"
                                 color="text.secondary"
                               >
-                                {formatDate(registration.createdAt, "dd MMM yyyy")}
+                                {formatDate(
+                                  registration.createdAt,
+                                  "dd MMM yyyy",
+                                )}
                               </Typography>
                             </Stack>
                           </TableCell>
 
                           {/* Solar Requirement */}
                           <TableCell>
-                            <Stack direction="row" alignItems="center" spacing={1}>
+                            <Stack
+                              direction="row"
+                              alignItems="center"
+                              spacing={1}
+                            >
                               <SolarPower fontSize="small" color="primary" />
                               <Typography variant="body2">
-                                {registration.solarRequirement || "Not specified"}
+                                {registration.solarRequirement ||
+                                  "Not specified"}
                               </Typography>
                             </Stack>
                           </TableCell>
@@ -3224,7 +3284,9 @@ export default function RegistrationPage() {
                                 <Tooltip title="Edit" arrow>
                                   <IconButton
                                     size="small"
-                                    onClick={() => handleEditClick(registration)}
+                                    onClick={() =>
+                                      handleEditClick(registration)
+                                    }
                                     sx={{
                                       bgcolor: alpha(PRIMARY, 0.1),
                                       color: PRIMARY,
@@ -3237,7 +3299,7 @@ export default function RegistrationPage() {
                                   </IconButton>
                                 </Tooltip>
                               )}
-                              
+
                               {userPermissions.canUploadDocs && (
                                 <Tooltip title="Upload Document" arrow>
                                   <IconButton
@@ -3326,9 +3388,15 @@ export default function RegistrationPage() {
               >
                 <Typography variant="body2" color="text.secondary">
                   Showing{" "}
-                  {Math.min(page * rowsPerPage + 1, filteredRegistrations.length)}{" "}
+                  {Math.min(
+                    page * rowsPerPage + 1,
+                    filteredRegistrations.length,
+                  )}{" "}
                   to{" "}
-                  {Math.min((page + 1) * rowsPerPage, filteredRegistrations.length)}{" "}
+                  {Math.min(
+                    (page + 1) * rowsPerPage,
+                    filteredRegistrations.length,
+                  )}{" "}
                   of {filteredRegistrations.length} entries
                 </Typography>
                 <Pagination

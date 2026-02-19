@@ -181,7 +181,11 @@ const LOAN_STATUS_CONFIG = {
 };
 
 // Lead Status Configuration
-const LEAD_STATUS_OPTIONS = ["Bank Loan Apply", "Document Submission", "Missed Leads"];
+const LEAD_STATUS_OPTIONS = [
+  "Bank Loan Apply",
+  "Document Submission",
+  "Missed Leads",
+];
 
 const LEAD_STATUS_CONFIG = {
   "Bank Loan Apply": {
@@ -359,19 +363,19 @@ const ImageViewerModal = React.memo(({ open, onClose, imageUrl, title }) => {
 
   const handleZoomIn = useCallback(
     () => setZoom((prev) => Math.min(prev + 0.25, 3)),
-    []
+    [],
   );
   const handleZoomOut = useCallback(
     () => setZoom((prev) => Math.max(prev - 0.25, 0.5)),
-    []
+    [],
   );
   const handleRotateRight = useCallback(
     () => setRotation((prev) => (prev + 90) % 360),
-    []
+    [],
   );
   const handleRotateLeft = useCallback(
     () => setRotation((prev) => (prev - 90) % 360),
-    []
+    [],
   );
   const handleReset = useCallback(() => {
     setZoom(1);
@@ -385,7 +389,7 @@ const ImageViewerModal = React.memo(({ open, onClose, imageUrl, title }) => {
 
   const isImage = useMemo(
     () => imageUrl && /\.(jpg|jpeg|png|gif|bmp|webp)$/i.test(imageUrl),
-    [imageUrl]
+    [imageUrl],
   );
 
   const handleDownload = useCallback(() => {
@@ -489,7 +493,11 @@ const ImageViewerModal = React.memo(({ open, onClose, imageUrl, title }) => {
               variant="contained"
               startIcon={<GetApp />}
               onClick={handleDownload}
-              sx={{ mt: 2, bgcolor: PRIMARY, '&:hover': { bgcolor: SECONDARY } }}
+              sx={{
+                mt: 2,
+                bgcolor: PRIMARY,
+                "&:hover": { bgcolor: SECONDARY },
+              }}
             >
               Download Document
             </Button>
@@ -564,7 +572,7 @@ const FileUploadField = React.memo(
       (event) => {
         onFileChange(field, event);
       },
-      [field, onFileChange]
+      [field, onFileChange],
     );
 
     const handleViewClick = useCallback(() => {
@@ -669,7 +677,7 @@ const FileUploadField = React.memo(
         />
       </Box>
     );
-  }
+  },
 );
 
 FileUploadField.displayName = "FileUploadField";
@@ -692,7 +700,7 @@ const DocumentCard = React.memo(
           p: 2,
           borderRadius: 2,
           height: "100%",
-          width:"400px",
+          width: "400px",
           display: "flex",
           flexDirection: "column",
         }}
@@ -719,18 +727,17 @@ const DocumentCard = React.memo(
             variant="contained"
             startIcon={<GetApp />}
             onClick={handleDownload}
-            sx={{ bgcolor: PRIMARY, '&:hover': { bgcolor: SECONDARY } }}
+            sx={{ bgcolor: PRIMARY, "&:hover": { bgcolor: SECONDARY } }}
           >
             Download
           </Button>
         </Stack>
       </Card>
     );
-  }
+  },
 );
 
 DocumentCard.displayName = "DocumentCard";
-
 
 // View Loan Modal with Tabs
 const ViewLoanModal = React.memo(
@@ -792,7 +799,7 @@ const ViewLoanModal = React.memo(
         content: (
           <Grid container spacing={3}>
             <Grid item xs={12} md={6}>
-              <Card sx={{ boxShadow:"none", height: "100%", width:"450px"}}>
+              <Card sx={{ boxShadow: "none", height: "100%", width: "450px" }}>
                 <CardContent>
                   <Typography
                     variant="h6"
@@ -878,7 +885,7 @@ const ViewLoanModal = React.memo(
               </Card>
             </Grid>
             <Grid item xs={12} md={6}>
-              <Card sx={{ boxShadow:"none", height: "100%", width:"450px" }}>
+              <Card sx={{ boxShadow: "none", height: "100%", width: "450px" }}>
                 <CardContent>
                   <Typography
                     variant="h6"
@@ -964,7 +971,7 @@ const ViewLoanModal = React.memo(
               </Card>
             </Grid>
             <Grid item xs={12}>
-              <Card sx={{ boxShadow:"none", height: "100%", width:"450px" }}>
+              <Card sx={{ boxShadow: "none", height: "100%", width: "450px" }}>
                 <CardContent>
                   <Typography
                     variant="h6"
@@ -992,12 +999,19 @@ const ViewLoanModal = React.memo(
                             Loan Status
                           </Typography>
                           <Chip
-                            label={getLoanStatusColor(displayData.loanStatus).label}
-                            icon={getLoanStatusColor(displayData.loanStatus).icon}
+                            label={
+                              getLoanStatusColor(displayData.loanStatus).label
+                            }
+                            icon={
+                              getLoanStatusColor(displayData.loanStatus).icon
+                            }
                             size="small"
                             sx={{
-                              bgcolor: getLoanStatusColor(displayData.loanStatus).bg,
-                              color: getLoanStatusColor(displayData.loanStatus).color,
+                              bgcolor: getLoanStatusColor(
+                                displayData.loanStatus,
+                              ).bg,
+                              color: getLoanStatusColor(displayData.loanStatus)
+                                .color,
                               fontWeight: 600,
                             }}
                           />
@@ -1006,7 +1020,10 @@ const ViewLoanModal = React.memo(
                             color="text.secondary"
                             sx={{ mt: 1, display: "block" }}
                           >
-                            {getLoanStatusColor(displayData.loanStatus).description}
+                            {
+                              getLoanStatusColor(displayData.loanStatus)
+                                .description
+                            }
                           </Typography>
                         </Box>
                         <Box>
@@ -1023,8 +1040,10 @@ const ViewLoanModal = React.memo(
                             icon={getLeadStatusConfig(displayData.status).icon}
                             size="small"
                             sx={{
-                              bgcolor: getLeadStatusConfig(displayData.status).bg,
-                              color: getLeadStatusConfig(displayData.status).color,
+                              bgcolor: getLeadStatusConfig(displayData.status)
+                                .bg,
+                              color: getLeadStatusConfig(displayData.status)
+                                .color,
                               fontWeight: 600,
                             }}
                           />
@@ -1232,7 +1251,8 @@ const ViewLoanModal = React.memo(
                   {displayData.firstName} {displayData.lastName}
                 </Typography>
                 <Typography variant="caption" sx={{ opacity: 0.9 }}>
-                  Loan Application Details • {formatCurrency(displayData.loanAmount)}
+                  Loan Application Details •{" "}
+                  {formatCurrency(displayData.loanAmount)}
                 </Typography>
               </Box>
             </Box>
@@ -1309,7 +1329,12 @@ const ViewLoanModal = React.memo(
             <Button
               onClick={onClose}
               variant="contained"
-              sx={{ borderRadius: 2, mt: 2, bgcolor: PRIMARY, '&:hover': { bgcolor: SECONDARY } }}
+              sx={{
+                borderRadius: 2,
+                mt: 2,
+                bgcolor: PRIMARY,
+                "&:hover": { bgcolor: SECONDARY },
+              }}
             >
               Close
             </Button>
@@ -1317,7 +1342,7 @@ const ViewLoanModal = React.memo(
         </DialogActions>
       </Dialog>
     );
-  }
+  },
 );
 
 ViewLoanModal.displayName = "ViewLoanModal";
@@ -1391,7 +1416,7 @@ const EditLoanModal = React.memo(
         if (formData.loanApprovalDate) {
           payload.loanApprovalDate = format(
             formData.loanApprovalDate,
-            "yyyy-MM-dd"
+            "yyyy-MM-dd",
           );
         }
 
@@ -1406,11 +1431,16 @@ const EditLoanModal = React.memo(
           onSave(response.result);
           onClose();
         } else {
-          throw new Error(response?.message || "Failed to update loan application");
+          throw new Error(
+            response?.message || "Failed to update loan application",
+          );
         }
       } catch (error) {
         console.error("Error updating loan application:", error);
-        showSnackbar(error.message || "Failed to update loan application", "error");
+        showSnackbar(
+          error.message || "Failed to update loan application",
+          "error",
+        );
       } finally {
         setLoading(false);
       }
@@ -1487,8 +1517,12 @@ const EditLoanModal = React.memo(
             />
 
             <Grid container spacing={3}>
-              <Grid item xs={12} md={6} sx={{width:"350px"}}>
-                <FormControl fullWidth size="small" error={!!validationErrors.bank}>
+              <Grid item xs={12} md={6} sx={{ width: "350px" }}>
+                <FormControl
+                  fullWidth
+                  size="small"
+                  error={!!validationErrors.bank}
+                >
                   <InputLabel>Bank</InputLabel>
                   <Select
                     value={formData.bank}
@@ -1511,7 +1545,7 @@ const EditLoanModal = React.memo(
                   )}
                 </FormControl>
               </Grid>
-              <Grid item xs={12} md={6} sx={{width:"350px"}}>
+              <Grid item xs={12} md={6} sx={{ width: "350px" }}>
                 <TextField
                   label="Branch Name"
                   value={formData.branchName}
@@ -1531,8 +1565,12 @@ const EditLoanModal = React.memo(
             </Grid>
 
             <Grid container spacing={3}>
-              <Grid item xs={12} md={6} sx={{width:"350px"}}>
-                <FormControl fullWidth size="small" error={!!validationErrors.loanStatus}>
+              <Grid item xs={12} md={6} sx={{ width: "350px" }}>
+                <FormControl
+                  fullWidth
+                  size="small"
+                  error={!!validationErrors.loanStatus}
+                >
                   <InputLabel>Loan Status</InputLabel>
                   <Select
                     value={formData.loanStatus}
@@ -1561,18 +1599,27 @@ const EditLoanModal = React.memo(
                     })}
                   </Select>
                   {validationErrors.loanStatus && (
-                    <FormHelperText>{validationErrors.loanStatus}</FormHelperText>
+                    <FormHelperText>
+                      {validationErrors.loanStatus}
+                    </FormHelperText>
                   )}
                 </FormControl>
               </Grid>
-              <Grid item xs={12} md={6} sx={{width:"350px"}}>
-                <FormControl fullWidth size="small" error={!!validationErrors.status}>
+              <Grid item xs={12} md={6} sx={{ width: "350px" }}>
+                <FormControl
+                  fullWidth
+                  size="small"
+                  error={!!validationErrors.status}
+                >
                   <InputLabel>Lead Status</InputLabel>
                   <Select
                     value={formData.status}
                     label="Lead Status"
                     onChange={(e) =>
-                      setFormData((prev) => ({ ...prev, status: e.target.value }))
+                      setFormData((prev) => ({
+                        ...prev,
+                        status: e.target.value,
+                      }))
                     }
                   >
                     {LEAD_STATUS_OPTIONS.map((status) => {
@@ -1646,7 +1693,7 @@ const EditLoanModal = React.memo(
         </DialogActions>
       </Dialog>
     );
-  }
+  },
 );
 
 EditLoanModal.displayName = "EditLoanModal";
@@ -1682,7 +1729,7 @@ export default function BankLoanApply() {
   const userRole = getUserRole();
   const userPermissions = useMemo(
     () => getUserPermissions(userRole),
-    [userRole]
+    [userRole],
   );
 
   const isXSmall = useMediaQuery(theme.breakpoints.down("sm"));
@@ -1768,7 +1815,7 @@ export default function BankLoanApply() {
       }
 
       const response = await fetchAPI(
-        `/lead/bankLoanSummary?${params.toString()}`
+        `/lead/bankLoanSummary?${params.toString()}`,
       );
 
       if (response?.success) {
@@ -1783,26 +1830,26 @@ export default function BankLoanApply() {
               loan.assignedManager === user._id ||
               loan.assignedUser === user._id ||
               loan.assignedUser?._id === user._id ||
-              loan.createdBy === user._id
+              loan.createdBy === user._id,
           );
         }
 
         const totalLoans = filteredLoans.length;
         const pendingLoans = filteredLoans.filter(
-          (loan) => loan.loanStatus?.toLowerCase() === "pending"
+          (loan) => loan.loanStatus?.toLowerCase() === "pending",
         ).length;
         const submittedLoans = filteredLoans.filter(
-          (loan) => loan.loanStatus?.toLowerCase() === "submitted"
+          (loan) => loan.loanStatus?.toLowerCase() === "submitted",
         ).length;
         const approvedLoans = filteredLoans.filter(
-          (loan) => loan.loanStatus?.toLowerCase() === "approved"
+          (loan) => loan.loanStatus?.toLowerCase() === "approved",
         ).length;
         const rejectedLoans = filteredLoans.filter(
-          (loan) => loan.loanStatus?.toLowerCase() === "rejected"
+          (loan) => loan.loanStatus?.toLowerCase() === "rejected",
         ).length;
         const totalLoanAmount = filteredLoans.reduce(
           (sum, loan) => sum + (parseFloat(loan.loanAmount) || 0),
-          0
+          0,
         );
         const avgLoanAmount = totalLoans > 0 ? totalLoanAmount / totalLoans : 0;
 
@@ -1845,14 +1892,14 @@ export default function BankLoanApply() {
             (loan.email?.toLowerCase() || "").includes(query) ||
             (loan.phone || "").includes(query) ||
             (loan.bank?.toLowerCase() || "").includes(query) ||
-            (loan.branchName?.toLowerCase() || "").includes(query)
+            (loan.branchName?.toLowerCase() || "").includes(query),
         );
       }
 
       // Loan Status filter
       if (loanStatusFilter !== "All") {
         filtered = filtered.filter(
-          (loan) => loan.loanStatus === loanStatusFilter
+          (loan) => loan.loanStatus === loanStatusFilter,
         );
       }
 
@@ -1876,8 +1923,8 @@ export default function BankLoanApply() {
             const loanDate = loan.loanApprovalDate
               ? parseISO(loan.loanApprovalDate)
               : loan.createdAt
-              ? parseISO(loan.createdAt)
-              : null;
+                ? parseISO(loan.createdAt)
+                : null;
             if (!loanDate || !isValid(loanDate)) return false;
             return isWithinInterval(loanDate, { start, end });
           } catch {
@@ -1963,7 +2010,7 @@ export default function BankLoanApply() {
       setSelectedLoan(loan);
       setViewModalOpen(true);
     },
-    [showSnackbar]
+    [showSnackbar],
   );
 
   const handleEditClick = useCallback(
@@ -1973,16 +2020,13 @@ export default function BankLoanApply() {
         return;
       }
       if (!userPermissions.canEdit) {
-        showSnackbar(
-          "You don't have permission to edit this loan",
-          "error"
-        );
+        showSnackbar("You don't have permission to edit this loan", "error");
         return;
       }
       setSelectedLoan(loan);
       setEditModalOpen(true);
     },
-    [userPermissions, showSnackbar]
+    [userPermissions, showSnackbar],
   );
 
   const handleStatusUpdateClick = useCallback(
@@ -1994,14 +2038,14 @@ export default function BankLoanApply() {
       if (!userPermissions.canUpdateStatus) {
         showSnackbar(
           "You don't have permission to update loan status",
-          "error"
+          "error",
         );
         return;
       }
       setSelectedLoan(loan);
       setStatusUpdateModalOpen(true);
     },
-    [userPermissions, showSnackbar]
+    [userPermissions, showSnackbar],
   );
 
   const handleStatusUpdate = useCallback(
@@ -2014,7 +2058,7 @@ export default function BankLoanApply() {
         showSnackbar("Failed to refresh data", "error");
       }
     },
-    [fetchLoansData, showSnackbar]
+    [fetchLoansData, showSnackbar],
   );
 
   const handleLoanUpdate = useCallback(
@@ -2027,7 +2071,7 @@ export default function BankLoanApply() {
         showSnackbar("Failed to refresh data", "error");
       }
     },
-    [fetchLoansData, showSnackbar]
+    [fetchLoansData, showSnackbar],
   );
 
   const handleActionMenuOpen = useCallback((event, loan) => {
@@ -2066,7 +2110,7 @@ export default function BankLoanApply() {
       handleEditClick,
       handleStatusUpdateClick,
       handleActionMenuClose,
-    ]
+    ],
   );
 
   const handleViewDocument = useCallback(
@@ -2078,7 +2122,7 @@ export default function BankLoanApply() {
       setCurrentImageUrl(documentUrl);
       setImageViewerOpen(true);
     },
-    [showSnackbar]
+    [showSnackbar],
   );
 
   const handleCloseSnackbar = useCallback(() => {
@@ -2106,7 +2150,7 @@ export default function BankLoanApply() {
 
   const totalPages = useMemo(
     () => Math.ceil(filteredLoans.length / rowsPerPage),
-    [filteredLoans.length, rowsPerPage]
+    [filteredLoans.length, rowsPerPage],
   );
 
   const summaryCards = useMemo(
@@ -2140,7 +2184,7 @@ export default function BankLoanApply() {
         subText: "Rejected loans",
       },
     ],
-    [loansData.summary]
+    [loansData.summary],
   );
 
   // Access Check
@@ -2309,18 +2353,17 @@ export default function BankLoanApply() {
         {/* Summary Cards */}
         <Grid container spacing={2} sx={{ mb: 4 }}>
           {summaryCards.map((card, index) => (
-            <Grid item xs={6} sm={4} md={2} key={index}>
+            <Grid item xs={6} sm={6} md={3} key={index}>
               <Card
                 sx={{
                   borderRadius: 3,
                   overflow: "visible",
                   position: "relative",
-                  width:"277px",
                   border: `1px solid ${alpha(card.color, 0.1)}`,
                   boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
                 }}
               >
-                <CardContent sx={{ p: 2 }}>
+                <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
                   <Stack spacing={1}>
                     <Box
                       sx={{
@@ -2331,22 +2374,27 @@ export default function BankLoanApply() {
                     >
                       <Box
                         sx={{
-                          width: 40,
-                          height: 40,
+                          width: { xs: 40, sm: 48 },
+                          height: { xs: 40, sm: 48 },
                           borderRadius: 2,
-                          bgcolor: alpha(PRIMARY, 0.15),
+                          bgcolor: alpha(card.color, 0.1),
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "center",
                           color: card.color,
                         }}
                       >
-                        {card.icon}
+                        {React.cloneElement(card.icon, {
+                          sx: { fontSize: { xs: 20, sm: 24 } },
+                        })}
                       </Box>
                       <Typography
-                        variant="h6"
+                        variant="h4"
                         fontWeight={700}
-                        sx={{ color: card.color }}
+                        sx={{
+                          color: card.color,
+                          fontSize: { xs: "1.5rem", sm: "2rem" },
+                        }}
                       >
                         {card.value}
                       </Typography>
@@ -2554,7 +2602,10 @@ export default function BankLoanApply() {
                     <Button
                       variant="contained"
                       onClick={() => setShowFilterPanel(false)}
-                      sx={{ bgcolor: PRIMARY, '&:hover': { bgcolor: SECONDARY } }}
+                      sx={{
+                        bgcolor: PRIMARY,
+                        "&:hover": { bgcolor: SECONDARY },
+                      }}
                     >
                       Apply Filters
                     </Button>
@@ -2602,7 +2653,7 @@ export default function BankLoanApply() {
                       <Chip
                         label={`From: ${format(
                           dateFilter.startDate,
-                          "dd MMM yyyy"
+                          "dd MMM yyyy",
                         )}`}
                         size="small"
                         onDelete={() =>
@@ -2617,7 +2668,7 @@ export default function BankLoanApply() {
                       <Chip
                         label={`To: ${format(
                           dateFilter.endDate,
-                          "dd MMM yyyy"
+                          "dd MMM yyyy",
                         )}`}
                         size="small"
                         onDelete={() =>
@@ -2778,11 +2829,9 @@ export default function BankLoanApply() {
                   {paginatedLoans.length > 0 ? (
                     paginatedLoans.map((loan) => {
                       const loanStatusConfig = getLoanStatusColor(
-                        loan.loanStatus
+                        loan.loanStatus,
                       );
-                      const leadStatusConfig = getLeadStatusConfig(
-                        loan.status
-                      );
+                      const leadStatusConfig = getLeadStatusConfig(loan.status);
 
                       return (
                         <TableRow
@@ -2846,7 +2895,11 @@ export default function BankLoanApply() {
 
                           {/* Loan Amount */}
                           <TableCell>
-                            <Stack direction="row" alignItems="center" spacing={1}>
+                            <Stack
+                              direction="row"
+                              alignItems="center"
+                              spacing={1}
+                            >
                               <CurrencyRupee fontSize="small" color="primary" />
                               <Typography variant="body2" fontWeight={600}>
                                 {formatCurrency(loan.loanAmount)}
@@ -3050,8 +3103,8 @@ export default function BankLoanApply() {
           sx={{ mt: 3, display: "block", textAlign: "center" }}
         >
           Last updated: {formatDate(new Date().toISOString())} •{" "}
-          {loansData.summary.totalLoans} total loan applications • Average loan amount:{" "}
-          {formatCurrency(loansData.summary.avgLoanAmount)}
+          {loansData.summary.totalLoans} total loan applications • Average loan
+          amount: {formatCurrency(loansData.summary.avgLoanAmount)}
         </Typography>
       </Box>
     </LocalizationProvider>

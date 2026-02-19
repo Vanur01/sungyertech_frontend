@@ -21,6 +21,8 @@ import {
   useMediaQuery,
   LinearProgress,
   Snackbar,
+  Paper,
+  alpha,
 } from "@mui/material";
 import {
   BarChart,
@@ -37,11 +39,18 @@ import {
   CheckCircle,
   Error,
   Downloading,
+  People,
+  ReceiptLong,
+  AttachMoney,
+  CalendarToday,
+  Schedule,
+  Info,
 } from "@mui/icons-material";
 import { useAuth } from "../contexts/AuthContext";
 import { format, parseISO, isValid } from "date-fns";
 
-const primary = "#ff6d00";
+const PRIMARY_COLOR = "#4569ea";
+const SECONDARY_COLOR = "#1a237e";
 
 // Report configurations with API endpoints
 const REPORT_CONFIGS = [
@@ -49,7 +58,7 @@ const REPORT_CONFIGS = [
     key: "leads",
     title: "Leads Report",
     description: "Lead tracking and pipeline performance",
-    icon: <TrendingUp sx={{ color:"#fff",}} />,
+    icon: <TrendingUp />,
     endpoint: "/report/leads",
     columns: [
       { field: "firstName", label: "First Name" },
@@ -67,7 +76,7 @@ const REPORT_CONFIGS = [
     key: "installation",
     title: "Installation Report",
     description: "Installation completion metrics and progress",
-    icon: <Build   sx={{ color:"#fff"}}/>,
+    icon: <Build />,
     endpoint: "/report/installations",
     columns: [
       { field: "customerName", label: "Customer" },
@@ -81,7 +90,7 @@ const REPORT_CONFIGS = [
     key: "expenses",
     title: "Expenses Report",
     description: "Expense tracking and approval status",
-    icon: <PieChart  sx={{ color:"#fff"}} />,
+    icon: <ReceiptLong />,
     endpoint: "/report/expenses",
     columns: [
       { field: "title", label: "Title" },
@@ -98,20 +107,20 @@ const REPORT_CONFIGS = [
 // Role-based access control
 const ROLE_ACCESS = {
   Head_office: {
-    canAccess: ["leads", "sales", "installation", "expenses"],
+    canAccess: ["leads", "installation", "expenses"],
     canSeeAll: true,
   },
   ZSM: {
-    canAccess: ["leads", "sales", "installation", "expenses"],
+    canAccess: ["leads", "installation", "expenses"],
     canSeeAll: true,
   },
   ASM: {
     canAccess: ["leads", "expenses"],
-    canSeeAll: false, // Can only see own team's data
+    canSeeAll: false,
   },
   TEAM: {
     canAccess: ["leads", "expenses"],
-    canSeeAll: false, // Can only see own data
+    canSeeAll: false,
   },
 };
 
@@ -138,7 +147,6 @@ const ReportDetailsModal = ({ open, onClose, report, data }) => {
   const formatCellValue = (value, field) => {
     if (!value) return "N/A";
     
-    // Handle nested objects
     if (typeof value === 'object') {
       if (field === 'assignedManager' || field === 'assignedUser' || 
           field === 'createdBy' || field === 'approvedBy' || field === 'assignedTo') {
@@ -147,12 +155,10 @@ const ReportDetailsModal = ({ open, onClose, report, data }) => {
       return JSON.stringify(value);
     }
     
-    // Format dates
     if (field.includes('Date') || field.includes('At')) {
       return formatDate(value);
     }
     
-    // Format amounts
     if (field === 'amount') {
       return `₹${value}`;
     }
@@ -164,77 +170,121 @@ const ReportDetailsModal = ({ open, onClose, report, data }) => {
     <Dialog
       open={open}
       onClose={onClose}
-      maxWidth="md"
+      maxWidth="lg"
       fullWidth
       fullScreen={isMobile}
+      PaperProps={{
+        sx: { 
+          borderRadius: isMobile ? 0 : 3,
+          overflow: 'hidden',
+        }
+      }}
     >
-      <DialogTitle>
+      <DialogTitle sx={{ 
+        bgcolor: PRIMARY_COLOR,
+        color: "white",
+        py: 2.5,
+      }}>
         <Box display="flex" alignItems="center" justifyContent="space-between">
-          <Typography variant="h6">{report?.title} - Details</Typography>
-          <IconButton onClick={onClose} size="small">
+          <Box display="flex" alignItems="center" gap={1.5}>
+            <Box
+              sx={{
+                width: 40,
+                height: 40,
+                borderRadius: 2,
+                bgcolor: "rgba(255,255,255,0.2)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              {report?.icon && React.cloneElement(report.icon, { sx: { color: "white" } })}
+            </Box>
+            <Box>
+              <Typography variant="h6" fontWeight={700}>
+                {report?.title} - Details
+              </Typography>
+              <Typography variant="caption" sx={{ opacity: 0.9 }}>
+                Showing first 10 of {data.length} records
+              </Typography>
+            </Box>
+          </Box>
+          <IconButton onClick={onClose} size="small" sx={{ color: "white" }}>
             <Close />
           </IconButton>
         </Box>
       </DialogTitle>
-      <DialogContent dividers>
+      
+      <DialogContent dividers sx={{ p: 0 }}>
         {data.length === 0 ? (
-          <Box sx={{ textAlign: "center", py: 4 }}>
+          <Box sx={{ textAlign: "center", py: 8 }}>
+            <Assessment sx={{ fontSize: 48, color: "text.disabled", mb: 2 }} />
             <Typography variant="body1" color="text.secondary">
               No data available for this report
             </Typography>
           </Box>
         ) : (
-          <Box sx={{ overflowX: "auto" }}>
-            <table style={{ width: "100%", borderCollapse: "collapse" }}>
-              <thead>
-                <tr style={{ backgroundColor: "#f5f5f5" }}>
-                  {report.columns.map((col) => (
-                    <th
-                      key={col.field}
-                      style={{
-                        padding: "12px 16px",
-                        textAlign: "left",
-                        fontWeight: "bold",
-                        borderBottom: "2px solid #e0e0e0",
-                      }}
-                    >
-                      {col.label}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {data.slice(0, 10).map((row, index) => (
-                  <tr
-                    key={index}
-                    style={{
-                      borderBottom: "1px solid #e0e0e0",
-                      "&:hover": { backgroundColor: "#fafafa" },
-                    }}
-                  >
+          <Box sx={{ overflowX: "auto", p: 3 }}>
+            <Paper variant="outlined" sx={{ borderRadius: 2, overflow: "hidden" }}>
+              <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                <thead>
+                  <tr style={{ backgroundColor: alpha(PRIMARY_COLOR, 0.05) }}>
                     {report.columns.map((col) => (
-                      <td key={col.field} style={{ padding: "12px 16px" }}>
-                        {formatCellValue(row[col.field], col.field)}
-                      </td>
+                      <th
+                        key={col.field}
+                        style={{
+                          padding: "12px 16px",
+                          textAlign: "left",
+                          fontWeight: 600,
+                          color: PRIMARY_COLOR,
+                          borderBottom: `2px solid ${alpha(PRIMARY_COLOR, 0.2)}`,
+                          fontSize: "0.875rem",
+                        }}
+                      >
+                        {col.label}
+                      </th>
                     ))}
                   </tr>
-                ))}
-              </tbody>
-            </table>
-            {data.length > 10 && (
-              <Typography
-                variant="body2"
-                color="text.secondary"
-                sx={{ mt: 2, textAlign: "center" }}
-              >
-                Showing first 10 of {data.length} records
-              </Typography>
-            )}
+                </thead>
+                <tbody>
+                  {data.slice(0, 10).map((row, index) => (
+                    <tr
+                      key={index}
+                      style={{
+                        borderBottom: "1px solid #e0e0e0",
+                        backgroundColor: index % 2 === 0 ? "white" : alpha(PRIMARY_COLOR, 0.02),
+                        "&:hover": { backgroundColor: alpha(PRIMARY_COLOR, 0.05) },
+                      }}
+                    >
+                      {report.columns.map((col) => (
+                        <td key={col.field} style={{ padding: "12px 16px", fontSize: "0.875rem" }}>
+                          {formatCellValue(row[col.field], col.field)}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </Paper>
           </Box>
         )}
       </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose} variant="outlined">
+      
+      <DialogActions sx={{ p: 3, bgcolor: "grey.50", borderTop: 1, borderColor: "divider" }}>
+        <Button 
+          onClick={onClose} 
+          variant="outlined"
+          sx={{ 
+            borderRadius: 2,
+            px: 4,
+            borderColor: PRIMARY_COLOR,
+            color: PRIMARY_COLOR,
+            "&:hover": {
+              borderColor: SECONDARY_COLOR,
+              bgcolor: alpha(PRIMARY_COLOR, 0.05),
+            }
+          }}
+        >
           Close
         </Button>
       </DialogActions>
@@ -246,6 +296,7 @@ export default function ReportsPage() {
   const { user, fetchAPI } = useAuth();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const isTablet = useMediaQuery(theme.breakpoints.down("md"));
 
   const userRole = user?.role || "TEAM";
   const roleAccess = ROLE_ACCESS[userRole] || ROLE_ACCESS.TEAM;
@@ -281,11 +332,9 @@ export default function ReportsPage() {
 
       for (const report of accessibleReports) {
         try {
-          // Build query parameters based on role
           let endpoint = report.endpoint;
           
           if (!roleAccess.canSeeAll) {
-            // For ASM and TEAM, add user-specific parameters
             if (userRole === "ASM") {
               endpoint = `${report.endpoint}?managerId=${user._id}`;
             } else if (userRole === "TEAM") {
@@ -297,15 +346,14 @@ export default function ReportsPage() {
 
           if (response.success) {
             const result = response.result;
-            results[report.key] = result[report.key] || result.leads || result.sales || result.installations || result.expenses || [];
+            results[report.key] = result[report.key] || result.leads || result.installations || result.expenses || [];
             
-            // Calculate stats for each report
             switch (report.key) {
               case "leads":
                 statsData[report.key] = {
                   total: result.totalLeads || 0,
-                  count: result.leads?.length || 0,
-                  statuses: result.leads?.reduce((acc, lead) => {
+                  count: results[report.key].length || 0,
+                  statuses: results[report.key].reduce((acc, lead) => {
                     const status = lead.status || "Unknown";
                     acc[status] = (acc[status] || 0) + 1;
                     return acc;
@@ -318,7 +366,7 @@ export default function ReportsPage() {
                   total: result.totalInstallations || 0,
                   completed: result.completed || 0,
                   pending: result.pending || 0,
-                  count: result.installations?.length || 0,
+                  count: results[report.key].length || 0,
                   progress: result.totalInstallations > 0 
                     ? Math.round((result.completed / result.totalInstallations) * 100)
                     : 0,
@@ -329,8 +377,8 @@ export default function ReportsPage() {
                 statsData[report.key] = {
                   total: result.totalExpenses || 0,
                   amount: `₹${result.totalAmount || 0}`,
-                  count: result.expenses?.length || 0,
-                  statuses: result.expenses?.reduce((acc, expense) => {
+                  count: results[report.key].length || 0,
+                  statuses: results[report.key].reduce((acc, expense) => {
                     const status = expense.status || "Unknown";
                     acc[status] = (acc[status] || 0) + 1;
                     return acc;
@@ -383,7 +431,6 @@ export default function ReportsPage() {
     setDownloadProgress((prev) => ({ ...prev, [reportKey]: 0 }));
 
     try {
-      // Simulate download progress
       const progressInterval = setInterval(() => {
         setDownloadProgress((prev) => {
           const current = prev[reportKey] || 0;
@@ -395,7 +442,6 @@ export default function ReportsPage() {
         });
       }, 50);
 
-      // Download CSV
       await downloadCSV(report, data);
 
       clearInterval(progressInterval);
@@ -428,7 +474,6 @@ export default function ReportsPage() {
         .map((col) => {
           let value = item[col.field];
           
-          // Handle nested objects
           if (typeof value === 'object' && value !== null) {
             if (col.field === 'assignedManager' || col.field === 'assignedUser' || 
                 col.field === 'createdBy' || col.field === 'approvedBy' || col.field === 'assignedTo') {
@@ -438,17 +483,14 @@ export default function ReportsPage() {
             }
           }
           
-          // Format dates
           if (col.field.includes('Date') || col.field.includes('At')) {
             value = formatDate(value);
           }
           
-          // Format amounts
           if (col.field === 'amount') {
             value = `₹${value}`;
           }
           
-          // Escape quotes and wrap in quotes if contains comma
           const escapedValue = String(value || "").replace(/"/g, '""');
           return value?.includes(",") ? `"${escapedValue}"` : escapedValue;
         })
@@ -476,7 +518,7 @@ export default function ReportsPage() {
       for (const report of accessibleReports) {
         if (reportsData[report.key]?.length > 0) {
           await handleDownload(report.key);
-          await new Promise((resolve) => setTimeout(resolve, 500)); // Delay between downloads
+          await new Promise((resolve) => setTimeout(resolve, 500));
         }
       }
       showSnackbar("All reports downloaded successfully!", "success");
@@ -495,95 +537,69 @@ export default function ReportsPage() {
     switch (reportKey) {
       case "leads":
         return (
-          <Stack
-            direction="row"
-            spacing={1}
-            justifyContent="center"
-            sx={{ mb: 2 }}
-            flexWrap="wrap"
-          >
-            <Chip
-              label={`${stat.total} Leads`}
-              size="small"
-              color="primary"
-              variant="outlined"
-            />
-            {Object.entries(stat.statuses || {}).slice(0, 2).map(([status, count]) => (
-              <Chip
-                key={status}
-                label={`${count} ${status}`}
-                size="small"
-                color={
-                  status.toLowerCase().includes("visit") ? "warning" :
-                  status.toLowerCase().includes("converted") ? "success" :
-                  "default"
-                }
-                variant="outlined"
-              />
-            ))}
-          </Stack>
-        );
-
-      case "sales":
-        return (
-          <Stack
-            direction="row"
-            spacing={1}
-            justifyContent="center"
-            sx={{ mb: 2 }}
-            flexWrap="wrap"
-          >
-            <Chip
-              label={`${stat.total} Sales`}
-              size="small"
-              color="primary"
-              variant="outlined"
-            />
-            <Chip
-              label={stat.revenue}
-              size="small"
-              color="success"
-              variant="outlined"
-            />
+          <Stack spacing={1} sx={{ mb: 2 }}>
+            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <Typography variant="body2" color="text.secondary">Total Leads</Typography>
+              <Typography variant="h6" fontWeight={700} sx={{ color: PRIMARY_COLOR }}>
+                {stat.count}
+              </Typography>
+            </Box>
+            <Box sx={{ display: "flex", gap: 0.5, flexWrap: "wrap" }}>
+              {Object.entries(stat.statuses || {}).slice(0, 3).map(([status, count]) => (
+                <Chip
+                  key={status}
+                  label={`${status}: ${count}`}
+                  size="small"
+                  sx={{
+                    bgcolor: alpha(PRIMARY_COLOR, 0.1),
+                    color: PRIMARY_COLOR,
+                    fontSize: "0.7rem",
+                  }}
+                />
+              ))}
+            </Box>
           </Stack>
         );
 
       case "installation":
         return (
-          <Stack
-            direction="row"
-            spacing={1}
-            justifyContent="center"
-            sx={{ mb: 2 }}
-            flexWrap="wrap"
-          >
-            <Chip label={`${stat.total} Total`} size="small" color="info" variant="outlined" />
-            <Chip label={`${stat.completed} ✓`} size="small" color="success" />
-            <Chip label={`${stat.pending} ⏳`} size="small" color="warning" />
+          <Stack spacing={1} sx={{ mb: 2 }}>
+            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <Typography variant="body2" color="text.secondary">Installations</Typography>
+              <Typography variant="h6" fontWeight={700} sx={{ color: PRIMARY_COLOR }}>
+                {stat.count}
+              </Typography>
+            </Box>
+            <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
+              <Box sx={{ flex: 1, height: 6, bgcolor: alpha(PRIMARY_COLOR, 0.1), borderRadius: 3 }}>
+                <Box
+                  sx={{
+                    width: `${stat.progress}%`,
+                    height: 6,
+                    bgcolor: PRIMARY_COLOR,
+                    borderRadius: 3,
+                  }}
+                />
+              </Box>
+              <Typography variant="caption" color="text.secondary">
+                {stat.completed}/{stat.total}
+              </Typography>
+            </Box>
           </Stack>
         );
 
       case "expenses":
         return (
-          <Stack
-            direction="row"
-            spacing={1}
-            justifyContent="center"
-            sx={{ mb: 2 }}
-            flexWrap="wrap"
-          >
-            <Chip
-              label={`${stat.total} Expenses`}
-              size="small"
-              color="primary"
-              variant="outlined"
-            />
-            <Chip
-              label={stat.amount}
-              size="small"
-              color="success"
-              variant="outlined"
-            />
+          <Stack spacing={1} sx={{ mb: 2 }}>
+            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <Typography variant="body2" color="text.secondary">Total Amount</Typography>
+              <Typography variant="h6" fontWeight={700} sx={{ color: PRIMARY_COLOR }}>
+                {stat.amount}
+              </Typography>
+            </Box>
+            <Typography variant="caption" color="text.secondary">
+              {stat.count} transactions
+            </Typography>
           </Stack>
         );
 
@@ -595,29 +611,30 @@ export default function ReportsPage() {
   return (
     <Box
       sx={{
-        p: { xs: 2, sm: 3, md: 4 },
+        p: { xs: 2, sm: 3 },
         bgcolor: "#ffffff",
         minHeight: "100vh",
       }}
     >
       {/* Header */}
-      <Box
-        sx={{
-          mb: 4,
-          textAlign: { xs: "center", md: "left" },
-          display: "flex",
-          flexDirection: { xs: "column", md: "row" },
-          alignItems: { xs: "center", md: "flex-start" },
-          justifyContent: "space-between",
-          gap: 2,
-        }}
+      <Stack
+        direction={{ xs: "column", md: "row" }}
+        spacing={2}
+        sx={{ mb: 4 }}
+        justifyContent="space-between"
+        alignItems={{ xs: "stretch", md: "center" }}
       >
         <Box>
-          <Typography variant="h5" fontWeight="bold" sx={{ mb: 1 }}>
-            Available Reports ({userRole})
+          <Typography
+            variant="h5"
+            fontWeight={700}
+            gutterBottom
+            sx={{ color: PRIMARY_COLOR }}
+          >
+            Reports Dashboard
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            Access and download CSV reports based on your role permissions.
+            Access and download CSV reports based on your role permissions • Role: {userRole}
           </Typography>
         </Box>
 
@@ -628,6 +645,14 @@ export default function ReportsPage() {
             onClick={fetchAllReports}
             disabled={loading}
             size={isMobile ? "small" : "medium"}
+            sx={{
+              borderColor: PRIMARY_COLOR,
+              color: PRIMARY_COLOR,
+              "&:hover": {
+                borderColor: SECONDARY_COLOR,
+                bgcolor: alpha(PRIMARY_COLOR, 0.05),
+              },
+            }}
           >
             Refresh
           </Button>
@@ -638,13 +663,16 @@ export default function ReportsPage() {
             disabled={loading || Object.keys(reportsData).length === 0}
             size={isMobile ? "small" : "medium"}
             sx={{
-              background: "#3451b5",
+              background: "#4569ea",
+              "&:hover": {
+                bgcolor: SECONDARY_COLOR,
+              },
             }}
           >
             Download All
           </Button>
         </Stack>
-      </Box>
+      </Stack>
 
       {/* Loading State */}
       {loading && !Object.keys(reportsData).length && (
@@ -658,7 +686,7 @@ export default function ReportsPage() {
             gap: 3,
           }}
         >
-          <CircularProgress size={60} sx={{ color: primary }} />
+          <CircularProgress size={60} sx={{ color: PRIMARY_COLOR }} />
           <Typography variant="h6" color="text.secondary">
             Loading reports...
           </Typography>
@@ -666,26 +694,25 @@ export default function ReportsPage() {
       )}
 
       {/* Reports Grid */}
-      <Grid container spacing={3} justifyContent="center">
+      <Grid container spacing={3}>
         {accessibleReports.map((report) => (
-          <Grid item xs={12} sm={6} md={6} key={report.key}>
+          <Grid item xs={12} md={4} key={report.key}>
             <Card
               sx={{
                 borderRadius: 3,
                 boxShadow: "0 4px 20px rgba(0,0,0,0.05)",
                 bgcolor: "white",
-                p: 3,
-                width: "360px",
                 display: "flex",
                 flexDirection: "column",
                 height: "100%",
-                border: "1px solid #f0f0f0",
+                border: `1px solid ${alpha(PRIMARY_COLOR, 0.1)}`,
                 position: "relative",
                 overflow: "hidden",
                 "&:hover": {
                   boxShadow: "0 8px 32px rgba(0,0,0,0.1)",
                   transform: "translateY(-2px)",
                   transition: "all 0.3s ease",
+                  borderColor: PRIMARY_COLOR,
                 },
               }}
             >
@@ -701,48 +728,40 @@ export default function ReportsPage() {
                       left: 0,
                       right: 0,
                       height: 4,
-                      bgcolor: "rgba(255, 109, 0, 0.1)",
+                      bgcolor: alpha(PRIMARY_COLOR, 0.1),
                       "& .MuiLinearProgress-bar": {
-                        bgcolor: primary,
+                        bgcolor: PRIMARY_COLOR,
                       },
                     }}
                   />
                 )}
 
-              <CardContent sx={{ width: "100%", p: 0 }}>
-                {/* Icon + Title/Description */}
+              <CardContent sx={{ p: 3 }}>
+                {/* Header with Icon */}
                 <Box
                   sx={{
                     display: "flex",
-                    alignItems: "flex-start",
+                    alignItems: "center",
+                    gap: 2,
                     mb: 3,
-                    flexDirection: { xs: "column", sm: "row" },
-                    gap: { xs: 2, sm: 0 },
                   }}
                 >
                   <Box
                     sx={{
-                      width: 60,
-                      height: 60,
-                      borderRadius: "50%",
-                      background:"#3451b5",
+                      width: 56,
+                      height: 56,
+                      borderRadius: 2,
+                      bgcolor: alpha(PRIMARY_COLOR, 0.1),
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      color: primary,
-                      mr: { sm: 2 },
-                      flexShrink: 0,
+                      color: PRIMARY_COLOR,
                     }}
                   >
-                    {React.cloneElement(report.icon, { sx: { fontSize: 30 , color:"#fff" } })}
+                    {React.cloneElement(report.icon, { sx: { fontSize: 28 } })}
                   </Box>
-                  <Box
-                    sx={{
-                      textAlign: { xs: "center", sm: "left" },
-                      flexGrow: 1,
-                    }}
-                  >
-                    <Typography variant="h6" fontWeight="bold" gutterBottom>
+                  <Box>
+                    <Typography variant="h6" fontWeight={700} gutterBottom>
                       {report.title}
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
@@ -754,104 +773,72 @@ export default function ReportsPage() {
                 {/* Stats */}
                 {renderStats(report.key)}
 
-                <Divider
-                  sx={{
-                    border: "1px solid #ddd",
-                    my: 3,
-                  }}
-                />
+                <Divider sx={{ my: 2 }} />
 
-                {/* Record Count and CSV Icon */}
+                {/* Record Count */}
                 <Box
                   sx={{
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    mb: 2,
                     gap: 1,
+                    mb: 2,
                   }}
                 >
-                  <InsertDriveFile
-                    sx={{ color: "text.secondary", fontSize: 20 }}
-                  />
+                  <InsertDriveFile sx={{ color: alpha(PRIMARY_COLOR, 0.5), fontSize: 20 }} />
                   <Typography variant="body2" color="text.secondary">
                     {reportsData[report.key]?.length || 0} records • CSV format
                   </Typography>
                 </Box>
 
                 {/* Action Buttons */}
-                <Box
-                  sx={{
-                    display: "flex",
-                    justifyContent: "center",
-                    gap: 2,
-                    flexDirection: { xs: "column", sm: "row" },
-                  }}
-                >
+                <Stack direction="row" spacing={1}>
                   <Button
-                    fullWidth={isMobile}
+                    fullWidth
                     variant="contained"
                     onClick={() => handleDownload(report.key)}
                     disabled={
                       downloadProgress[report.key] > 0 ||
                       !reportsData[report.key]?.length
                     }
+                    startIcon={<Download />}
                     sx={{
-                      background: "#3451b5",
-                      borderRadius: 8,
-                      px: isMobile ? 2 : 4,
-                      py: 1.2,
+                      background: "#4569ea",
+                      borderRadius: 2,
                       textTransform: "none",
-                      color: "#fff",
                       fontWeight: 600,
-                      fontSize: isMobile ? "0.8rem" : "0.9rem",
-                      minWidth: isMobile ? "auto" : 100,
                       "&:hover": {
-                        bgcolor: "#e65c00",
-                        transform: "translateY(-1px)",
-                        boxShadow: "0 4px 12px rgba(255, 109, 0, 0.3)",
+                        bgcolor: SECONDARY_COLOR,
                       },
                       "&:disabled": {
-                        bgcolor: "rgba(255, 109, 0, 0.3)",
+                        bgcolor: alpha(PRIMARY_COLOR, 0.3),
                       },
                     }}
                   >
-                    {downloadProgress[report.key]
-                      ? "Downloading..."
-                      : "Download CSV"}
+                    {downloadProgress[report.key] ? "Downloading..." : "Download"}
                   </Button>
 
                   <Button
-                    fullWidth={isMobile}
+                    fullWidth
                     variant="outlined"
-                    startIcon={<Visibility />}
                     onClick={() => handleView(report.key)}
                     disabled={!reportsData[report.key]?.length}
+                    startIcon={<Visibility />}
                     sx={{
-                      background: "#fff",
-                      color: "#2341b5",
-                      borderRadius: 8,
-                      borderColor:"#3451b5",
-                      px: isMobile ? 2 : 4,
-                      py: 1.2,
+                      borderColor: PRIMARY_COLOR,
+                      color: PRIMARY_COLOR,
+                      borderRadius: 2,
                       textTransform: "none",
                       fontWeight: 600,
-                      fontSize: isMobile ? "0.8rem" : "0.9rem",
-                      minWidth: isMobile ? "auto" : 100,
                       "&:hover": {
-                        borderColor: "#e65c00",
-                        color: "#e65c00",
-                        bgcolor: "rgba(255, 109, 0, 0.04)",
-                      },
-                      "&:disabled": {
-                        borderColor: "rgba(0, 0, 0, 0.12)",
-                        color: "rgba(0, 0, 0, 0.26)",
+                        borderColor: SECONDARY_COLOR,
+                        bgcolor: alpha(PRIMARY_COLOR, 0.05),
                       },
                     }}
                   >
                     View
                   </Button>
-                </Box>
+                </Stack>
               </CardContent>
             </Card>
           </Grid>
@@ -870,7 +857,19 @@ export default function ReportsPage() {
             gap: 3,
           }}
         >
-          <Assessment sx={{ fontSize: 60, color: "text.disabled" }} />
+          <Box
+            sx={{
+              width: 120,
+              height: 120,
+              borderRadius: "50%",
+              bgcolor: alpha(PRIMARY_COLOR, 0.05),
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Assessment sx={{ fontSize: 60, color: alpha(PRIMARY_COLOR, 0.3) }} />
+          </Box>
           <Typography variant="h6" color="text.secondary">
             No reports available for your role
           </Typography>
@@ -892,7 +891,19 @@ export default function ReportsPage() {
             gap: 3,
           }}
         >
-          <Assessment sx={{ fontSize: 60, color: "text.disabled" }} />
+          <Box
+            sx={{
+              width: 120,
+              height: 120,
+              borderRadius: "50%",
+              bgcolor: alpha(PRIMARY_COLOR, 0.05),
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Info sx={{ fontSize: 60, color: alpha(PRIMARY_COLOR, 0.3) }} />
+          </Box>
           <Typography variant="h6" color="text.secondary">
             No data available for reports
           </Typography>
@@ -903,7 +914,15 @@ export default function ReportsPage() {
             variant="outlined"
             startIcon={<Refresh />}
             onClick={fetchAllReports}
-            sx={{ mt: 2 }}
+            sx={{
+              mt: 2,
+              borderColor: PRIMARY_COLOR,
+              color: PRIMARY_COLOR,
+              "&:hover": {
+                borderColor: SECONDARY_COLOR,
+                bgcolor: alpha(PRIMARY_COLOR, 0.05),
+              },
+            }}
           >
             Refresh Data
           </Button>
@@ -915,7 +934,7 @@ export default function ReportsPage() {
         sx={{
           mt: 6,
           pt: 3,
-          borderTop: "1px solid #e0e0e0",
+          borderTop: `1px solid ${alpha(PRIMARY_COLOR, 0.1)}`,
           textAlign: "center",
         }}
       >
@@ -947,12 +966,14 @@ export default function ReportsPage() {
         <Alert
           onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
           severity={snackbar.severity}
-          sx={{ width: "100%" }}
+          variant="filled"
+          sx={{ 
+            width: "100%",
+            bgcolor: snackbar.severity === "success" ? PRIMARY_COLOR : undefined,
+          }}
           iconMapping={{
             success: <CheckCircle fontSize="inherit" />,
             error: <Error fontSize="inherit" />,
-            warning: <Error fontSize="inherit" />,
-            info: <Error fontSize="inherit" />,
           }}
         >
           {snackbar.message}

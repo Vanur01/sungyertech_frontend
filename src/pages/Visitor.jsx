@@ -1,4 +1,4 @@
-// pages/VisitorTrackingPage.jsx - Fixed Imports
+// pages/VisitorTrackingPage.jsx - Fully Responsive Version
 import React, {
   useState,
   useEffect,
@@ -15,7 +15,7 @@ import {
   Select,
   MenuItem,
   FormControl,
-  InputLabel,
+  InputLabel,Fab,
   Button,
   Table,
   TableBody,
@@ -75,6 +75,8 @@ import {
   Link,
   AlertTitle,
   ListSubheader,
+  Drawer,
+  SwipeableDrawer,
 } from "@mui/material";
 
 // Import Timeline components from @mui/lab
@@ -208,6 +210,7 @@ import {
   Security,
   CalendarToday,
   Edit,
+  Menu as MenuIcon,
 } from "@mui/icons-material";
 
 import { useAuth } from "../contexts/AuthContext";
@@ -226,12 +229,13 @@ import { motion, AnimatePresence } from "framer-motion";
 import Webcam from "react-webcam";
 
 // ========== CONSTANTS & CONFIGURATION ==========
-const PRIMARY = "#3a5ac8";
-const SECONDARY = "#2c489e";
+const PRIMARY = "#4569ea";
+const SECONDARY = "#1a237e";
 const SUCCESS = "#4caf50";
 const WARNING = "#ff9800";
 const ERROR = "#f44336";
 const INFO = "#2196f3";
+const BG_LIGHT = "#f8fafd";
 
 const ITEMS_PER_PAGE_OPTIONS = [5, 10, 25, 50];
 const DEFAULT_ITEMS_PER_PAGE = 10;
@@ -257,7 +261,7 @@ const LOCATION_TYPE_CONFIG = {
     icon: <Business sx={{ fontSize: 16 }} />,
     color: PRIMARY,
     bg: alpha(PRIMARY, 0.1),
-    gradient: "linear-gradient(135deg, #3a5ac8 0%, #5c7ed6 100%)",
+    gradient: `linear-gradient(135deg, ${PRIMARY} 0%, ${SECONDARY} 100%)`,
   },
   [LOCATION_TYPES.CLIENT_SITE]: {
     label: "Client Site",
@@ -397,19 +401,19 @@ const ROLE_CONFIG = {
     label: "Head Office",
     color: PRIMARY,
     icon: <Person sx={{ fontSize: 16 }} />,
-    gradient: "linear-gradient(135deg, #3a5ac8 0%, #5c7ed6 100%)",
+    gradient: `linear-gradient(135deg, ${PRIMARY} 0%, ${SECONDARY} 100%)`,
   },
   ZSM: {
     label: "Zone Sales Manager",
     color: PRIMARY,
     icon: <Person sx={{ fontSize: 16 }} />,
-    gradient: "linear-gradient(135deg, #3a5ac8 0%, #5c7ed6 100%)",
+    gradient: `linear-gradient(135deg, ${PRIMARY} 0%, ${SECONDARY} 100%)`,
   },
   ASM: {
     label: "Area Sales Manager",
     color: PRIMARY,
     icon: <Person sx={{ fontSize: 16 }} />,
-    gradient: "linear-gradient(135deg, #3a5ac8 0%, #5c7ed6 100%)",
+    gradient: `linear-gradient(135deg, ${PRIMARY} 0%, ${SECONDARY} 100%)`,
   },
   TEAM: {
     label: "Field Executive",
@@ -549,7 +553,7 @@ const formatFileSize = (bytes) => {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
 };
 
-// Safe date formatting function
+// Safe date formatting functions
 const safeFormatDate = (dateString, formatStr = "dd MMM yyyy, hh:mm a") => {
   if (!dateString) return "Not set";
   try {
@@ -561,7 +565,6 @@ const safeFormatDate = (dateString, formatStr = "dd MMM yyyy, hh:mm a") => {
   }
 };
 
-// Safe date only formatting (no time)
 const safeFormatDateOnly = (dateString, formatStr = "dd MMM yyyy") => {
   if (!dateString) return "Not set";
   try {
@@ -573,7 +576,6 @@ const safeFormatDateOnly = (dateString, formatStr = "dd MMM yyyy") => {
   }
 };
 
-// Safe time formatting
 const safeFormatTime = (dateString, formatStr = "hh:mm a") => {
   if (!dateString) return "--:--";
   try {
@@ -602,7 +604,6 @@ const formatTimeAgo = (dateString) => {
 
 // ========== API SERVICE LAYER ==========
 const VisitService = {
-  // Create visit - POST /api/v1/visit
   createVisit: async (fetchAPI, formData) => {
     return await fetchAPI("/visit", {
       method: "POST",
@@ -610,7 +611,6 @@ const VisitService = {
     });
   },
 
-  // Get all visits with pagination - GET /api/v1/visit
   getVisits: async (fetchAPI, page = 1, limit = 10, filters = {}) => {
     let url = `/visit?page=${page}&limit=${limit}`;
     
@@ -623,12 +623,10 @@ const VisitService = {
     return await fetchAPI(url);
   },
 
-  // Get visit by ID - GET /api/v1/visit/:id
   getVisitById: async (fetchAPI, id) => {
     return await fetchAPI(`/visit/${id}`);
   },
 
-  // Update visit - PUT /api/v1/visit/:id
   updateVisit: async (fetchAPI, id, formData) => {
     return await fetchAPI(`/visit/${id}`, {
       method: "PUT",
@@ -636,19 +634,16 @@ const VisitService = {
     });
   },
 
-  // Delete visit - DELETE /api/v1/visit/:id
   deleteVisit: async (fetchAPI, id) => {
     return await fetchAPI(`/visit/${id}`, {
       method: "DELETE",
     });
   },
 
-  // Get visit stats - GET /api/v1/visit/stats
   getVisitStats: async (fetchAPI) => {
     return await fetchAPI("/visit/stats");
   },
 
-  // Get visit report - GET /api/v1/visit/report/:type
   getVisitReport: async (fetchAPI, type, params = {}) => {
     let url = `/visit/report/${type}`;
     const queryParams = [];
@@ -664,10 +659,206 @@ const VisitService = {
     return await fetchAPI(url);
   },
 
-  // Get daily summary - GET /api/v1/visit/daily-summary
   getDailySummary: async (fetchAPI, date) => {
     return await fetchAPI(`/visit/daily-summary?date=${date}`);
   },
+};
+
+// ========== MOBILE VISIT CARD COMPONENT ==========
+const MobileVisitCard = ({ visit, onView, onEdit, onDelete, onViewImage, canEdit, canDelete }) => {
+  const [expanded, setExpanded] = useState(false);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.95 }}
+      transition={{ duration: 0.2 }}
+    >
+      <Card
+        sx={{
+          mb: 2,
+          borderRadius: 3,
+          border: `1px solid ${alpha(PRIMARY, 0.1)}`,
+          overflow: "hidden",
+          bgcolor: "white",
+          boxShadow: "0 4px 12px rgba(0,0,0,0.03)",
+        }}
+      >
+        <CardContent sx={{ p: 2 }}>
+          {/* Header */}
+          <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 2 }}>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, flex: 1 }}>
+              <Avatar
+                sx={{
+                  bgcolor: alpha(PRIMARY, 0.1),
+                  color: PRIMARY,
+                  width: 44,
+                  height: 44,
+                }}
+              >
+                {visit.user?.firstName?.[0] || "V"}
+              </Avatar>
+              <Box sx={{ flex: 1 }}>
+                <Typography variant="subtitle1" fontWeight={700} sx={{ color: PRIMARY }}>
+                  {visit.user?.firstName} {visit.user?.lastName}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  {visit.user?.role || "Visitor"}
+                </Typography>
+              </Box>
+            </Box>
+            {visit.kmFromPrevious > 0 && (
+              <Chip
+                label={formatDistance(visit.kmFromPrevious)}
+                size="small"
+                sx={{
+                  bgcolor: alpha(WARNING, 0.1),
+                  color: WARNING,
+                  fontWeight: 600,
+                }}
+              />
+            )}
+          </Box>
+
+          {/* Location Info */}
+          <Box sx={{ mb: 2 }}>
+            <Typography variant="body2" fontWeight={600}>
+              {visit.locationName}
+            </Typography>
+            <Typography variant="caption" color="text.secondary" sx={{ display: "flex", alignItems: "center", gap: 0.5, mt: 0.5 }}>
+              <AccessTime sx={{ fontSize: 14 }} />
+              {safeFormatDateOnly(visit.visitedAt, "dd MMM yyyy")} • {safeFormatTime(visit.visitedAt)}
+            </Typography>
+          </Box>
+
+          {/* Remarks (if available) */}
+          {visit.remarks && (
+            <Box
+              sx={{
+                p: 1.5,
+                bgcolor: alpha(PRIMARY, 0.03),
+                borderRadius: 2,
+                mb: 2,
+              }}
+            >
+              <Typography variant="caption" color="text.secondary">
+                {visit.remarks}
+              </Typography>
+            </Box>
+          )}
+
+          {/* Expandable Details */}
+          <AnimatePresence>
+            {expanded && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.2 }}
+              >
+                <Box sx={{ mt: 2, pt: 2, borderTop: `1px solid ${alpha(PRIMARY, 0.1)}` }}>
+                  <Grid container spacing={2}>
+                    <Grid item xs={6}>
+                      <Typography variant="caption" color="text.secondary">
+                        Latitude
+                      </Typography>
+                      <Typography variant="body2" fontWeight={600}>
+                        {visit.location?.lat?.toFixed(6)}° N
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={6}>
+                      <Typography variant="caption" color="text.secondary">
+                        Longitude
+                      </Typography>
+                      <Typography variant="body2" fontWeight={600}>
+                        {visit.location?.lng?.toFixed(6)}° E
+                      </Typography>
+                    </Grid>
+                  </Grid>
+                </Box>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Actions */}
+          <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mt: 2 }}>
+            <Button
+              size="small"
+              onClick={() => setExpanded(!expanded)}
+              sx={{ color: PRIMARY }}
+            >
+              {expanded ? "Show Less" : "View Coordinates"}
+            </Button>
+            
+            <Box sx={{ display: "flex", gap: 1 }}>
+              <Tooltip title="View Details">
+                <IconButton
+                  size="small"
+                  onClick={() => onView(visit)}
+                  sx={{
+                    bgcolor: alpha(PRIMARY, 0.1),
+                    color: PRIMARY,
+                    "&:hover": { bgcolor: alpha(PRIMARY, 0.2) },
+                  }}
+                >
+                  <Visibility fontSize="small" />
+                </IconButton>
+              </Tooltip>
+
+              {visit.photoUrl && (
+                <Tooltip title="View Image">
+                  <IconButton
+                    size="small"
+                    onClick={() => onViewImage(visit.photoUrl, visit.locationName)}
+                    sx={{
+                      bgcolor: alpha(SUCCESS, 0.1),
+                      color: SUCCESS,
+                      "&:hover": { bgcolor: alpha(SUCCESS, 0.2) },
+                    }}
+                  >
+                    <ImageIcon fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+              )}
+
+              {canEdit && (
+                <Tooltip title="Edit">
+                  <IconButton
+                    size="small"
+                    onClick={() => onEdit(visit)}
+                    sx={{
+                      bgcolor: alpha(INFO, 0.1),
+                      color: INFO,
+                      "&:hover": { bgcolor: alpha(INFO, 0.2) },
+                    }}
+                  >
+                    <Edit fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+              )}
+
+              {canDelete && (
+                <Tooltip title="Delete">
+                  <IconButton
+                    size="small"
+                    onClick={() => onDelete(visit._id)}
+                    sx={{
+                      bgcolor: alpha(ERROR, 0.1),
+                      color: ERROR,
+                      "&:hover": { bgcolor: alpha(ERROR, 0.2) },
+                    }}
+                  >
+                    <Delete fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+              )}
+            </Box>
+          </Box>
+        </CardContent>
+      </Card>
+    </motion.div>
+  );
 };
 
 // ========== WEBCAM CAPTURE COMPONENT ==========
@@ -686,7 +877,6 @@ const WebcamCapture = ({ onCapture, onClose }) => {
 
   const confirmCapture = () => {
     if (capturedImage) {
-      // Convert base64 to file
       fetch(capturedImage)
         .then(res => res.blob())
         .then(blob => {
@@ -723,7 +913,7 @@ const WebcamCapture = ({ onCapture, onClose }) => {
               startIcon={<CameraAlt />}
               sx={{ borderRadius: 2 }}
             >
-              Capture Photo
+              Capture
             </Button>
             <Button
               variant="outlined"
@@ -741,7 +931,7 @@ const WebcamCapture = ({ onCapture, onClose }) => {
             alt="Captured"
             style={{
               width: '100%',
-              maxHeight: 400,
+              maxHeight: 300,
               objectFit: 'contain',
               borderRadius: 8,
               marginBottom: 16
@@ -754,7 +944,7 @@ const WebcamCapture = ({ onCapture, onClose }) => {
               startIcon={<CheckCircle />}
               sx={{ borderRadius: 2, bgcolor: SUCCESS }}
             >
-              Use Photo
+              Use
             </Button>
             <Button
               variant="outlined"
@@ -764,13 +954,6 @@ const WebcamCapture = ({ onCapture, onClose }) => {
             >
               Retake
             </Button>
-            <Button
-              variant="outlined"
-              onClick={onClose}
-              sx={{ borderRadius: 2 }}
-            >
-              Cancel
-            </Button>
           </Stack>
         </>
       )}
@@ -778,7 +961,7 @@ const WebcamCapture = ({ onCapture, onClose }) => {
   );
 };
 
-// ========== ENHANCED LOCATION PERMISSION DIALOG ==========
+// ========== LOCATION PERMISSION DIALOG ==========
 const LocationPermissionDialog = ({ open, onClose, onAllow, onDeny }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
@@ -793,7 +976,7 @@ const LocationPermissionDialog = ({ open, onClose, onAllow, onDeny }) => {
       PaperProps={{
         sx: {
           borderRadius: isMobile ? 0 : 4,
-          background: "linear-gradient(145deg, #ffffff 0%, #f8fafc 100%)",
+          background: "white",
           boxShadow: "0 25px 50px -12px rgba(0,0,0,0.25)",
           overflow: "hidden",
         },
@@ -824,7 +1007,7 @@ const LocationPermissionDialog = ({ open, onClose, onAllow, onDeny }) => {
                 display: "inline-flex",
                 p: 2,
                 borderRadius: "50%",
-                background: `linear-gradient(135deg, ${alpha(PRIMARY, 0.1)} 0%, ${alpha(PRIMARY, 0.05)} 100%)`,
+                bgcolor: alpha(PRIMARY, 0.1),
                 mb: 2,
               }}
             >
@@ -832,180 +1015,103 @@ const LocationPermissionDialog = ({ open, onClose, onAllow, onDeny }) => {
                 sx={{
                   fontSize: 64,
                   color: PRIMARY,
-                  filter: "drop-shadow(0 8px 12px rgba(58,90,200,0.2))",
                 }}
               />
             </Box>
           </motion.div>
           
-          <Typography variant="h4" fontWeight={800} gutterBottom>
+          <Typography variant="h5" fontWeight={800} gutterBottom>
             Location Access Required
           </Typography>
-          <Typography variant="body1" color="text.secondary" sx={{ maxWidth: 400, mx: "auto" }}>
+          <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 400, mx: "auto" }}>
             To track your visits and calculate distances accurately, we need access to your location
           </Typography>
         </DialogTitle>
 
-        <DialogContent sx={{ px: 4, py: 2 }}>
-          <Stack spacing={3}>
-            {/* Benefits Cards */}
-            <Grid container spacing={2}>
+        <DialogContent sx={{ px: isMobile ? 2 : 4, py: 2 }}>
+          <Stack spacing={2}>
+            <Grid container spacing={1}>
               {[
                 {
-                  icon: <GpsFixed sx={{ fontSize: 32 }} />,
+                  icon: <GpsFixed sx={{ fontSize: 24 }} />,
                   title: "Accurate Tracking",
-                  description: "Get precise location data for your field visits",
+                  description: "Get precise location data",
                   color: PRIMARY,
                 },
                 {
-                  icon: <Route sx={{ fontSize: 32 }} />,
+                  icon: <Route sx={{ fontSize: 24 }} />,
                   title: "Distance Calculation",
-                  description: "Automatically calculate KM traveled and travel time",
+                  description: "Auto-calculate KM traveled",
                   color: SUCCESS,
                 },
                 {
-                  icon: <TimelineIcon sx={{ fontSize: 32 }} />,
+                  icon: <TimelineIcon sx={{ fontSize: 24 }} />,
                   title: "Visit History",
-                  description: "Maintain complete history of your visit locations",
+                  description: "Complete location history",
                   color: WARNING,
                 },
               ].map((item, index) => (
                 <Grid item xs={12} key={index}>
-                  <motion.div
-                    initial={{ x: -20, opacity: 0 }}
-                    animate={{ x: 0, opacity: 1 }}
-                    transition={{ delay: index * 0.1 }}
+                  <Paper
+                    elevation={0}
+                    sx={{
+                      p: 1.5,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 1.5,
+                      bgcolor: alpha(item.color, 0.05),
+                      borderRadius: 2,
+                      border: `1px solid ${alpha(item.color, 0.1)}`,
+                    }}
                   >
-                    <Paper
-                      elevation={0}
+                    <Box
                       sx={{
-                        p: 2,
+                        width: 40,
+                        height: 40,
+                        borderRadius: 2,
                         display: "flex",
                         alignItems: "center",
-                        gap: 2,
-                        bgcolor: alpha(item.color, 0.05),
-                        borderRadius: 3,
-                        border: `1px solid ${alpha(item.color, 0.1)}`,
+                        justifyContent: "center",
+                        bgcolor: alpha(item.color, 0.1),
+                        color: item.color,
                       }}
                     >
-                      <Box
-                        sx={{
-                          width: 56,
-                          height: 56,
-                          borderRadius: 3,
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          background: `linear-gradient(135deg, ${alpha(item.color, 0.2)} 0%, ${alpha(item.color, 0.1)} 100%)`,
-                          color: item.color,
-                        }}
-                      >
-                        {item.icon}
-                      </Box>
-                      <Box>
-                        <Typography variant="subtitle1" fontWeight={600}>
-                          {item.title}
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          {item.description}
-                        </Typography>
-                      </Box>
-                    </Paper>
-                  </motion.div>
+                      {item.icon}
+                    </Box>
+                    <Box>
+                      <Typography variant="body2" fontWeight={600}>
+                        {item.title}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        {item.description}
+                      </Typography>
+                    </Box>
+                  </Paper>
                 </Grid>
               ))}
             </Grid>
 
-            {/* Privacy Note */}
             <Alert
               severity="info"
               sx={{
-                borderRadius: 3,
+                borderRadius: 2,
                 bgcolor: alpha(INFO, 0.05),
                 border: `1px solid ${alpha(INFO, 0.1)}`,
               }}
               icon={<Security sx={{ color: INFO }} />}
             >
-              <AlertTitle sx={{ fontWeight: 600 }}>Your Privacy Matters</AlertTitle>
-              <Typography variant="body2">
-                We only track your location while you are actively using the app. 
-                Location data is encrypted and never shared with third parties.
+              <Typography variant="caption">
+                We only track your location while you are actively using the app.
               </Typography>
             </Alert>
-
-            {/* Instructions */}
-            <Box
-              sx={{
-                p: 2,
-                bgcolor: alpha(PRIMARY, 0.03),
-                borderRadius: 3,
-              }}
-            >
-              <Typography variant="subtitle2" fontWeight={600} gutterBottom>
-                How to enable location:
-              </Typography>
-              <Stepper orientation="vertical" sx={{ mt: 1 }}>
-                <Step active>
-                  <StepLabel
-                    StepIconProps={{
-                      sx: {
-                        "& .MuiStepIcon-text": { fill: "white" },
-                        "& .MuiStepIcon-root": { color: PRIMARY },
-                      },
-                    }}
-                  >
-                    Click "Allow Location Access" button below
-                  </StepLabel>
-                  <StepContent>
-                    <Typography variant="caption" color="text.secondary">
-                      Your browser will show a permission prompt
-                    </Typography>
-                  </StepContent>
-                </Step>
-                <Step active>
-                  <StepLabel
-                    StepIconProps={{
-                      sx: {
-                        "& .MuiStepIcon-text": { fill: "white" },
-                        "& .MuiStepIcon-root": { color: PRIMARY },
-                      },
-                    }}
-                  >
-                    Select "Allow" in the browser prompt
-                  </StepLabel>
-                  <StepContent>
-                    <Typography variant="caption" color="text.secondary">
-                      This allows us to access your device's GPS
-                    </Typography>
-                  </StepContent>
-                </Step>
-                <Step active>
-                  <StepLabel
-                    StepIconProps={{
-                      sx: {
-                        "& .MuiStepIcon-text": { fill: "white" },
-                        "& .MuiStepIcon-root": { color: PRIMARY },
-                      },
-                    }}
-                  >
-                    Start tracking your visits
-                  </StepLabel>
-                  <StepContent>
-                    <Typography variant="caption" color="text.secondary">
-                      You can now use real-time location tracking
-                    </Typography>
-                  </StepContent>
-                </Step>
-              </Stepper>
-            </Box>
           </Stack>
         </DialogContent>
 
         <DialogActions
           sx={{
-            p: 4,
-            pt: 2,
-            gap: 2,
+            p: isMobile ? 2 : 4,
+            pt: 1,
+            gap: 1,
             flexDirection: { xs: "column", sm: "row" },
           }}
         >
@@ -1013,13 +1119,8 @@ const LocationPermissionDialog = ({ open, onClose, onAllow, onDeny }) => {
             fullWidth
             variant="outlined"
             onClick={onDeny}
-            size="large"
-            sx={{
-              borderRadius: 3,
-              py: 1.5,
-              borderWidth: 2,
-              "&:hover": { borderWidth: 2 },
-            }}
+            size={isMobile ? "medium" : "large"}
+            sx={{ borderRadius: 2 }}
           >
             Not Now
           </Button>
@@ -1027,19 +1128,15 @@ const LocationPermissionDialog = ({ open, onClose, onAllow, onDeny }) => {
             fullWidth
             variant="contained"
             onClick={onAllow}
-            size="large"
+            size={isMobile ? "medium" : "large"}
             startIcon={<MyLocation />}
             sx={{
-              borderRadius: 3,
-              py: 1.5,
-              background: `linear-gradient(45deg, ${PRIMARY} 30%, ${SECONDARY} 90%)`,
-              boxShadow: `0 8px 16px ${alpha(PRIMARY, 0.3)}`,
-              "&:hover": {
-                background: `linear-gradient(45deg, ${SECONDARY} 30%, ${PRIMARY} 90%)`,
-              },
+              borderRadius: 2,
+              bgcolor: PRIMARY,
+              "&:hover": { bgcolor: SECONDARY },
             }}
           >
-            Allow Location Access
+            Allow Access
           </Button>
         </DialogActions>
       </Box>
@@ -1092,7 +1189,7 @@ const CreateVisitDialog = ({ open, onClose, onSubmit, loading }) => {
         let errorMsg = "Unable to get location";
         switch (error.code) {
           case error.PERMISSION_DENIED:
-            errorMsg = "Location permission denied. Please enable location access.";
+            errorMsg = "Location permission denied.";
             break;
           case error.POSITION_UNAVAILABLE:
             errorMsg = "Location information is unavailable.";
@@ -1100,8 +1197,6 @@ const CreateVisitDialog = ({ open, onClose, onSubmit, loading }) => {
           case error.TIMEOUT:
             errorMsg = "Location request timed out.";
             break;
-          default:
-            errorMsg = "An unknown error occurred.";
         }
         setErrors((prev) => ({ ...prev, location: errorMsg }));
         setGettingLocation(false);
@@ -1163,7 +1258,6 @@ const CreateVisitDialog = ({ open, onClose, onSubmit, loading }) => {
 
   return (
     <>
-      {/* Camera Dialog */}
       <Dialog
         open={showCamera}
         onClose={() => setShowCamera(false)}
@@ -1171,16 +1265,16 @@ const CreateVisitDialog = ({ open, onClose, onSubmit, loading }) => {
         fullWidth
         PaperProps={{
           sx: {
-            borderRadius: 4,
+            borderRadius: 3,
           },
         }}
       >
-        <DialogTitle sx={{ borderBottom: 1, borderColor: 'divider' }}>
+        <DialogTitle sx={{ borderBottom: 1, borderColor: 'divider', py: 1.5 }}>
           <Stack direction="row" alignItems="center" justifyContent="space-between">
             <Typography variant="h6" fontWeight={600}>
               Take Photo
             </Typography>
-            <IconButton onClick={() => setShowCamera(false)}>
+            <IconButton onClick={() => setShowCamera(false)} size="small">
               <Close />
             </IconButton>
           </Stack>
@@ -1193,7 +1287,6 @@ const CreateVisitDialog = ({ open, onClose, onSubmit, loading }) => {
         </DialogContent>
       </Dialog>
 
-      {/* Main Create Visit Dialog */}
       <Dialog
         open={open}
         onClose={handleClose}
@@ -1202,101 +1295,89 @@ const CreateVisitDialog = ({ open, onClose, onSubmit, loading }) => {
         fullScreen={isMobile}
         PaperProps={{
           sx: {
-            borderRadius: isMobile ? 0 : 4,
+            borderRadius: isMobile ? 0 : 3,
           },
         }}
       >
         <DialogTitle
           sx={{
-            pb: 2,
+            pb: 1.5,
             borderBottom: 1,
             borderColor: "divider",
           }}
         >
           <Stack direction="row" alignItems="center" justifyContent="space-between">
-            <Box display="flex" alignItems="center" gap={2}>
+            <Box display="flex" alignItems="center" gap={1.5}>
               <Box
                 sx={{
-                  width: 48,
-                  height: 48,
+                  width: 40,
+                  height: 40,
                   borderRadius: 2,
-                  background: `linear-gradient(135deg, ${alpha(PRIMARY, 0.15)} 0%, ${alpha(PRIMARY, 0.05)} 100%)`,
+                  bgcolor: alpha(PRIMARY, 0.1),
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
                   color: PRIMARY,
                 }}
               >
-                <AddLocationAlt sx={{ fontSize: 28 }} />
+                <AddLocationAlt sx={{ fontSize: 24 }} />
               </Box>
               <Box>
-                <Typography variant="h5" fontWeight={700}>
-                  Create New Visit
+                <Typography variant="h6" fontWeight={700}>
+                  Create Visit
                 </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Record a new field visit location
+                <Typography variant="caption" color="text.secondary">
+                  Record a new field visit
                 </Typography>
               </Box>
             </Box>
-            <IconButton onClick={handleClose} size="large">
+            <IconButton onClick={handleClose} size="small">
               <Close />
             </IconButton>
           </Stack>
         </DialogTitle>
 
-        <DialogContent sx={{ py: 3 }}>
-          <Stack spacing={3}>
-            <Alert severity="info" sx={{ borderRadius: 2 }}>
-              <AlertTitle>Location Required</AlertTitle>
-              Enter the coordinates or use your current location
+        <DialogContent sx={{ py: 2 }}>
+          <Stack spacing={2}>
+            <Alert severity="info" sx={{ borderRadius: 2, py: 0.5 }}>
+              <Typography variant="caption">Enter coordinates or use current location</Typography>
             </Alert>
 
-            <Box sx={{ display: "flex", gap: 2, alignItems: "center", flexWrap: "wrap" }}>
-              <Button
-                variant="contained"
-                startIcon={gettingLocation ? <CircularProgress size={20} /> : <MyLocation />}
-                onClick={handleGetCurrentLocation}
-                disabled={gettingLocation}
-                sx={{
-                  borderRadius: 2,
-                  bgcolor: PRIMARY,
-                  "&:hover": { bgcolor: SECONDARY },
-                  minWidth: 200,
-                }}
-              >
-                {gettingLocation ? "Getting Location..." : "Use Current Location"}
-              </Button>
-              <Typography variant="body2" color="text.secondary">
-                or enter manually
-              </Typography>
-            </Box>
+            <Button
+              variant="contained"
+              startIcon={gettingLocation ? <CircularProgress size={18} /> : <MyLocation />}
+              onClick={handleGetCurrentLocation}
+              disabled={gettingLocation}
+              fullWidth
+              size="small"
+              sx={{
+                borderRadius: 2,
+                bgcolor: PRIMARY,
+                "&:hover": { bgcolor: SECONDARY },
+              }}
+            >
+              {gettingLocation ? "Getting Location..." : "Use Current Location"}
+            </Button>
 
             {errors.location && (
-              <Alert severity="error" sx={{ borderRadius: 2 }}>
-                {errors.location}
+              <Alert severity="error" sx={{ borderRadius: 2, py: 0.5 }}>
+                <Typography variant="caption">{errors.location}</Typography>
               </Alert>
             )}
 
-            <Grid container spacing={2}>
+            <Grid container spacing={1.5}>
               <Grid item xs={12} sm={6}>
                 <TextField
                   label="Latitude *"
                   value={formData.latitude}
                   onChange={handleInputChange("latitude")}
                   fullWidth
-                  size="medium"
+                  size="small"
                   type="number"
                   inputProps={{ step: "0.000001" }}
                   error={!!errors.latitude}
                   helperText={errors.latitude}
-                  sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <PinDrop sx={{ color: "text.secondary" }} />
-                      </InputAdornment>
-                    ),
-                  }}
+                  sx={{ "& .MuiOutlinedInput-root": { borderRadius: 1.5 } }}
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
@@ -1305,19 +1386,12 @@ const CreateVisitDialog = ({ open, onClose, onSubmit, loading }) => {
                   value={formData.longitude}
                   onChange={handleInputChange("longitude")}
                   fullWidth
-                  size="medium"
+                  size="small"
                   type="number"
                   inputProps={{ step: "0.000001" }}
                   error={!!errors.longitude}
                   helperText={errors.longitude}
-                  sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <PinDrop sx={{ color: "text.secondary", transform: "rotate(45deg)" }} />
-                      </InputAdornment>
-                    ),
-                  }}
+                  sx={{ "& .MuiOutlinedInput-root": { borderRadius: 1.5 } }}
                 />
               </Grid>
             </Grid>
@@ -1327,18 +1401,11 @@ const CreateVisitDialog = ({ open, onClose, onSubmit, loading }) => {
               value={formData.locationName}
               onChange={handleInputChange("locationName")}
               fullWidth
-              size="medium"
+              size="small"
               placeholder="Enter location name"
               error={!!errors.locationName}
               helperText={errors.locationName}
-              sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <LocationOn sx={{ color: "text.secondary" }} />
-                  </InputAdornment>
-                ),
-              }}
+              sx={{ "& .MuiOutlinedInput-root": { borderRadius: 1.5 } }}
             />
 
             <TextField
@@ -1347,21 +1414,14 @@ const CreateVisitDialog = ({ open, onClose, onSubmit, loading }) => {
               onChange={handleInputChange("remarks")}
               fullWidth
               multiline
-              rows={3}
-              size="medium"
-              placeholder="Enter any remarks about this visit..."
-              sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <Note sx={{ color: "text.secondary" }} />
-                  </InputAdornment>
-                ),
-              }}
+              rows={2}
+              size="small"
+              placeholder="Enter any remarks..."
+              sx={{ "& .MuiOutlinedInput-root": { borderRadius: 1.5 } }}
             />
 
             <Box>
-              <Typography variant="subtitle2" fontWeight={600} gutterBottom>
+              <Typography variant="caption" fontWeight={600} gutterBottom>
                 Photo (Optional)
               </Typography>
               
@@ -1371,15 +1431,12 @@ const CreateVisitDialog = ({ open, onClose, onSubmit, loading }) => {
                   startIcon={<PhotoCamera />}
                   onClick={() => setShowCamera(true)}
                   fullWidth
+                  size="small"
                   sx={{
-                    p: 2,
-                    border: `2px dashed ${alpha(PRIMARY, 0.3)}`,
-                    borderRadius: 2,
+                    p: 1,
+                    border: `1px dashed ${alpha(PRIMARY, 0.3)}`,
+                    borderRadius: 1.5,
                     color: PRIMARY,
-                    '&:hover': {
-                      borderColor: PRIMARY,
-                      bgcolor: alpha(PRIMARY, 0.05),
-                    }
                   }}
                 >
                   Take Photo
@@ -1391,31 +1448,24 @@ const CreateVisitDialog = ({ open, onClose, onSubmit, loading }) => {
                     alt="Preview"
                     style={{
                       width: "100%",
-                      maxHeight: 200,
+                      maxHeight: 150,
                       objectFit: "contain",
-                      borderRadius: 8,
+                      borderRadius: 6,
                     }}
                   />
                   <IconButton
                     size="small"
                     sx={{
                       position: "absolute",
-                      top: 8,
-                      right: 8,
+                      top: 4,
+                      right: 4,
                       bgcolor: "rgba(255,255,255,0.9)",
-                      "&:hover": { bgcolor: "white" },
                     }}
                     onClick={handleRemovePhoto}
                   >
-                    <Delete />
+                    <Delete fontSize="small" />
                   </IconButton>
                 </Box>
-              )}
-              
-              {errors.photo && (
-                <FormHelperText error sx={{ mt: 1 }}>
-                  {errors.photo}
-                </FormHelperText>
               )}
             </Box>
           </Stack>
@@ -1423,19 +1473,19 @@ const CreateVisitDialog = ({ open, onClose, onSubmit, loading }) => {
 
         <DialogActions
           sx={{
-            p: 3,
-            pt: 2,
+            p: 2,
+            pt: 1,
             borderTop: 1,
             borderColor: "divider",
-            gap: 2,
+            gap: 1,
           }}
         >
           <Button
             onClick={handleClose}
             variant="outlined"
             fullWidth={isMobile}
-            size="large"
-            sx={{ borderRadius: 2 }}
+            size="small"
+            sx={{ borderRadius: 1.5 }}
           >
             Cancel
           </Button>
@@ -1443,16 +1493,16 @@ const CreateVisitDialog = ({ open, onClose, onSubmit, loading }) => {
             onClick={handleSubmit}
             variant="contained"
             fullWidth={isMobile}
-            size="large"
+            size="small"
             disabled={loading}
-            startIcon={loading ? <CircularProgress size={20} /> : <Save />}
+            startIcon={loading ? <CircularProgress size={16} /> : <Save />}
             sx={{
-              borderRadius: 2,
+              borderRadius: 1.5,
               bgcolor: SUCCESS,
               "&:hover": { bgcolor: "#2e7d32" },
             }}
           >
-            {loading ? "Creating..." : "Create Visit"}
+            {loading ? "Creating..." : "Create"}
           </Button>
         </DialogActions>
       </Dialog>
@@ -1536,7 +1586,7 @@ const EditVisitDialog = ({ open, onClose, visit, onSubmit, loading }) => {
         let errorMsg = "Unable to get location";
         switch (error.code) {
           case error.PERMISSION_DENIED:
-            errorMsg = "Location permission denied. Please enable location access.";
+            errorMsg = "Location permission denied.";
             break;
           case error.POSITION_UNAVAILABLE:
             errorMsg = "Location information is unavailable.";
@@ -1544,8 +1594,6 @@ const EditVisitDialog = ({ open, onClose, visit, onSubmit, loading }) => {
           case error.TIMEOUT:
             errorMsg = "Location request timed out.";
             break;
-          default:
-            errorMsg = "An unknown error occurred.";
         }
         setErrors((prev) => ({ ...prev, location: errorMsg }));
         setGettingLocation(false);
@@ -1594,7 +1642,6 @@ const EditVisitDialog = ({ open, onClose, visit, onSubmit, loading }) => {
 
   return (
     <>
-      {/* Camera Dialog */}
       <Dialog
         open={showCamera}
         onClose={() => setShowCamera(false)}
@@ -1602,16 +1649,16 @@ const EditVisitDialog = ({ open, onClose, visit, onSubmit, loading }) => {
         fullWidth
         PaperProps={{
           sx: {
-            borderRadius: 4,
+            borderRadius: 3,
           },
         }}
       >
-        <DialogTitle sx={{ borderBottom: 1, borderColor: 'divider' }}>
+        <DialogTitle sx={{ borderBottom: 1, borderColor: 'divider', py: 1.5 }}>
           <Stack direction="row" alignItems="center" justifyContent="space-between">
             <Typography variant="h6" fontWeight={600}>
               Take Photo
             </Typography>
-            <IconButton onClick={() => setShowCamera(false)}>
+            <IconButton onClick={() => setShowCamera(false)} size="small">
               <Close />
             </IconButton>
           </Stack>
@@ -1624,7 +1671,6 @@ const EditVisitDialog = ({ open, onClose, visit, onSubmit, loading }) => {
         </DialogContent>
       </Dialog>
 
-      {/* Main Edit Dialog */}
       <Dialog
         open={open}
         onClose={handleClose}
@@ -1633,101 +1679,85 @@ const EditVisitDialog = ({ open, onClose, visit, onSubmit, loading }) => {
         fullScreen={isMobile}
         PaperProps={{
           sx: {
-            borderRadius: isMobile ? 0 : 4,
+            borderRadius: isMobile ? 0 : 3,
           },
         }}
       >
         <DialogTitle
           sx={{
-            pb: 2,
+            pb: 1.5,
             borderBottom: 1,
             borderColor: "divider",
           }}
         >
           <Stack direction="row" alignItems="center" justifyContent="space-between">
-            <Box display="flex" alignItems="center" gap={2}>
+            <Box display="flex" alignItems="center" gap={1.5}>
               <Box
                 sx={{
-                  width: 48,
-                  height: 48,
+                  width: 40,
+                  height: 40,
                   borderRadius: 2,
-                  background: `linear-gradient(135deg, ${alpha(PRIMARY, 0.15)} 0%, ${alpha(PRIMARY, 0.05)} 100%)`,
+                  bgcolor: alpha(PRIMARY, 0.1),
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
                   color: PRIMARY,
                 }}
               >
-                <EditLocationAlt sx={{ fontSize: 28 }} />
+                <EditLocationAlt sx={{ fontSize: 24 }} />
               </Box>
               <Box>
-                <Typography variant="h5" fontWeight={700}>
+                <Typography variant="h6" fontWeight={700}>
                   Edit Visit
                 </Typography>
-                <Typography variant="body2" color="text.secondary">
+                <Typography variant="caption" color="text.secondary">
                   Update visit information
                 </Typography>
               </Box>
             </Box>
-            <IconButton onClick={handleClose} size="large">
+            <IconButton onClick={handleClose} size="small">
               <Close />
             </IconButton>
           </Stack>
         </DialogTitle>
 
-        <DialogContent sx={{ py: 3 }}>
-          <Stack spacing={3}>
-            <Alert severity="info" sx={{ borderRadius: 2 }}>
-              <AlertTitle>Update Location</AlertTitle>
-              Modify the coordinates or use your current location
-            </Alert>
-
-            <Box sx={{ display: "flex", gap: 2, alignItems: "center", flexWrap: "wrap" }}>
-              <Button
-                variant="contained"
-                startIcon={gettingLocation ? <CircularProgress size={20} /> : <MyLocation />}
-                onClick={handleGetCurrentLocation}
-                disabled={gettingLocation}
-                sx={{
-                  borderRadius: 2,
-                  bgcolor: PRIMARY,
-                  "&:hover": { bgcolor: SECONDARY },
-                  minWidth: 200,
-                }}
-              >
-                {gettingLocation ? "Getting Location..." : "Use Current Location"}
-              </Button>
-              <Typography variant="body2" color="text.secondary">
-                or enter manually
-              </Typography>
-            </Box>
+        <DialogContent sx={{ py: 2 }}>
+          <Stack spacing={2}>
+            <Button
+              variant="contained"
+              startIcon={gettingLocation ? <CircularProgress size={18} /> : <MyLocation />}
+              onClick={handleGetCurrentLocation}
+              disabled={gettingLocation}
+              fullWidth
+              size="small"
+              sx={{
+                borderRadius: 2,
+                bgcolor: PRIMARY,
+                "&:hover": { bgcolor: SECONDARY },
+              }}
+            >
+              {gettingLocation ? "Getting Location..." : "Use Current Location"}
+            </Button>
 
             {errors.location && (
-              <Alert severity="error" sx={{ borderRadius: 2 }}>
-                {errors.location}
+              <Alert severity="error" sx={{ borderRadius: 2, py: 0.5 }}>
+                <Typography variant="caption">{errors.location}</Typography>
               </Alert>
             )}
 
-            <Grid container spacing={2}>
+            <Grid container spacing={1.5}>
               <Grid item xs={12} sm={6}>
                 <TextField
                   label="Latitude *"
                   value={formData.latitude}
                   onChange={handleInputChange("latitude")}
                   fullWidth
-                  size="medium"
+                  size="small"
                   type="number"
                   inputProps={{ step: "0.000001" }}
                   error={!!errors.latitude}
                   helperText={errors.latitude}
-                  sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <PinDrop sx={{ color: "text.secondary" }} />
-                      </InputAdornment>
-                    ),
-                  }}
+                  sx={{ "& .MuiOutlinedInput-root": { borderRadius: 1.5 } }}
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
@@ -1736,19 +1766,12 @@ const EditVisitDialog = ({ open, onClose, visit, onSubmit, loading }) => {
                   value={formData.longitude}
                   onChange={handleInputChange("longitude")}
                   fullWidth
-                  size="medium"
+                  size="small"
                   type="number"
                   inputProps={{ step: "0.000001" }}
                   error={!!errors.longitude}
                   helperText={errors.longitude}
-                  sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <PinDrop sx={{ color: "text.secondary", transform: "rotate(45deg)" }} />
-                      </InputAdornment>
-                    ),
-                  }}
+                  sx={{ "& .MuiOutlinedInput-root": { borderRadius: 1.5 } }}
                 />
               </Grid>
             </Grid>
@@ -1758,18 +1781,11 @@ const EditVisitDialog = ({ open, onClose, visit, onSubmit, loading }) => {
               value={formData.locationName}
               onChange={handleInputChange("locationName")}
               fullWidth
-              size="medium"
+              size="small"
               placeholder="Enter location name"
               error={!!errors.locationName}
               helperText={errors.locationName}
-              sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <LocationOn sx={{ color: "text.secondary" }} />
-                  </InputAdornment>
-                ),
-              }}
+              sx={{ "& .MuiOutlinedInput-root": { borderRadius: 1.5 } }}
             />
 
             <TextField
@@ -1778,21 +1794,14 @@ const EditVisitDialog = ({ open, onClose, visit, onSubmit, loading }) => {
               onChange={handleInputChange("remarks")}
               fullWidth
               multiline
-              rows={3}
-              size="medium"
-              placeholder="Enter any remarks about this visit..."
-              sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <Note sx={{ color: "text.secondary" }} />
-                  </InputAdornment>
-                ),
-              }}
+              rows={2}
+              size="small"
+              placeholder="Enter any remarks..."
+              sx={{ "& .MuiOutlinedInput-root": { borderRadius: 1.5 } }}
             />
 
             <Box>
-              <Typography variant="subtitle2" fontWeight={600} gutterBottom>
+              <Typography variant="caption" fontWeight={600} gutterBottom>
                 Photo
               </Typography>
               
@@ -1802,15 +1811,12 @@ const EditVisitDialog = ({ open, onClose, visit, onSubmit, loading }) => {
                   startIcon={<PhotoCamera />}
                   onClick={() => setShowCamera(true)}
                   fullWidth
+                  size="small"
                   sx={{
-                    p: 2,
-                    border: `2px dashed ${alpha(PRIMARY, 0.3)}`,
-                    borderRadius: 2,
+                    p: 1,
+                    border: `1px dashed ${alpha(PRIMARY, 0.3)}`,
+                    borderRadius: 1.5,
                     color: PRIMARY,
-                    '&:hover': {
-                      borderColor: PRIMARY,
-                      bgcolor: alpha(PRIMARY, 0.05),
-                    }
                   }}
                 >
                   Take New Photo
@@ -1822,40 +1828,28 @@ const EditVisitDialog = ({ open, onClose, visit, onSubmit, loading }) => {
                     alt="Preview"
                     style={{
                       width: "100%",
-                      maxHeight: 200,
+                      maxHeight: 150,
                       objectFit: "contain",
-                      borderRadius: 8,
+                      borderRadius: 6,
                     }}
                   />
-                  <Stack direction="row" spacing={1} sx={{ position: "absolute", top: 8, right: 8 }}>
+                  <Stack direction="row" spacing={0.5} sx={{ position: "absolute", top: 4, right: 4 }}>
                     <IconButton
                       size="small"
-                      sx={{
-                        bgcolor: "rgba(255,255,255,0.9)",
-                        "&:hover": { bgcolor: "white" },
-                      }}
+                      sx={{ bgcolor: "rgba(255,255,255,0.9)" }}
                       onClick={() => setShowCamera(true)}
                     >
-                      <PhotoCamera />
+                      <PhotoCamera fontSize="small" />
                     </IconButton>
                     <IconButton
                       size="small"
-                      sx={{
-                        bgcolor: "rgba(255,255,255,0.9)",
-                        "&:hover": { bgcolor: "white" },
-                      }}
+                      sx={{ bgcolor: "rgba(255,255,255,0.9)" }}
                       onClick={handleRemovePhoto}
                     >
-                      <Delete />
+                      <Delete fontSize="small" />
                     </IconButton>
                   </Stack>
                 </Box>
-              )}
-              
-              {errors.photo && (
-                <FormHelperText error sx={{ mt: 1 }}>
-                  {errors.photo}
-                </FormHelperText>
               )}
             </Box>
           </Stack>
@@ -1863,19 +1857,19 @@ const EditVisitDialog = ({ open, onClose, visit, onSubmit, loading }) => {
 
         <DialogActions
           sx={{
-            p: 3,
-            pt: 2,
+            p: 2,
+            pt: 1,
             borderTop: 1,
             borderColor: "divider",
-            gap: 2,
+            gap: 1,
           }}
         >
           <Button
             onClick={handleClose}
             variant="outlined"
             fullWidth={isMobile}
-            size="large"
-            sx={{ borderRadius: 2 }}
+            size="small"
+            sx={{ borderRadius: 1.5 }}
           >
             Cancel
           </Button>
@@ -1883,16 +1877,16 @@ const EditVisitDialog = ({ open, onClose, visit, onSubmit, loading }) => {
             onClick={handleSubmit}
             variant="contained"
             fullWidth={isMobile}
-            size="large"
+            size="small"
             disabled={loading}
-            startIcon={loading ? <CircularProgress size={20} /> : <Save />}
+            startIcon={loading ? <CircularProgress size={16} /> : <Save />}
             sx={{
-              borderRadius: 2,
+              borderRadius: 1.5,
               bgcolor: SUCCESS,
               "&:hover": { bgcolor: "#2e7d32" },
             }}
           >
-            {loading ? "Updating..." : "Update Visit"}
+            {loading ? "Updating..." : "Update"}
           </Button>
         </DialogActions>
       </Dialog>
@@ -1900,669 +1894,7 @@ const EditVisitDialog = ({ open, onClose, visit, onSubmit, loading }) => {
   );
 };
 
-// ========== ENHANCED LOCATION TRACKER COMPONENT ==========
-const LocationTracker = React.memo(({ visit, onLocationUpdate, userRole, onManualLocationClick }) => {
-  const theme = useTheme();
-  const { user } = useAuth();
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
-
-  const [loading, setLoading] = useState(false);
-  const [locationPermission, setLocationPermission] = useState(null);
-  const [currentLocation, setCurrentLocation] = useState(null);
-  const [locationHistory, setLocationHistory] = useState([]);
-  const [trackingActive, setTrackingActive] = useState(false);
-  const [watchId, setWatchId] = useState(null);
-  const [distance, setDistance] = useState(0);
-  const [duration, setDuration] = useState(0);
-  const [speed, setSpeed] = useState(0);
-  const [accuracy, setAccuracy] = useState(null);
-  const [locationError, setLocationError] = useState(null);
-  const [permissionDialogOpen, setPermissionDialogOpen] = useState(false);
-  const [selectedTransportMode, setSelectedTransportMode] = useState(TRANSPORT_MODES.DRIVING);
-  const [showStats, setShowStats] = useState(true);
-
-  // Check location permission on mount
-  useEffect(() => {
-    if ("geolocation" in navigator) {
-      navigator.permissions
-        .query({ name: "geolocation" })
-        .then((result) => {
-          setLocationPermission(result.state);
-          if (result.state === "prompt") {
-            setPermissionDialogOpen(true);
-          }
-          result.onchange = () => {
-            setLocationPermission(result.state);
-            if (result.state === "granted") {
-              getCurrentLocation();
-            }
-          };
-        })
-        .catch((err) => {
-          console.error("Permission query error:", err);
-        });
-    }
-  }, []);
-
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      if (watchId) {
-        navigator.geolocation.clearWatch(watchId);
-      }
-      // Cleanup object URLs
-      locationHistory.forEach(loc => {
-        if (loc.imageUrl?.startsWith('blob:')) {
-          URL.revokeObjectURL(loc.imageUrl);
-        }
-      });
-    };
-  }, [watchId, locationHistory]);
-
-  // Start tracking location
-  const startTracking = useCallback(() => {
-    if (!navigator.geolocation) {
-      setLocationError("Geolocation is not supported by your browser");
-      return;
-    }
-
-    if (locationPermission === "denied") {
-      setLocationError(
-        "Location permission denied. Please enable location access in your browser settings."
-      );
-      return;
-    }
-
-    setLoading(true);
-    setLocationError(null);
-
-    const id = navigator.geolocation.watchPosition(
-      (position) => {
-        const { latitude, longitude, accuracy, speed: currentSpeed } = position.coords;
-
-        const newLocation = {
-          id: Date.now(),
-          latitude,
-          longitude,
-          accuracy,
-          speed: currentSpeed || 0,
-          timestamp: new Date().toISOString(),
-          transportMode: selectedTransportMode,
-        };
-
-        setCurrentLocation(newLocation);
-        setAccuracy(accuracy);
-        setSpeed(currentSpeed || 0);
-
-        // Calculate distance from last known location
-        if (locationHistory.length > 0) {
-          const lastLoc = locationHistory[locationHistory.length - 1];
-          const dist = calculateDistance(
-            lastLoc.latitude,
-            lastLoc.longitude,
-            latitude,
-            longitude
-          );
-          setDistance((prev) => prev + dist);
-
-          // Calculate duration
-          const timeDiff = differenceInMinutes(
-            parseISO(newLocation.timestamp),
-            parseISO(lastLoc.timestamp)
-          );
-          setDuration((prev) => prev + timeDiff);
-        }
-
-        setLocationHistory((prev) => [...prev, newLocation]);
-
-        // Callback to parent
-        if (onLocationUpdate) {
-          onLocationUpdate({
-            currentLocation: newLocation,
-            distance,
-            duration,
-            locationHistory,
-          });
-        }
-
-        setLoading(false);
-      },
-      (error) => {
-        let errorMsg = "Unable to get location";
-        switch (error.code) {
-          case error.PERMISSION_DENIED:
-            errorMsg = "Location permission denied";
-            setLocationPermission("denied");
-            setPermissionDialogOpen(true);
-            break;
-          case error.POSITION_UNAVAILABLE:
-            errorMsg = "Location information is unavailable";
-            break;
-          case error.TIMEOUT:
-            errorMsg = "Location request timed out";
-            break;
-          default:
-            errorMsg = "An unknown error occurred";
-        }
-        setLocationError(errorMsg);
-        setLoading(false);
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 15000,
-        maximumAge: 0,
-      }
-    );
-
-    setWatchId(id);
-    setTrackingActive(true);
-  }, [locationPermission, locationHistory, onLocationUpdate, distance, duration, selectedTransportMode]);
-
-  // Stop tracking
-  const stopTracking = useCallback(() => {
-    if (watchId) {
-      navigator.geolocation.clearWatch(watchId);
-      setWatchId(null);
-    }
-    setTrackingActive(false);
-  }, [watchId]);
-
-  // Get current location once
-  const getCurrentLocation = useCallback(() => {
-    if (!navigator.geolocation) {
-      setLocationError("Geolocation is not supported");
-      return;
-    }
-
-    setLoading(true);
-    setLocationError(null);
-
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const { latitude, longitude, accuracy, speed: currentSpeed } = position.coords;
-
-        const location = {
-          id: Date.now(),
-          latitude,
-          longitude,
-          accuracy,
-          speed: currentSpeed || 0,
-          timestamp: new Date().toISOString(),
-          transportMode: selectedTransportMode,
-        };
-
-        setCurrentLocation(location);
-        setAccuracy(accuracy);
-        setSpeed(currentSpeed || 0);
-        setLocationPermission("granted");
-        setLoading(false);
-
-        if (onLocationUpdate) {
-          onLocationUpdate({ currentLocation: location });
-        }
-      },
-      (error) => {
-        let errorMsg = "Unable to get location";
-        switch (error.code) {
-          case error.PERMISSION_DENIED:
-            errorMsg = "Location permission denied";
-            setLocationPermission("denied");
-            setPermissionDialogOpen(true);
-            break;
-          case error.POSITION_UNAVAILABLE:
-            errorMsg = "Location information is unavailable";
-            break;
-          case error.TIMEOUT:
-            errorMsg = "Location request timed out";
-            break;
-        }
-        setLocationError(errorMsg);
-        setLoading(false);
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 0,
-      }
-    );
-  }, [onLocationUpdate, selectedTransportMode]);
-
-  // Handle permission allow
-  const handleAllowLocation = useCallback(() => {
-    setPermissionDialogOpen(false);
-    getCurrentLocation();
-  }, [getCurrentLocation]);
-
-  // Handle permission deny
-  const handleDenyLocation = useCallback(() => {
-    setPermissionDialogOpen(false);
-    setLocationPermission("denied");
-  }, []);
-
-  if (!getUserPermissions(userRole).canTrackLocation) {
-    return null;
-  }
-
-  return (
-    <>
-      {/* Location Permission Dialog */}
-      <LocationPermissionDialog
-        open={permissionDialogOpen}
-        onClose={handleDenyLocation}
-        onAllow={handleAllowLocation}
-        onDeny={handleDenyLocation}
-      />
-
-      {/* Location Tracker Card */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        <Card
-          elevation={0}
-          sx={{
-            borderRadius: 4,
-            background: "linear-gradient(145deg, #ffffff 0%, #f8fafc 100%)",
-            border: `1px solid ${alpha(PRIMARY, 0.1)}`,
-            mb: 4,
-            position: "relative",
-            overflow: "hidden",
-            "&::before": {
-              content: '""',
-              position: "absolute",
-              top: 0,
-              left: 0,
-              right: 0,
-              height: 4,
-              background: trackingActive
-                ? `linear-gradient(90deg, ${SUCCESS} 0%, ${PRIMARY} 50%, ${INFO} 100%)`
-                : `linear-gradient(90deg, ${alpha(PRIMARY, 0.3)} 0%, ${alpha(PRIMARY, 0.1)} 100%)`,
-            },
-          }}
-        >
-          <CardContent sx={{ p: 3 }}>
-            <Stack spacing={3}>
-              {/* Header */}
-              <Box display="flex" alignItems="center" justifyContent="space-between" flexWrap="wrap" gap={2}>
-                <Box display="flex" alignItems="center" gap={2}>
-                  <Box
-                    sx={{
-                      width: 56,
-                      height: 56,
-                      borderRadius: 3,
-                      background: trackingActive
-                        ? `linear-gradient(135deg, ${alpha(SUCCESS, 0.2)} 0%, ${alpha(PRIMARY, 0.1)} 100%)`
-                        : `linear-gradient(135deg, ${alpha(PRIMARY, 0.15)} 0%, ${alpha(PRIMARY, 0.05)} 100%)`,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      color: trackingActive ? SUCCESS : PRIMARY,
-                    }}
-                  >
-                    {trackingActive ? (
-                      <MyLocation sx={{ fontSize: 32 }} />
-                    ) : currentLocation ? (
-                      <GpsFixed sx={{ fontSize: 32 }} />
-                    ) : (
-                      <LocationSearching sx={{ fontSize: 32 }} />
-                    )}
-                  </Box>
-                  <Box>
-                    <Typography variant="h6" fontWeight={700}>
-                      {trackingActive
-                        ? "📍 Tracking Active"
-                        : currentLocation
-                        ? "📍 Location Captured"
-                        : "📍 Ready to Track"}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {trackingActive
-                        ? "Your movement is being tracked in real-time"
-                        : currentLocation
-                        ? `Last updated ${formatTimeAgo(currentLocation.timestamp)}`
-                        : "Start tracking to record your visit location"}
-                    </Typography>
-                  </Box>
-                </Box>
-
-                <Stack direction="row" spacing={1} flexWrap="wrap">
-                  {getUserPermissions(userRole).canAddManualLocation && (
-                    <Tooltip title="Add Manual Location" arrow>
-                      <IconButton
-                        onClick={() => onManualLocationClick()}
-                        sx={{
-                          bgcolor: alpha(PRIMARY, 0.1),
-                          "&:hover": { bgcolor: alpha(PRIMARY, 0.2) },
-                          width: 44,
-                          height: 44,
-                        }}
-                      >
-                        <AddLocationAlt />
-                      </IconButton>
-                    </Tooltip>
-                  )}
-
-                  {locationPermission === "denied" && (
-                    <Tooltip title="Enable Location" arrow>
-                      <IconButton
-                        onClick={() => setPermissionDialogOpen(true)}
-                        sx={{
-                          bgcolor: alpha(WARNING, 0.1),
-                          color: WARNING,
-                          "&:hover": { bgcolor: alpha(WARNING, 0.2) },
-                          width: 44,
-                          height: 44,
-                        }}
-                      >
-                        <LocationDisabled />
-                      </IconButton>
-                    </Tooltip>
-                  )}
-
-                  <Tooltip title={showStats ? "Hide Stats" : "Show Stats"} arrow>
-                    <IconButton
-                      onClick={() => setShowStats(!showStats)}
-                      sx={{
-                        bgcolor: alpha(PRIMARY, 0.1),
-                        "&:hover": { bgcolor: alpha(PRIMARY, 0.2) },
-                        width: 44,
-                        height: 44,
-                      }}
-                    >
-                      {showStats ? <Visibility /> : <VisibilityOff />}
-                    </IconButton>
-                  </Tooltip>
-
-                  {trackingActive ? (
-                    <Button
-                      variant="contained"
-                      color="error"
-                      onClick={stopTracking}
-                      startIcon={<Close />}
-                      sx={{
-                        borderRadius: 3,
-                        px: 3,
-                        py: 1.2,
-                        background: `linear-gradient(45deg, #d32f2f 30%, #f44336 90%)`,
-                        boxShadow: "0 4px 12px rgba(211,47,47,0.3)",
-                      }}
-                    >
-                      Stop Tracking
-                    </Button>
-                  ) : (
-                    <Button
-                      variant="contained"
-                      onClick={startTracking}
-                      disabled={loading || locationPermission === "denied"}
-                      startIcon={loading ? <CircularProgress size={20} /> : <MyLocation />}
-                      sx={{
-                        borderRadius: 3,
-                        px: 3,
-                        py: 1.2,
-                        background: `linear-gradient(45deg, ${PRIMARY} 30%, ${SECONDARY} 90%)`,
-                        boxShadow: `0 4px 12px ${alpha(PRIMARY, 0.3)}`,
-                        "&:hover": {
-                          background: `linear-gradient(45deg, ${SECONDARY} 30%, ${PRIMARY} 90%)`,
-                        },
-                      }}
-                    >
-                      {loading ? "Starting..." : "Start Tracking"}
-                    </Button>
-                  )}
-
-                  {!trackingActive && !currentLocation && locationPermission !== "denied" && (
-                    <Button
-                      variant="outlined"
-                      onClick={getCurrentLocation}
-                      disabled={loading}
-                      startIcon={loading ? <CircularProgress size={20} /> : <GpsFixed />}
-                      sx={{ borderRadius: 3, px: 3, py: 1.2 }}
-                    >
-                      Get Current Location
-                    </Button>
-                  )}
-                </Stack>
-              </Box>
-
-              {/* Transport Mode Selection */}
-              {!trackingActive && (
-                <Box
-                  sx={{
-                    p: 2,
-                    bgcolor: alpha(PRIMARY, 0.03),
-                    borderRadius: 3,
-                  }}
-                >
-                  <Typography variant="subtitle2" fontWeight={600} gutterBottom>
-                    Transport Mode
-                  </Typography>
-                  <RadioGroup
-                    row
-                    value={selectedTransportMode}
-                    onChange={(e) => setSelectedTransportMode(e.target.value)}
-                    sx={{ flexWrap: "wrap", gap: 1 }}
-                  >
-                    {Object.values(TRANSPORT_MODES).slice(0, 5).map((mode) => {
-                      const config = getTransportModeConfig(mode);
-                      return (
-                        <FormControlLabel
-                          key={mode}
-                          value={mode}
-                          control={
-                            <Radio
-                              sx={{
-                                color: config.color,
-                                "&.Mui-checked": {
-                                  color: config.color,
-                                },
-                              }}
-                            />
-                          }
-                          label={
-                            <Stack direction="row" alignItems="center" spacing={0.5}>
-                              {config.icon}
-                              <Typography variant="body2">{config.label}</Typography>
-                            </Stack>
-                          }
-                          sx={{
-                            mr: 0,
-                            p: 1,
-                            borderRadius: 2,
-                            border: "1px solid",
-                            borderColor: selectedTransportMode === mode ? config.color : "divider",
-                            bgcolor: selectedTransportMode === mode ? alpha(config.color, 0.05) : "transparent",
-                          }}
-                        />
-                      );
-                    })}
-                  </RadioGroup>
-                </Box>
-              )}
-
-              {/* Error Alert */}
-              <AnimatePresence>
-                {locationError && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                  >
-                    <Alert
-                      severity="error"
-                      onClose={() => setLocationError(null)}
-                      sx={{ borderRadius: 2 }}
-                      icon={<Warning />}
-                    >
-                      {locationError}
-                    </Alert>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-
-              {/* Location Stats */}
-              {currentLocation && showStats && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  exit={{ opacity: 0, height: 0 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <Box
-                    sx={{
-                      p: 2.5,
-                      bgcolor: alpha(PRIMARY, 0.03),
-                      borderRadius: 3,
-                      display: "grid",
-                      gridTemplateColumns: {
-                        xs: "1fr 1fr",
-                        sm: "repeat(4, 1fr)",
-                        md: "repeat(8, 1fr)",
-                      },
-                      gap: 2,
-                    }}
-                  >
-                    <Box>
-                      <Typography variant="caption" color="text.secondary">
-                        Latitude
-                      </Typography>
-                      <Typography variant="body2" fontWeight={600}>
-                        {currentLocation.latitude.toFixed(6)}
-                      </Typography>
-                    </Box>
-                    <Box>
-                      <Typography variant="caption" color="text.secondary">
-                        Longitude
-                      </Typography>
-                      <Typography variant="body2" fontWeight={600}>
-                        {currentLocation.longitude.toFixed(6)}
-                      </Typography>
-                    </Box>
-                    <Box>
-                      <Typography variant="caption" color="text.secondary">
-                        Accuracy
-                      </Typography>
-                      <Typography
-                        variant="body2"
-                        fontWeight={600}
-                        sx={{
-                          color: accuracy < 20 ? SUCCESS : accuracy < 50 ? WARNING : ERROR,
-                        }}
-                      >
-                        ±{Math.round(accuracy || 0)}m
-                      </Typography>
-                    </Box>
-                    <Box>
-                      <Typography variant="caption" color="text.secondary">
-                        Speed
-                      </Typography>
-                      <Typography variant="body2" fontWeight={600}>
-                        {formatSpeed(speed)}
-                      </Typography>
-                    </Box>
-                    <Box>
-                      <Typography variant="caption" color="text.secondary">
-                        Distance
-                      </Typography>
-                      <Typography variant="body2" fontWeight={600} color={PRIMARY}>
-                        {formatDistance(distance)}
-                      </Typography>
-                    </Box>
-                    <Box>
-                      <Typography variant="caption" color="text.secondary">
-                        Duration
-                      </Typography>
-                      <Typography variant="body2" fontWeight={600} color={PRIMARY}>
-                        {formatDuration(duration)}
-                      </Typography>
-                    </Box>
-                    <Box>
-                      <Typography variant="caption" color="text.secondary">
-                        Last Update
-                      </Typography>
-                      <Typography variant="body2" fontWeight={600}>
-                        {formatTimeAgo(currentLocation.timestamp) || "Just now"}
-                      </Typography>
-                    </Box>
-                    <Box>
-                      <Typography variant="caption" color="text.secondary">
-                        CO₂
-                      </Typography>
-                      <Typography variant="body2" fontWeight={600} color={SUCCESS}>
-                        {calculateCarbonFootprint(distance, selectedTransportMode)}g
-                      </Typography>
-                    </Box>
-                  </Box>
-                </motion.div>
-              )}
-
-              {/* Location History */}
-              {locationHistory.length > 0 && showStats && (
-                <Box>
-                  <Stack
-                    direction="row"
-                    alignItems="center"
-                    justifyContent="space-between"
-                    sx={{ mb: 2 }}
-                  >
-                    <Typography variant="subtitle2" fontWeight={600}>
-                      Location History (Last 3 Points)
-                    </Typography>
-                    <Chip
-                      label={`${locationHistory.length} points`}
-                      size="small"
-                      sx={{
-                        bgcolor: alpha(PRIMARY, 0.1),
-                        color: PRIMARY,
-                        fontWeight: 600,
-                      }}
-                    />
-                  </Stack>
-                  <Timeline sx={{ m: 0, p: 0 }}>
-                    {locationHistory.slice(-3).map((loc, index) => (
-                      <TimelineItem key={loc.id || index}>
-                        <TimelineOppositeContent
-                          variant="caption"
-                          color="text.secondary"
-                          sx={{ flex: 0.2 }}
-                        >
-                          {safeFormatTime(loc.timestamp, "HH:mm:ss")}
-                        </TimelineOppositeContent>
-                        <TimelineSeparator>
-                          <TimelineDot
-                            sx={{
-                              bgcolor: index === locationHistory.length - 1 ? SUCCESS : PRIMARY,
-                              boxShadow: `0 0 0 4px ${alpha(index === locationHistory.length - 1 ? SUCCESS : PRIMARY, 0.2)}`,
-                            }}
-                          />
-                          {index < locationHistory.length - 1 && (
-                            <TimelineConnector sx={{ bgcolor: alpha(PRIMARY, 0.2) }} />
-                          )}
-                        </TimelineSeparator>
-                        <TimelineContent>
-                          <Typography variant="body2" fontWeight={600}>
-                            {loc.latitude.toFixed(6)}, {loc.longitude.toFixed(6)}
-                          </Typography>
-                          <Typography variant="caption" color="text.secondary">
-                            ±{Math.round(loc.accuracy)}m • {formatSpeed(loc.speed)}
-                          </Typography>
-                        </TimelineContent>
-                      </TimelineItem>
-                    ))}
-                  </Timeline>
-                </Box>
-              )}
-            </Stack>
-          </CardContent>
-        </Card>
-      </motion.div>
-    </>
-  );
-});
-
-LocationTracker.displayName = "LocationTracker";
-
-// ========== ENHANCED IMAGE VIEWER MODAL ==========
+// ========== IMAGE VIEWER MODAL ==========
 const ImageViewerModal = React.memo(({ open, onClose, imageUrl, title, images = [] }) => {
   const [zoom, setZoom] = useState(1);
   const [rotation, setRotation] = useState(0);
@@ -2622,7 +1954,7 @@ const ImageViewerModal = React.memo(({ open, onClose, imageUrl, title, images = 
     if (!currentImage?.url) return;
     const link = document.createElement("a");
     link.href = currentImage.url;
-    link.download = currentImage.name || `location_image_${Date.now()}.jpg`;
+    link.download = currentImage.name || `image_${Date.now()}.jpg`;
     link.target = "_blank";
     document.body.appendChild(link);
     link.click();
@@ -2646,38 +1978,32 @@ const ImageViewerModal = React.memo(({ open, onClose, imageUrl, title, images = 
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          pr: 2,
-          py: 1.5,
+          py: 1,
+          px: 2,
         }}
       >
-        <Box display="flex" alignItems="center" gap={2}>
-          <Typography variant="h6" fontWeight={600}>
-            {currentImage?.name || title || "Location Image"}
+        <Box display="flex" alignItems="center" gap={1}>
+          <Typography variant="subtitle1" fontWeight={600}>
+            {currentImage?.name || title || "Image"}
           </Typography>
           {images.length > 1 && (
             <Chip
-              label={`${currentIndex + 1} / ${images.length}`}
+              label={`${currentIndex + 1}/${images.length}`}
               size="small"
-              sx={{ bgcolor: alpha(PRIMARY, 0.1), color: PRIMARY, fontWeight: 600 }}
+              sx={{ bgcolor: alpha(PRIMARY, 0.1), color: PRIMARY, fontWeight: 600, height: 24 }}
             />
           )}
         </Box>
-        <Box display="flex" gap={1}>
-          <Tooltip title={fullscreen ? "Exit Fullscreen" : "Fullscreen"} arrow>
-            <IconButton onClick={() => setFullscreen(!fullscreen)} size="small">
-              {fullscreen ? <FullscreenExit /> : <Fullscreen />}
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="Download" arrow>
-            <IconButton onClick={handleDownload} size="small">
-              <GetApp />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="Close" arrow>
-            <IconButton onClick={handleClose} size="small">
-              <Close />
-            </IconButton>
-          </Tooltip>
+        <Box display="flex" gap={0.5}>
+          <IconButton onClick={() => setFullscreen(!fullscreen)} size="small">
+            {fullscreen ? <FullscreenExit fontSize="small" /> : <Fullscreen fontSize="small" />}
+          </IconButton>
+          <IconButton onClick={handleDownload} size="small">
+            <GetApp fontSize="small" />
+          </IconButton>
+          <IconButton onClick={handleClose} size="small">
+            <Close fontSize="small" />
+          </IconButton>
         </Box>
       </DialogTitle>
       <DialogContent
@@ -2687,7 +2013,7 @@ const ImageViewerModal = React.memo(({ open, onClose, imageUrl, title, images = 
           alignItems: "center",
           justifyContent: "center",
           bgcolor: fullscreen ? "#000" : "transparent",
-          minHeight: fullscreen ? "calc(100vh - 64px)" : 500,
+          minHeight: fullscreen ? "calc(100vh - 57px)" : 300,
           position: "relative",
         }}
       >
@@ -2698,8 +2024,8 @@ const ImageViewerModal = React.memo(({ open, onClose, imageUrl, title, images = 
                 position: "relative",
                 overflow: "auto",
                 maxWidth: "100%",
-                maxHeight: fullscreen ? "100vh" : "70vh",
-                p: fullscreen ? 0 : 2,
+                maxHeight: fullscreen ? "100vh" : "60vh",
+                p: fullscreen ? 0 : 1,
               }}
             >
               <img
@@ -2707,70 +2033,54 @@ const ImageViewerModal = React.memo(({ open, onClose, imageUrl, title, images = 
                 alt={currentImage.name || "Location"}
                 style={{
                   transform: `scale(${zoom}) rotate(${rotation}deg)`,
-                  transition: "transform 0.3s ease",
+                  transition: "transform 0.2s ease",
                   maxWidth: "100%",
-                  maxHeight: fullscreen ? "100vh" : "70vh",
+                  maxHeight: fullscreen ? "100vh" : "60vh",
                   display: "block",
                   margin: "0 auto",
                 }}
               />
             </Box>
 
-            {/* Navigation Arrows */}
             {images.length > 1 && (
               <>
                 <IconButton
                   onClick={handlePrevious}
                   sx={{
                     position: "absolute",
-                    left: 16,
+                    left: 8,
                     top: "50%",
                     transform: "translateY(-50%)",
                     bgcolor: "rgba(255,255,255,0.9)",
-                    "&:hover": { bgcolor: "white" },
-                    boxShadow: 4,
+                    boxShadow: 2,
                   }}
+                  size="small"
                 >
-                  <ArrowBack />
+                  <ArrowBack fontSize="small" />
                 </IconButton>
                 <IconButton
                   onClick={handleNext}
                   sx={{
                     position: "absolute",
-                    right: 16,
+                    right: 8,
                     top: "50%",
                     transform: "translateY(-50%)",
                     bgcolor: "rgba(255,255,255,0.9)",
-                    "&:hover": { bgcolor: "white" },
-                    boxShadow: 4,
+                    boxShadow: 2,
                   }}
+                  size="small"
                 >
-                  <ArrowForward />
+                  <ArrowForward fontSize="small" />
                 </IconButton>
               </>
             )}
           </>
         ) : (
-          <Box sx={{ p: 4, textAlign: "center" }}>
-            <ImageIcon sx={{ fontSize: 64, color: "text.disabled", mb: 2 }} />
-            <Typography variant="h6" color="text.secondary" gutterBottom>
-              Image Preview Not Available
-            </Typography>
+          <Box sx={{ p: 3, textAlign: "center" }}>
+            <ImageIcon sx={{ fontSize: 48, color: "text.disabled", mb: 1 }} />
             <Typography variant="body2" color="text.secondary">
-              This file type cannot be previewed. Please download to view.
+              Preview not available
             </Typography>
-            <Button
-              variant="contained"
-              startIcon={<GetApp />}
-              onClick={handleDownload}
-              sx={{
-                mt: 2,
-                bgcolor: PRIMARY,
-                "&:hover": { bgcolor: SECONDARY },
-              }}
-            >
-              Download Image
-            </Button>
           </Box>
         )}
       </DialogContent>
@@ -2781,37 +2091,27 @@ const ImageViewerModal = React.memo(({ open, onClose, imageUrl, title, images = 
             borderTop: 1,
             borderColor: "divider",
             justifyContent: "center",
-            gap: 1,
-            py: 1.5,
+            gap: 0.5,
+            py: 1,
           }}
         >
-          <Tooltip title="Zoom In" arrow>
-            <IconButton onClick={handleZoomIn} size="small">
-              <ZoomIn />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="Zoom Out" arrow>
-            <IconButton onClick={handleZoomOut} size="small">
-              <ZoomOut />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="Rotate Right" arrow>
-            <IconButton onClick={handleRotateRight} size="small">
-              <RotateRight />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="Rotate Left" arrow>
-            <IconButton onClick={handleRotateLeft} size="small">
-              <RotateLeft />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="Reset" arrow>
-            <IconButton onClick={handleReset} size="small">
-              <Refresh />
-            </IconButton>
-          </Tooltip>
-          <Typography variant="caption" sx={{ ml: 2, color: "text.secondary" }}>
-            {Math.round(zoom * 100)}% • {rotation}°
+          <IconButton onClick={handleZoomIn} size="small">
+            <ZoomIn fontSize="small" />
+          </IconButton>
+          <IconButton onClick={handleZoomOut} size="small">
+            <ZoomOut fontSize="small" />
+          </IconButton>
+          <IconButton onClick={handleRotateRight} size="small">
+            <RotateRight fontSize="small" />
+          </IconButton>
+          <IconButton onClick={handleRotateLeft} size="small">
+            <RotateLeft fontSize="small" />
+          </IconButton>
+          <IconButton onClick={handleReset} size="small">
+            <Refresh fontSize="small" />
+          </IconButton>
+          <Typography variant="caption" sx={{ ml: 1, color: "text.secondary" }}>
+            {Math.round(zoom * 100)}%
           </Typography>
         </DialogActions>
       )}
@@ -2821,518 +2121,169 @@ const ImageViewerModal = React.memo(({ open, onClose, imageUrl, title, images = 
 
 ImageViewerModal.displayName = "ImageViewerModal";
 
-// ========== ENHANCED VIEW VISIT DETAILS MODAL ==========
+// ========== VIEW VISIT DETAILS MODAL ==========
 const ViewVisitModal = React.memo(
   ({ open, onClose, visit, userRole, showSnackbar, handleViewImage, onEdit, onDelete }) => {
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
     const [activeTab, setActiveTab] = useState(0);
-    const [dailySummary, setDailySummary] = useState(null);
-    const [loading, setLoading] = useState(false);
     const { fetchAPI } = useAuth();
 
     const userRoleConfig = useMemo(() => getRoleConfig(userRole), [userRole]);
     const permissions = useMemo(() => getUserPermissions(userRole), [userRole]);
 
-    useEffect(() => {
-      if (open && visit?._id && visit?.date) {
-        fetchDailySummary();
-      }
-    }, [open, visit?._id, visit?.date]);
-
-    const fetchDailySummary = async () => {
-      if (!visit?.date) return;
-
-      try {
-        setLoading(true);
-        const response = await VisitService.getDailySummary(fetchAPI, visit.date);
-        if (response?.result) {
-          // Find summary for current user
-          const userSummary = Array.isArray(response.result) 
-            ? response.result.find(s => s.user?._id === visit.user?._id)
-            : null;
-          setDailySummary(userSummary);
-        }
-      } catch (error) {
-        console.error("Error fetching daily summary:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    const handleTabChange = (event, newValue) => {
-      setActiveTab(newValue);
-    };
-
-    const handleEdit = () => {
-      if (onEdit) {
-        onEdit(visit);
-      }
-    };
-
-    const handleDelete = () => {
-      if (onDelete && window.confirm("Are you sure you want to delete this visit?")) {
-        onDelete(visit._id);
-      }
-    };
-
     if (!visit) return null;
 
     const tabs = [
       {
-        label: "Visitor Info",
+        label: "Info",
         icon: <Person />,
         content: (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
+          <Card
+            elevation={0}
+            sx={{
+              borderRadius: 2,
+              border: `1px solid ${alpha(PRIMARY, 0.1)}`,
+            }}
           >
-            <Card
-              elevation={0}
-              sx={{
-                borderRadius: 3,
-                border: `1px solid ${alpha(PRIMARY, 0.1)}`,
-                overflow: "hidden",
-              }}
-            >
-              <Box
-                sx={{
-                  p: 2,
-                  background: `linear-gradient(135deg, ${alpha(PRIMARY, 0.05)} 0%, ${alpha(PRIMARY, 0.02)} 100%)`,
-                  borderBottom: `1px solid ${alpha(PRIMARY, 0.1)}`,
-                }}
-              >
-                <Typography
-                  variant="h6"
-                  fontWeight={600}
-                  sx={{ display: "flex", alignItems: "center", gap: 1, color: PRIMARY }}
-                >
-                  <Person /> Visitor Information
-                </Typography>
-              </Box>
-              <CardContent sx={{ p: 3 }}>
-                <Stack spacing={2.5}>
-                  <Box
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      p: 1.5,
-                      borderRadius: 2,
-                      bgcolor: alpha(PRIMARY, 0.02),
-                    }}
-                  >
-                    <Typography variant="body2" color="text.secondary">
-                      Name
-                    </Typography>
-                    <Typography variant="body1" fontWeight={600}>
-                      {visit.user?.firstName} {visit.user?.lastName}
-                    </Typography>
-                  </Box>
-                  <Box
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      p: 1.5,
-                      borderRadius: 2,
-                      bgcolor: alpha(PRIMARY, 0.02),
-                    }}
-                  >
-                    <Typography variant="body2" color="text.secondary">
-                      Email
-                    </Typography>
-                    <Typography variant="body1">
-                      {visit.user?.email || "Not set"}
-                    </Typography>
-                  </Box>
-                  <Box
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      p: 1.5,
-                      borderRadius: 2,
-                      bgcolor: alpha(PRIMARY, 0.02),
-                    }}
-                  >
-                    <Typography variant="body2" color="text.secondary">
-                      Role
-                    </Typography>
-                    <Chip
-                      label={getRoleConfig(visit.user?.role).label}
-                      size="small"
-                      sx={{
-                        bgcolor: alpha(getRoleConfig(visit.user?.role).color, 0.1),
-                        color: getRoleConfig(visit.user?.role).color,
-                        fontWeight: 600,
-                      }}
-                    />
-                  </Box>
-                  <Box
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      p: 1.5,
-                      borderRadius: 2,
-                      bgcolor: alpha(PRIMARY, 0.02),
-                    }}
-                  >
-                    <Typography variant="body2" color="text.secondary">
-                      Visit Date
-                    </Typography>
-                    <Typography variant="body1">
-                      {safeFormatDate(visit.visitedAt || visit.createdAt, "dd MMM yyyy, hh:mm a")}
-                    </Typography>
-                  </Box>
-                  <Box
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      p: 1.5,
-                      borderRadius: 2,
-                      bgcolor: alpha(PRIMARY, 0.02),
-                    }}
-                  >
-                    <Typography variant="body2" color="text.secondary">
-                      Remarks
-                    </Typography>
-                    <Typography variant="body1">
-                      {visit.remarks || "No remarks"}
-                    </Typography>
-                  </Box>
-                </Stack>
-              </CardContent>
-            </Card>
-          </motion.div>
+            <CardContent sx={{ p: 2 }}>
+              <Stack spacing={1.5}>
+                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", p: 1, bgcolor: alpha(PRIMARY, 0.02), borderRadius: 1 }}>
+                  <Typography variant="caption" color="text.secondary">Name</Typography>
+                  <Typography variant="body2" fontWeight={600}>
+                    {visit.user?.firstName} {visit.user?.lastName}
+                  </Typography>
+                </Box>
+                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", p: 1, bgcolor: alpha(PRIMARY, 0.02), borderRadius: 1 }}>
+                  <Typography variant="caption" color="text.secondary">Role</Typography>
+                  <Chip
+                    label={getRoleConfig(visit.user?.role).label}
+                    size="small"
+                    sx={{ bgcolor: alpha(PRIMARY, 0.1), color: PRIMARY, fontWeight: 600, height: 24 }}
+                  />
+                </Box>
+                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", p: 1, bgcolor: alpha(PRIMARY, 0.02), borderRadius: 1 }}>
+                  <Typography variant="caption" color="text.secondary">Date</Typography>
+                  <Typography variant="body2">
+                    {safeFormatDate(visit.visitedAt, "dd MMM yyyy, hh:mm a")}
+                  </Typography>
+                </Box>
+                <Box sx={{ p: 1, bgcolor: alpha(PRIMARY, 0.02), borderRadius: 1 }}>
+                  <Typography variant="caption" color="text.secondary">Remarks</Typography>
+                  <Typography variant="body2" sx={{ mt: 0.5 }}>
+                    {visit.remarks || "No remarks"}
+                  </Typography>
+                </Box>
+              </Stack>
+            </CardContent>
+          </Card>
         ),
       },
       {
         label: "Location",
         icon: <LocationOn />,
         content: (
-          <Stack spacing={3}>
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: 0.1 }}
-            >
-              <Card
-                elevation={0}
-                sx={{
-                  borderRadius: 3,
-                  border: `1px solid ${alpha(SUCCESS, 0.1)}`,
-                  overflow: "hidden",
-                }}
-              >
-                <Box
-                  sx={{
-                    p: 2,
-                    background: `linear-gradient(135deg, ${alpha(SUCCESS, 0.05)} 0%, ${alpha(SUCCESS, 0.02)} 100%)`,
-                    borderBottom: `1px solid ${alpha(SUCCESS, 0.1)}`,
-                  }}
-                >
-                  <Typography
-                    variant="h6"
-                    fontWeight={600}
-                    sx={{ display: "flex", alignItems: "center", gap: 1, color: SUCCESS }}
-                  >
-                    <MyLocation /> Visit Location
+          <Card
+            elevation={0}
+            sx={{
+              borderRadius: 2,
+              border: `1px solid ${alpha(SUCCESS, 0.1)}`,
+            }}
+          >
+            <CardContent sx={{ p: 2 }}>
+              <Stack spacing={1.5}>
+                <Box sx={{ p: 1, bgcolor: alpha(SUCCESS, 0.02), borderRadius: 1 }}>
+                  <Typography variant="caption" color="text.secondary">Location Name</Typography>
+                  <Typography variant="body2" fontWeight={600} sx={{ mt: 0.5 }}>
+                    {visit.locationName}
                   </Typography>
                 </Box>
-                <CardContent sx={{ p: 3 }}>
-                  <Stack spacing={2.5}>
-                    <Box
-                      sx={{
-                        p: 2,
-                        bgcolor: alpha(PRIMARY, 0.03),
-                        borderRadius: 2,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                      }}
-                    >
-                      <Box>
-                        <Typography variant="body2" color="text.secondary">
-                          Coordinates
-                        </Typography>
-                        <Typography variant="body1" fontWeight={600}>
-                          {visit.location?.lat?.toFixed(6)}° N,{" "}
-                          {visit.location?.lng?.toFixed(6)}° E
-                        </Typography>
-                      </Box>
-                      <Chip
-                        label={visit.locationName || "Location"}
-                        icon={<LocationCity />}
-                        size="small"
-                        sx={{
-                          bgcolor: alpha(SUCCESS, 0.1),
-                          color: SUCCESS,
-                          fontWeight: 600,
-                        }}
-                      />
-                    </Box>
-                    <Box
-                      sx={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                        p: 1.5,
-                        borderRadius: 2,
-                        bgcolor: alpha(PRIMARY, 0.02),
-                      }}
-                    >
-                      <Typography variant="body2" color="text.secondary">
-                        Address
-                      </Typography>
-                      <Typography variant="body1">
-                        {visit.location?.address || "Address not available"}
-                      </Typography>
-                    </Box>
-                    <Box
-                      sx={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                        p: 1.5,
-                        borderRadius: 2,
-                        bgcolor: alpha(PRIMARY, 0.02),
-                      }}
-                    >
-                      <Typography variant="body2" color="text.secondary">
-                        Distance from Previous
-                      </Typography>
-                      <Typography variant="body1" fontWeight={600} color={PRIMARY}>
-                        {formatDistance(visit.kmFromPrevious || 0)}
-                      </Typography>
-                    </Box>
-                    {dailySummary && (
-                      <Box
-                        sx={{
-                          p: 2,
-                          bgcolor: alpha(INFO, 0.05),
-                          borderRadius: 2,
-                          border: `1px solid ${alpha(INFO, 0.2)}`,
-                        }}
-                      >
-                        <Typography variant="subtitle2" fontWeight={600} color={INFO} gutterBottom>
-                          Daily Summary
-                        </Typography>
-                        <Grid container spacing={2}>
-                          <Grid item xs={6}>
-                            <Typography variant="caption" color="text.secondary">
-                              Total Visits
-                            </Typography>
-                            <Typography variant="body2" fontWeight={600}>
-                              {dailySummary.totalVisits || 0}
-                            </Typography>
-                          </Grid>
-                          <Grid item xs={6}>
-                            <Typography variant="caption" color="text.secondary">
-                              Total KM
-                            </Typography>
-                            <Typography variant="body2" fontWeight={600}>
-                              {formatDistance(dailySummary.totalKm || 0)}
-                            </Typography>
-                          </Grid>
-                          <Grid item xs={6}>
-                            <Typography variant="caption" color="text.secondary">
-                              First Visit
-                            </Typography>
-                            <Typography variant="body2">
-                              {dailySummary.firstVisitTime ? safeFormatTime(dailySummary.firstVisitTime) : "N/A"}
-                            </Typography>
-                          </Grid>
-                          <Grid item xs={6}>
-                            <Typography variant="caption" color="text.secondary">
-                              Last Visit
-                            </Typography>
-                            <Typography variant="body2">
-                              {dailySummary.lastVisitTime ? safeFormatTime(dailySummary.lastVisitTime) : "N/A"}
-                            </Typography>
-                          </Grid>
-                        </Grid>
-                      </Box>
-                    )}
-                  </Stack>
-                </CardContent>
-              </Card>
-            </motion.div>
-
-            {dailySummary?.locations?.length > 1 && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: 0.2 }}
-              >
-                <Card
-                  elevation={0}
-                  sx={{
-                    borderRadius: 3,
-                    border: `1px solid ${alpha(PRIMARY, 0.1)}`,
-                    overflow: "hidden",
-                  }}
-                >
-                  <Box
-                    sx={{
-                      p: 2,
-                      background: `linear-gradient(135deg, ${alpha(PRIMARY, 0.05)} 0%, ${alpha(PRIMARY, 0.02)} 100%)`,
-                      borderBottom: `1px solid ${alpha(PRIMARY, 0.1)}`,
-                    }}
-                  >
-                    <Typography
-                      variant="h6"
-                      fontWeight={600}
-                      sx={{ display: "flex", alignItems: "center", gap: 1, color: PRIMARY }}
-                    >
-                      <TimelineIcon /> Today's Visit History
+                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", p: 1, bgcolor: alpha(PRIMARY, 0.02), borderRadius: 1 }}>
+                  <Typography variant="caption" color="text.secondary">Latitude</Typography>
+                  <Typography variant="body2">
+                    {visit.location?.lat?.toFixed(6)}° N
+                  </Typography>
+                </Box>
+                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", p: 1, bgcolor: alpha(PRIMARY, 0.02), borderRadius: 1 }}>
+                  <Typography variant="caption" color="text.secondary">Longitude</Typography>
+                  <Typography variant="body2">
+                    {visit.location?.lng?.toFixed(6)}° E
+                  </Typography>
+                </Box>
+                {visit.kmFromPrevious > 0 && (
+                  <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", p: 1, bgcolor: alpha(WARNING, 0.05), borderRadius: 1 }}>
+                    <Typography variant="caption" color="text.secondary">Distance</Typography>
+                    <Typography variant="body2" fontWeight={600} color={WARNING}>
+                      {formatDistance(visit.kmFromPrevious)}
                     </Typography>
                   </Box>
-                  <CardContent sx={{ p: 3 }}>
-                    <Timeline>
-                      {dailySummary.locations.map((location, index) => (
-                        <TimelineItem key={index}>
-                          <TimelineOppositeContent
-                            variant="caption"
-                            color="text.secondary"
-                            sx={{ flex: 0.2 }}
-                          >
-                            {safeFormatTime(location.visitedAt)}
-                          </TimelineOppositeContent>
-                          <TimelineSeparator>
-                            <TimelineDot
-                              sx={{
-                                bgcolor: index === dailySummary.locations.length - 1 ? SUCCESS : PRIMARY,
-                                boxShadow: `0 0 0 4px ${alpha(index === dailySummary.locations.length - 1 ? SUCCESS : PRIMARY, 0.2)}`,
-                              }}
-                            />
-                            {index < dailySummary.locations.length - 1 && (
-                              <TimelineConnector sx={{ bgcolor: alpha(PRIMARY, 0.2) }} />
-                            )}
-                          </TimelineSeparator>
-                          <TimelineContent>
-                            <Typography variant="subtitle2" fontWeight={600}>
-                              {location.locationName}
-                            </Typography>
-                            <Typography variant="caption" color="text.secondary" display="block">
-                              {location.lat.toFixed(6)}, {location.lng.toFixed(6)}
-                            </Typography>
-                            {location.kmFromPrevious > 0 && (
-                              <Typography variant="caption" color="text.secondary">
-                                📏 {formatDistance(location.kmFromPrevious)} from previous
-                              </Typography>
-                            )}
-                          </TimelineContent>
-                        </TimelineItem>
-                      ))}
-                    </Timeline>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            )}
-          </Stack>
+                )}
+              </Stack>
+            </CardContent>
+          </Card>
         ),
       },
       {
         label: "Image",
         icon: <ImageIcon />,
         content: (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: 0.1 }}
+          <Card
+            elevation={0}
+            sx={{
+              borderRadius: 2,
+              border: `1px solid ${alpha(PRIMARY, 0.1)}`,
+            }}
           >
-            <Card
-              elevation={0}
-              sx={{
-                borderRadius: 3,
-                border: `1px solid ${alpha(PRIMARY, 0.1)}`,
-                overflow: "hidden",
-              }}
-            >
-              <Box
-                sx={{
-                  p: 2,
-                  background: `linear-gradient(135deg, ${alpha(PRIMARY, 0.05)} 0%, ${alpha(PRIMARY, 0.02)} 100%)`,
-                  borderBottom: `1px solid ${alpha(PRIMARY, 0.1)}`,
-                }}
-              >
-                <Typography
-                  variant="h6"
-                  fontWeight={600}
-                  sx={{ display: "flex", alignItems: "center", gap: 1, color: PRIMARY }}
+            <CardContent sx={{ p: 2 }}>
+              {visit.photoUrl ? (
+                <Box
+                  sx={{
+                    position: "relative",
+                    borderRadius: 1,
+                    overflow: "hidden",
+                    cursor: "pointer",
+                  }}
+                  onClick={() => handleViewImage(visit.photoUrl, visit.locationName)}
                 >
-                  <ImageIcon /> Location Image
-                </Typography>
-              </Box>
-              <CardContent sx={{ p: 3 }}>
-                {visit.photoUrl ? (
+                  <img
+                    src={visit.photoUrl}
+                    alt={visit.locationName}
+                    style={{
+                      width: "100%",
+                      maxHeight: 250,
+                      objectFit: "contain",
+                      borderRadius: 6,
+                    }}
+                  />
                   <Box
                     sx={{
-                      position: "relative",
-                      borderRadius: 2,
-                      overflow: "hidden",
-                      cursor: "pointer",
-                      "&:hover": {
-                        "& .image-overlay": {
-                          opacity: 1,
-                        },
-                      },
+                      position: "absolute",
+                      bottom: 8,
+                      right: 8,
+                      bgcolor: "rgba(0,0,0,0.6)",
+                      color: "white",
+                      borderRadius: 1,
+                      px: 1,
+                      py: 0.5,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 0.5,
                     }}
-                    onClick={() => handleViewImage(visit.photoUrl, visit.locationName)}
                   >
-                    <img
-                      src={visit.photoUrl}
-                      alt={visit.locationName}
-                      style={{
-                        width: "100%",
-                        maxHeight: 400,
-                        objectFit: "contain",
-                        borderRadius: 8,
-                      }}
-                    />
-                    <Box
-                      className="image-overlay"
-                      sx={{
-                        position: "absolute",
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        bgcolor: "rgba(0,0,0,0.5)",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        opacity: 0,
-                        transition: "opacity 0.2s",
-                      }}
-                    >
-                      <Button
-                        variant="contained"
-                        startIcon={<ZoomIn />}
-                        sx={{ bgcolor: "white", color: PRIMARY }}
-                      >
-                        View Full Image
-                      </Button>
-                    </Box>
+                    <ZoomIn sx={{ fontSize: 14 }} />
+                    <Typography variant="caption">View</Typography>
                   </Box>
-                ) : (
-                  <Box sx={{ textAlign: "center", py: 6 }}>
-                    <ImageIcon sx={{ fontSize: 64, color: "text.disabled", mb: 2 }} />
-                    <Typography variant="h6" color="text.secondary" gutterBottom>
-                      No Image Uploaded
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      No image was uploaded for this visit.
-                    </Typography>
-                  </Box>
-                )}
-              </CardContent>
-            </Card>
-          </motion.div>
+                </Box>
+              ) : (
+                <Box sx={{ textAlign: "center", py: 4 }}>
+                  <ImageIcon sx={{ fontSize: 48, color: "text.disabled", mb: 1 }} />
+                  <Typography variant="body2" color="text.secondary">
+                    No image uploaded
+                  </Typography>
+                </Box>
+              )}
+            </CardContent>
+          </Card>
         ),
       },
     ];
@@ -3341,12 +2292,12 @@ const ViewVisitModal = React.memo(
       <Dialog
         open={open}
         onClose={onClose}
-        maxWidth="lg"
+        maxWidth="sm"
         fullWidth
         fullScreen={isMobile}
         PaperProps={{
           sx: {
-            borderRadius: isMobile ? 0 : 4,
+            borderRadius: isMobile ? 0 : 3,
             maxHeight: "90vh",
             overflow: "hidden",
           },
@@ -3356,149 +2307,100 @@ const ViewVisitModal = React.memo(
           sx={{
             bgcolor: PRIMARY,
             color: "white",
-            py: 2,
-            px: 3,
+            py: 1.5,
+            px: 2,
           }}
         >
           <Stack direction="row" alignItems="center" justifyContent="space-between">
-            <Box display="flex" alignItems="center" gap={2}>
+            <Box display="flex" alignItems="center" gap={1.5}>
               <Avatar
                 sx={{
                   bgcolor: "white",
                   color: PRIMARY,
-                  width: 48,
-                  height: 48,
+                  width: 36,
+                  height: 36,
                   fontWeight: 700,
+                  fontSize: "1rem",
                 }}
               >
                 {visit.user?.firstName?.[0] || "V"}
               </Avatar>
               <Box>
-                <Typography variant="h6" fontWeight={700}>
+                <Typography variant="subtitle1" fontWeight={700}>
                   {visit.user?.firstName} {visit.user?.lastName}
                 </Typography>
                 <Typography variant="caption" sx={{ opacity: 0.9 }}>
-                  Visit Details • {visit.locationName}
+                  {visit.locationName}
                 </Typography>
               </Box>
             </Box>
-            <Box display="flex" gap={1}>
+            <Box display="flex" gap={0.5}>
               {permissions.canEdit && (
-                <Tooltip title="Edit Visit">
-                  <IconButton
-                    onClick={handleEdit}
-                    size="small"
-                    sx={{ color: "white", "&:hover": { bgcolor: alpha("#fff", 0.1) } }}
-                  >
-                    <Edit />
-                  </IconButton>
-                </Tooltip>
+                <IconButton
+                  onClick={() => {
+                    onEdit(visit);
+                    onClose();
+                  }}
+                  size="small"
+                  sx={{ color: "white", "&:hover": { bgcolor: alpha("#fff", 0.1) } }}
+                >
+                  <Edit fontSize="small" />
+                </IconButton>
               )}
               {permissions.canDelete && (
-                <Tooltip title="Delete Visit">
-                  <IconButton
-                    onClick={handleDelete}
-                    size="small"
-                    sx={{ color: "white", "&:hover": { bgcolor: alpha("#fff", 0.1) } }}
-                  >
-                    <Delete />
-                  </IconButton>
-                </Tooltip>
+                <IconButton
+                  onClick={() => {
+                    if (window.confirm("Delete this visit?")) {
+                      onDelete(visit._id);
+                      onClose();
+                    }
+                  }}
+                  size="small"
+                  sx={{ color: "white", "&:hover": { bgcolor: alpha("#fff", 0.1) } }}
+                >
+                  <Delete fontSize="small" />
+                </IconButton>
               )}
               <IconButton onClick={onClose} size="small" sx={{ color: "white" }}>
-                <Close />
+                <Close fontSize="small" />
               </IconButton>
             </Box>
           </Stack>
         </DialogTitle>
 
         <DialogContent sx={{ p: 0 }}>
-          <Box sx={{ borderBottom: 1, borderColor: "divider", px: 2 }}>
+          <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
             <Tabs
               value={activeTab}
-              onChange={handleTabChange}
+              onChange={(e, v) => setActiveTab(v)}
               variant="scrollable"
               scrollButtons="auto"
               sx={{
                 "& .MuiTab-root": {
-                  minHeight: 64,
-                  py: 1.5,
-                  px: 3,
+                  minHeight: 48,
+                  py: 1,
+                  px: 2,
+                  fontSize: "0.8rem",
                 },
                 "& .Mui-selected": {
                   color: `${PRIMARY} !important`,
                 },
                 "& .MuiTabs-indicator": {
                   bgcolor: PRIMARY,
-                  height: 3,
+                  height: 2,
                 },
               }}
             >
               {tabs.map((tab, index) => (
-                <Tab
-                  key={index}
-                  icon={tab.icon}
-                  label={tab.label}
-                  sx={{
-                    textTransform: "none",
-                    fontWeight: 600,
-                    fontSize: "0.875rem",
-                  }}
-                />
+                <Tab key={index} icon={tab.icon} label={tab.label} iconPosition="start" />
               ))}
             </Tabs>
           </Box>
 
-          <Box sx={{ p: 3, maxHeight: "60vh", overflow: "auto" }}>
-            {loading ? (
-              <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
-                <CircularProgress />
-              </Box>
-            ) : (
-              tabs[activeTab].content
-            )}
+          <Box sx={{ p: 2, maxHeight: "60vh", overflow: "auto" }}>
+            {tabs[activeTab].content}
           </Box>
         </DialogContent>
-
-        <DialogActions
-          sx={{
-            p: 3,
-            pt: 2,
-            borderTop: 1,
-            borderColor: "divider",
-            bgcolor: "background.paper",
-          }}
-        >
-          <Box
-            display="flex"
-            justifyContent="space-between"
-            alignItems="center"
-            width="100%"
-          >
-            <Chip
-              label={userRoleConfig.label}
-              icon={userRoleConfig.icon}
-              size="small"
-              sx={{
-                bgcolor: alpha(PRIMARY, 0.15),
-                color: PRIMARY,
-                fontWeight: 600,
-              }}
-            />
-            <Button
-              onClick={onClose}
-              variant="contained"
-              sx={{
-                borderRadius: 2,
-                px: 4,
-                bgcolor: PRIMARY,
-                "&:hover": { bgcolor: SECONDARY },
-              }}
-            >
-              Close
-            </Button>
-          </Box>
-        </DialogActions>
       </Dialog>
     );
   }
@@ -3508,28 +2410,16 @@ ViewVisitModal.displayName = "ViewVisitModal";
 
 // ========== LOADING SKELETON ==========
 const LoadingSkeleton = () => (
-  <Box sx={{ p: 3 }}>
-    <Grid container spacing={3} sx={{ mb: 4 }}>
-      {[1, 2, 3, 4, 5, 6, 7, 8].map((item) => (
-        <Grid item xs={6} sm={4} md={3} key={item}>
-          <Skeleton
-            variant="rectangular"
-            height={120}
-            sx={{ borderRadius: 3 }}
-          />
+  <Box sx={{ p: 2 }}>
+    <Grid container spacing={2} sx={{ mb: 3 }}>
+      {[1, 2, 3, 4].map((item) => (
+        <Grid item xs={6} sm={6} md={3} key={item}>
+          <Skeleton variant="rectangular" height={120} sx={{ borderRadius: 2 }} />
         </Grid>
       ))}
     </Grid>
-    <Skeleton
-      variant="rectangular"
-      height={56}
-      sx={{ borderRadius: 3, mb: 3 }}
-    />
-    <Skeleton
-      variant="rectangular"
-      height={400}
-      sx={{ borderRadius: 3, mb: 2 }}
-    />
+    <Skeleton variant="rectangular" height={48} sx={{ borderRadius: 2, mb: 2 }} />
+    <Skeleton variant="rectangular" height={400} sx={{ borderRadius: 2 }} />
   </Box>
 );
 
@@ -3543,6 +2433,10 @@ export default function VisitorTrackingPage() {
     () => getUserPermissions(userRole),
     [userRole]
   );
+
+  // Media queries
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const isTablet = useMediaQuery(theme.breakpoints.down("md"));
 
   // State Management
   const [period, setPeriod] = useState("This Week");
@@ -3569,7 +2463,7 @@ export default function VisitorTrackingPage() {
     },
     pagination: {
       page: 1,
-      limit: 10,
+      limit: isMobile ? 5 : 10,
       total: 0,
       pages: 0,
     },
@@ -3597,8 +2491,8 @@ export default function VisitorTrackingPage() {
 
   // Filter States
   const [searchQuery, setSearchQuery] = useState("");
-  const [locationTypeFilter, setLocationTypeFilter] = useState("All");
   const [showFilterPanel, setShowFilterPanel] = useState(false);
+  const [filterDrawerOpen, setFilterDrawerOpen] = useState(false);
   const [dateFilter, setDateFilter] = useState({
     startDate: null,
     endDate: null,
@@ -3611,7 +2505,7 @@ export default function VisitorTrackingPage() {
     direction: "desc",
   });
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(DEFAULT_ITEMS_PER_PAGE);
+  const [rowsPerPage, setRowsPerPage] = useState(isMobile ? 5 : 10);
 
   // Modal States
   const [viewModalOpen, setViewModalOpen] = useState(false);
@@ -3622,9 +2516,7 @@ export default function VisitorTrackingPage() {
   const [selectedVisit, setSelectedVisit] = useState(null);
   const [actionMenuAnchor, setActionMenuAnchor] = useState(null);
   const [selectedActionVisit, setSelectedActionVisit] = useState(null);
-  const [manualLocationDialogOpen, setManualLocationDialogOpen] = useState(false);
   const [createVisitDialogOpen, setCreateVisitDialogOpen] = useState(false);
-  const [manualLocationLoading, setManualLocationLoading] = useState(false);
   const [createVisitLoading, setCreateVisitLoading] = useState(false);
   const [updateVisitLoading, setUpdateVisitLoading] = useState(false);
   const [deleteVisitLoading, setDeleteVisitLoading] = useState(false);
@@ -3633,6 +2525,18 @@ export default function VisitorTrackingPage() {
   const showSnackbar = useCallback((message, severity = "success") => {
     setSnackbar({ open: true, message, severity });
   }, []);
+
+  // Update rows per page when screen size changes
+  useEffect(() => {
+    setRowsPerPage(isMobile ? 5 : 10);
+    setVisitorData(prev => ({
+      ...prev,
+      pagination: {
+        ...prev.pagination,
+        limit: isMobile ? 5 : 10
+      }
+    }));
+  }, [isMobile]);
 
   // Fetch Visit Stats
   const fetchVisitStats = useCallback(async () => {
@@ -3666,7 +2570,6 @@ export default function VisitorTrackingPage() {
       if (response?.result) {
         const visits = response.result.visits || [];
         
-        // Calculate summary stats
         const totalVisits = response.result.pagination?.total || visits.length;
         const totalVisitors = new Set(visits.map((v) => v.user?._id)).size;
         const totalDistance = visits.reduce(
@@ -3674,7 +2577,6 @@ export default function VisitorTrackingPage() {
           0
         );
         
-        // Calculate locations count
         const locations = new Set(
           visits.map((v) => `${v.location?.lat},${v.location?.lng}`)
         ).size;
@@ -3685,7 +2587,7 @@ export default function VisitorTrackingPage() {
             totalVisits,
             totalVisitors,
             totalDistance,
-            totalDuration: 0, // API doesn't provide duration
+            totalDuration: 0,
             averageDistance: totalVisits > 0 ? totalDistance / totalVisits : 0,
             averageDuration: 0,
             carbonFootprint: 0,
@@ -3707,62 +2609,6 @@ export default function VisitorTrackingPage() {
       setLoading(false);
     }
   }, [fetchAPI, page, rowsPerPage, dateFilter, period, showSnackbar]);
-
-  // Apply Filters
-  const applyFilters = useCallback(() => {
-    try {
-      let filtered = [...visitorData.visits];
-
-      // Search filter
-      if (searchQuery.trim()) {
-        const query = searchQuery.toLowerCase().trim();
-        filtered = filtered.filter(
-          (visit) =>
-            (visit.locationName?.toLowerCase() || "").includes(query) ||
-            (visit.user?.firstName?.toLowerCase() || "").includes(query) ||
-            (visit.user?.lastName?.toLowerCase() || "").includes(query) ||
-            (visit.user?.email?.toLowerCase() || "").includes(query) ||
-            (visit.remarks?.toLowerCase() || "").includes(query)
-        );
-      }
-
-      // Location Type filter - Note: API doesn't have location type, so we skip
-      
-      // Date filter - already applied at API level
-      
-      // Sorting
-      if (sortConfig.key) {
-        filtered.sort((a, b) => {
-          let aVal = a[sortConfig.key];
-          let bVal = b[sortConfig.key];
-
-          if (sortConfig.key === "visitedAt" || sortConfig.key === "createdAt") {
-            aVal = aVal ? parseISO(aVal) : new Date(0);
-            bVal = bVal ? parseISO(bVal) : new Date(0);
-          } else if (sortConfig.key === "kmFromPrevious") {
-            aVal = aVal || 0;
-            bVal = bVal || 0;
-          } else if (sortConfig.key === "locationName") {
-            aVal = aVal?.toLowerCase() || "";
-            bVal = bVal?.toLowerCase() || "";
-          }
-
-          if (aVal < bVal) return sortConfig.direction === "asc" ? -1 : 1;
-          if (aVal > bVal) return sortConfig.direction === "asc" ? 1 : -1;
-          return 0;
-        });
-      }
-
-      return filtered;
-    } catch (err) {
-      console.error("Filter error:", err);
-      return visitorData.visits;
-    }
-  }, [
-    visitorData.visits,
-    searchQuery,
-    sortConfig,
-  ]);
 
   // Effects
   useEffect(() => {
@@ -3799,7 +2645,6 @@ export default function VisitorTrackingPage() {
       }
 
       try {
-        // Fetch latest visit data
         const response = await VisitService.getVisitById(fetchAPI, visit._id);
         if (response?.result) {
           setSelectedVisit(response.result);
@@ -3821,7 +2666,6 @@ export default function VisitorTrackingPage() {
       }
 
       try {
-        // Fetch latest visit data for editing
         const response = await VisitService.getVisitById(fetchAPI, visit._id);
         if (response?.result) {
           setSelectedVisit(response.result);
@@ -3923,61 +2767,6 @@ export default function VisitorTrackingPage() {
     }
   }, [fetchAPI, showSnackbar, fetchVisitorData, fetchVisitStats]);
 
-  const handleManualLocationSubmit = useCallback(async (locationData) => {
-    try {
-      setManualLocationLoading(true);
-
-      const formDataToSend = new FormData();
-      formDataToSend.append('lat', locationData.latitude);
-      formDataToSend.append('lng', locationData.longitude);
-      formDataToSend.append('locationName', locationData.locationName);
-      formDataToSend.append('remarks', locationData.remarks || `Manual location - ${locationData.locationType}`);
-      
-      // Upload images
-      if (locationData.images && locationData.images.length > 0) {
-        locationData.images.forEach((image) => {
-          formDataToSend.append('photo', image);
-        });
-      }
-
-      const response = await VisitService.createVisit(fetchAPI, formDataToSend);
-      
-      if (response?.result) {
-        showSnackbar("Manual location added successfully!", "success");
-        setManualLocationDialogOpen(false);
-        fetchVisitorData(1);
-        fetchVisitStats();
-      }
-    } catch (error) {
-      console.error("Error adding manual location:", error);
-      showSnackbar(error.message || "Failed to add location", "error");
-    } finally {
-      setManualLocationLoading(false);
-    }
-  }, [fetchAPI, showSnackbar, fetchVisitorData, fetchVisitStats]);
-
-  const handleLocationUpdate = useCallback((visitId, locationData) => {
-    // This is for real-time tracking, not persisted to API
-    setVisitorData((prev) => {
-      const updatedVisits = prev.visits.map((visit) => {
-        if (visit._id === visitId) {
-          return {
-            ...visit,
-            currentLocation: locationData.currentLocation,
-            distance: (visit.kmFromPrevious || 0) + (locationData.distance || 0),
-            locationHistory: locationData.locationHistory || visit.locationHistory,
-          };
-        }
-        return visit;
-      });
-
-      return {
-        ...prev,
-        visits: updatedVisits,
-      };
-    });
-  }, []);
-
   const handleActionMenuOpen = useCallback((event, visit) => {
     setActionMenuAnchor(event.currentTarget);
     setSelectedActionVisit(visit);
@@ -4002,7 +2791,7 @@ export default function VisitorTrackingPage() {
           }
           break;
         case "delete":
-          if (userPermissions.canDelete && window.confirm("Are you sure you want to delete this visit?")) {
+          if (userPermissions.canDelete && window.confirm("Delete this visit?")) {
             handleDeleteVisit(selectedActionVisit._id);
           }
           break;
@@ -4018,7 +2807,7 @@ export default function VisitorTrackingPage() {
   const handleViewImage = useCallback(
     (imageUrl, imageName = "Location Image") => {
       if (!imageUrl) {
-        showSnackbar("No image available to view", "error");
+        showSnackbar("No image available", "error");
         return;
       }
       setCurrentImageUrl(imageUrl);
@@ -4034,15 +2823,13 @@ export default function VisitorTrackingPage() {
 
   const handleClearFilters = useCallback(() => {
     setSearchQuery("");
-    setLocationTypeFilter("All");
     setPeriod("This Week");
     setDateFilter({ startDate: null, endDate: null });
     setDateFilterError("");
     setSortConfig({ key: "visitedAt", direction: "desc" });
     setPage(0);
+    setFilterDrawerOpen(false);
     if (showFilterPanel) setShowFilterPanel(false);
-    
-    // Refresh data with cleared filters
     fetchVisitorData(1);
   }, [showFilterPanel, fetchVisitorData]);
 
@@ -4058,14 +2845,104 @@ export default function VisitorTrackingPage() {
     fetchVisitorData(1);
   }, [fetchVisitorData]);
 
+  // Mobile Filter Drawer
+  const FilterDrawer = () => (
+    <SwipeableDrawer
+      anchor="bottom"
+      open={filterDrawerOpen}
+      onClose={() => setFilterDrawerOpen(false)}
+      onOpen={() => setFilterDrawerOpen(true)}
+      disableSwipeToOpen={false}
+      PaperProps={{
+        sx: {
+          borderTopLeftRadius: 20,
+          borderTopRightRadius: 20,
+          maxHeight: '80vh',
+        }
+      }}
+    >
+      <Box sx={{ p: 2 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+          <Typography variant="h6" fontWeight={700} sx={{ color: PRIMARY }}>
+            Filters
+          </Typography>
+          <IconButton onClick={() => setFilterDrawerOpen(false)} size="small">
+            <Close />
+          </IconButton>
+        </Box>
+
+        <Stack spacing={2}>
+          <FormControl size="small" fullWidth>
+            <InputLabel>Period</InputLabel>
+            <Select
+              value={period}
+              label="Period"
+              onChange={(e) => setPeriod(e.target.value)}
+            >
+              <MenuItem value="Today">Today</MenuItem>
+              <MenuItem value="This Week">This Week</MenuItem>
+              <MenuItem value="This Month">This Month</MenuItem>
+              <MenuItem value="All">All Time</MenuItem>
+            </Select>
+          </FormControl>
+
+          <DatePicker
+            label="Start Date"
+            value={dateFilter.startDate}
+            onChange={(date) => setDateFilter(prev => ({ ...prev, startDate: date }))}
+            slotProps={{
+              textField: {
+                fullWidth: true,
+                size: 'small',
+                error: !!dateFilterError,
+                helperText: dateFilterError,
+              },
+            }}
+          />
+
+          <DatePicker
+            label="End Date"
+            value={dateFilter.endDate}
+            onChange={(date) => setDateFilter(prev => ({ ...prev, endDate: date }))}
+            minDate={dateFilter.startDate}
+            slotProps={{
+              textField: {
+                fullWidth: true,
+                size: 'small',
+              },
+            }}
+          />
+
+          <Button
+            variant="contained"
+            onClick={() => {
+              setPage(0);
+              fetchVisitorData(1);
+              setFilterDrawerOpen(false);
+            }}
+            fullWidth
+            size="small"
+            sx={{ bgcolor: PRIMARY }}
+          >
+            Apply Filters
+          </Button>
+
+          <Button
+            variant="outlined"
+            onClick={handleClearFilters}
+            startIcon={<Clear />}
+            fullWidth
+            size="small"
+          >
+            Clear All
+          </Button>
+        </Stack>
+      </Box>
+    </SwipeableDrawer>
+  );
+
   // Memoized Computed Values
-  const filteredVisits = useMemo(() => applyFilters(), [applyFilters]);
-
-  const paginatedVisits = useMemo(() => {
-    // Since API handles pagination, just return current page data
-    return visitorData.visits;
-  }, [visitorData.visits]);
-
+  const filteredVisits = useMemo(() => visitorData.visits, [visitorData.visits]);
   const totalPages = useMemo(
     () => visitorData.pagination?.pages || 1,
     [visitorData.pagination]
@@ -4079,7 +2956,6 @@ export default function VisitorTrackingPage() {
         color: PRIMARY,
         icon: <LocationOn sx={{ fontSize: 24 }} />,
         subText: "All field visits",
-        gradient: "linear-gradient(135deg, #3a5ac8 0%, #5c7ed6 100%)",
       },
       {
         label: "Total Distance",
@@ -4087,7 +2963,6 @@ export default function VisitorTrackingPage() {
         color: WARNING,
         icon: <Route sx={{ fontSize: 24 }} />,
         subText: "KM traveled",
-        gradient: "linear-gradient(135deg, #ed6c02 0%, #ff9800 100%)",
       },
       {
         label: "Today's Visits",
@@ -4095,15 +2970,13 @@ export default function VisitorTrackingPage() {
         color: INFO,
         icon: <AccessTime sx={{ fontSize: 24 }} />,
         subText: "Visits today",
-        gradient: "linear-gradient(135deg, #0288d1 0%, #03a9f4 100%)",
       },
       {
-        label: "Total Days",
-        value: stats.overall?.totalDays || 0,
-        color: "#607d8b",
-        icon: <CalendarToday sx={{ fontSize: 24 }} />,
-        subText: "Active days",
-        gradient: "linear-gradient(135deg, #455a64 0%, #78909c 100%)",
+        label: "Locations",
+        value: visitorData.summary.locations,
+        color: SUCCESS,
+        icon: <Place sx={{ fontSize: 24 }} />,
+        subText: "Unique locations",
       },
     ],
     [visitorData.summary, stats]
@@ -4112,55 +2985,18 @@ export default function VisitorTrackingPage() {
   // Access Check
   if (!hasAccess(userRole)) {
     return (
-      <Box
-        sx={{
-          p: 4,
-          textAlign: "center",
-          minHeight: "80vh",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <Card
-          sx={{
-            maxWidth: 500,
-            p: 4,
-            borderRadius: 4,
-            boxShadow: "0 8px 32px rgba(0,0,0,0.08)",
-          }}
-        >
-          <Box
-            sx={{
-              width: 80,
-              height: 80,
-              borderRadius: "50%",
-              bgcolor: alpha(ERROR, 0.1),
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              color: ERROR,
-              mx: "auto",
-              mb: 2,
-            }}
-          >
-            <LocationDisabled sx={{ fontSize: 40 }} />
+      <Box sx={{ p: 2, textAlign: "center", minHeight: "80vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <Card sx={{ maxWidth: 400, p: 3, borderRadius: 3 }}>
+          <Box sx={{ width: 64, height: 64, borderRadius: "50%", bgcolor: alpha(ERROR, 0.1), display: "flex", alignItems: "center", justifyContent: "center", color: ERROR, mx: "auto", mb: 2 }}>
+            <LocationDisabled sx={{ fontSize: 32 }} />
           </Box>
-          <Typography variant="h5" fontWeight={700} gutterBottom>
+          <Typography variant="h6" fontWeight={700} gutterBottom>
             Access Denied
           </Typography>
-          <Typography variant="body1" color="text.secondary" paragraph>
-            You don't have permission to access the visitor tracking page.
+          <Typography variant="body2" color="text.secondary" paragraph>
+            You don't have permission to access this page.
           </Typography>
-          <Button
-            variant="contained"
-            onClick={() => navigate("/dashboard")}
-            sx={{
-              mt: 2,
-              bgcolor: PRIMARY,
-              "&:hover": { bgcolor: SECONDARY },
-            }}
-          >
+          <Button variant="contained" onClick={() => navigate("/dashboard")} sx={{ bgcolor: PRIMARY }}>
             Go to Dashboard
           </Button>
         </Card>
@@ -4174,36 +3010,18 @@ export default function VisitorTrackingPage() {
 
   if (error && visitorData.visits.length === 0) {
     return (
-      <Box sx={{ p: 4, maxWidth: 600, mx: "auto" }}>
-        <Card sx={{ p: 4, borderRadius: 4, textAlign: "center" }}>
-          <Box
-            sx={{
-              width: 80,
-              height: 80,
-              borderRadius: "50%",
-              bgcolor: alpha(ERROR, 0.1),
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              color: ERROR,
-              mx: "auto",
-              mb: 2,
-            }}
-          >
-            <Warning sx={{ fontSize: 40 }} />
+      <Box sx={{ p: 2 }}>
+        <Card sx={{ p: 3, borderRadius: 3, textAlign: "center" }}>
+          <Box sx={{ width: 64, height: 64, borderRadius: "50%", bgcolor: alpha(ERROR, 0.1), display: "flex", alignItems: "center", justifyContent: "center", color: ERROR, mx: "auto", mb: 2 }}>
+            <Warning sx={{ fontSize: 32 }} />
           </Box>
-          <Typography variant="h5" fontWeight={700} gutterBottom>
+          <Typography variant="h6" fontWeight={700} gutterBottom>
             Error Loading Data
           </Typography>
-          <Typography variant="body1" color="text.secondary" paragraph>
+          <Typography variant="body2" color="text.secondary" paragraph>
             {error}
           </Typography>
-          <Button
-            variant="contained"
-            onClick={() => fetchVisitorData(1)}
-            startIcon={<Refresh />}
-            sx={{ bgcolor: PRIMARY, "&:hover": { bgcolor: SECONDARY } }}
-          >
+          <Button variant="contained" onClick={() => fetchVisitorData(1)} startIcon={<Refresh />} sx={{ bgcolor: PRIMARY }}>
             Retry
           </Button>
         </Card>
@@ -4251,7 +3069,7 @@ export default function VisitorTrackingPage() {
       {/* Snackbar */}
       <Snackbar
         open={snackbar.open}
-        autoHideDuration={6000}
+        autoHideDuration={4000}
         onClose={handleCloseSnackbar}
         anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
       >
@@ -4259,12 +3077,7 @@ export default function VisitorTrackingPage() {
           onClose={handleCloseSnackbar}
           severity={snackbar.severity}
           variant="filled"
-          sx={{
-            width: "100%",
-            color:"#fff",
-            borderRadius: 2,
-            boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-          }}
+          sx={{ width: "100%", borderRadius: 2 }}
         >
           {snackbar.message}
         </Alert>
@@ -4275,782 +3088,385 @@ export default function VisitorTrackingPage() {
         anchorEl={actionMenuAnchor}
         open={Boolean(actionMenuAnchor)}
         onClose={handleActionMenuClose}
-        PaperProps={{
-          sx: {
-            borderRadius: 3,
-            boxShadow: "0 8px 24px rgba(0,0,0,0.15)",
-            minWidth: 200,
-          },
-        }}
+        PaperProps={{ sx: { borderRadius: 2, minWidth: 180 } }}
       >
-        <MenuItem
-          onClick={() => handleActionSelect("view")}
-          sx={{ py: 1.5, px: 2 }}
-        >
-          <ListItemIcon>
-            <Visibility fontSize="small" sx={{ color: PRIMARY }} />
-          </ListItemIcon>
+        <MenuItem onClick={() => handleActionSelect("view")} dense>
+          <ListItemIcon><Visibility fontSize="small" sx={{ color: PRIMARY }} /></ListItemIcon>
           <ListItemText primary="View Details" />
         </MenuItem>
-        
         {userPermissions.canEdit && (
-          <MenuItem
-            onClick={() => handleActionSelect("edit")}
-            sx={{ py: 1.5, px: 2 }}
-          >
-            <ListItemIcon>
-              <Edit fontSize="small" sx={{ color: INFO }} />
-            </ListItemIcon>
+          <MenuItem onClick={() => handleActionSelect("edit")} dense>
+            <ListItemIcon><Edit fontSize="small" sx={{ color: INFO }} /></ListItemIcon>
             <ListItemText primary="Edit Visit" />
           </MenuItem>
         )}
-        
         {userPermissions.canDelete && (
-          <MenuItem
-            onClick={() => handleActionSelect("delete")}
-            sx={{ py: 1.5, px: 2 }}
-          >
-            <ListItemIcon>
-              <Delete fontSize="small" sx={{ color: ERROR }} />
-            </ListItemIcon>
+          <MenuItem onClick={() => handleActionSelect("delete")} dense>
+            <ListItemIcon><Delete fontSize="small" sx={{ color: ERROR }} /></ListItemIcon>
             <ListItemText primary="Delete Visit" />
           </MenuItem>
         )}
       </Menu>
 
+      {/* Mobile Filter Drawer */}
+      <FilterDrawer />
+
       {/* Main Content */}
-      <Box sx={{ p: { xs: 2, sm: 3 }, minHeight: "100vh" }}>
+      <Box sx={{ p: isMobile ? 1.5 : 3, minHeight: "100vh" }}>
         {/* Header */}
-        <Stack
-          direction={{ xs: "column", sm: "row" }}
-          spacing={3}
-          sx={{ mb: 4 }}
-          justifyContent="space-between"
-          alignItems={{ xs: "stretch", sm: "center" }}
-        >
+        <Stack direction={{ xs: "column", sm: "row" }} spacing={2} sx={{ mb: 3 }} justifyContent="space-between" alignItems={{ xs: "stretch", sm: "center" }}>
           <Box>
-            <Typography
-              variant="h4"
-              fontWeight={800}
-              gutterBottom
-              sx={{
-                background: "black",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-              }}
-            >
-              Visitor & Location Tracking
+            <Typography variant={isMobile ? "h6" : "h5"} fontWeight={800} sx={{ color: PRIMARY }}>
+              Visitor Tracking
             </Typography>
-            <Typography variant="body1" color="text.secondary">
-              Track visitor movements, distances traveled, and location history in real-time
+            <Typography variant="caption" color="text.secondary">
+              Track visitor movements and location history
             </Typography>
           </Box>
 
-          <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
+          <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
             {userPermissions.canTrackLocation && (
               <Button
                 variant="contained"
+                size="small"
                 startIcon={<AddLocationAlt />}
                 onClick={() => setCreateVisitDialogOpen(true)}
-                sx={{
-                  borderRadius: 3,
-                  px: 3,
-                  py: 1.2,
-                  background: PRIMARY,
-                  boxShadow: `0 4px 12px ${alpha(SUCCESS, 0.3)}`,
-                }}
+                sx={{ bgcolor: PRIMARY, borderRadius: 2 }}
               >
-                Create Visit
-              </Button>
-            )}
-            {userPermissions.canAddManualLocation && (
-              <Button
-                variant="outlined"
-                startIcon={<AddLocationAlt />}
-                onClick={() => setManualLocationDialogOpen(true)}
-                sx={{ borderRadius: 3, px: 3, py: 1.2 }}
-              >
-                Add Manual Location
+                {isMobile ? "Add" : "Create Visit"}
               </Button>
             )}
             <Button
               variant="outlined"
+              size="small"
               startIcon={<Refresh />}
               onClick={() => fetchVisitorData(page + 1)}
               disabled={loading}
-              sx={{ borderRadius: 3, px: 3, py: 1.2 }}
+              sx={{ borderRadius: 2 }}
             >
-              Refresh
+              {isMobile ? "" : "Refresh"}
             </Button>
-            <Chip
-              label={getRoleConfig(userRole).label}
-              icon={getRoleConfig(userRole).icon}
-              size="medium"
-              sx={{
-                bgcolor: alpha(PRIMARY, 0.15),
-                color: PRIMARY,
-                fontWeight: 600,
-                borderRadius: 2,
-                px: 1,
-              }}
-            />
           </Box>
         </Stack>
 
-        {/* Summary Cards */}
-        <Grid container spacing={3} sx={{ mb: 4 }}>
+        {/* Summary Cards - 2 per row on mobile */}
+        <Grid container spacing={1.5} sx={{ mb: 3 }}>
           {summaryCards.map((card, index) => (
-            <Grid item xs={6} sm={4} md={3} key={index}>
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.05 }}
-                whileHover={{ y: -4, transition: { duration: 0.2 } }}
+            <Grid item xs={6} key={index}>
+              <Card
+                sx={{
+                  borderRadius: 2,
+                  border: `1px solid ${alpha(card.color, 0.2)}`,
+                  height: "100%",
+                }}
               >
-                <Card
-                  elevation={0}
-                  sx={{
-                    borderRadius: 4,
-                    overflow: "hidden",
-                    position: "relative",
-                    width:"272px",
-                    border: `1px solid ${alpha(card.color, 0.2)}`,
-                    height: "100%",
-                    background: `linear-gradient(135deg, ${alpha(card.color, 0.05)} 0%, ${alpha(card.color, 0.02)} 100%)`,
-                  }}
-                >
-                  <Box
-                    sx={{
-                      position: "absolute",
-                      top: 0,
-                      left: 0,
-                      right: 0,
-                      height: 4,
-                      background: card.gradient,
-                    }}
-                  />
-                  <CardContent sx={{ p: 2.5 }}>
-                    <Stack spacing={1.5}>
-                      <Box
-                        sx={{
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "space-between",
-                        }}
-                      >
-                        <Box
-                          sx={{
-                            width: 48,
-                            height: 48,
-                            borderRadius: 2,
-                            background: `linear-gradient(135deg, ${alpha(card.color, 0.2)} 0%, ${alpha(card.color, 0.1)} 100%)`,
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            color: card.color,
-                          }}
-                        >
-                          {card.icon}
-                        </Box>
-                        <Typography
-                          variant="h5"
-                          fontWeight={700}
-                          sx={{ color: card.color }}
-                        >
-                          {card.value}
-                        </Typography>
+                <CardContent sx={{ p: 1.5 }}>
+                  <Stack spacing={1}>
+                    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <Box sx={{ width: 32, height: 32, borderRadius: 1.5, bgcolor: alpha(card.color, 0.1), display: "flex", alignItems: "center", justifyContent: "center", color: card.color }}>
+                        {card.icon}
                       </Box>
-                      <Box>
-                        <Typography variant="subtitle2" fontWeight={600}>
-                          {card.label}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          {card.subText}
-                        </Typography>
-                      </Box>
-                    </Stack>
-                  </CardContent>
-                </Card>
-              </motion.div>
+                      <Typography variant="h6" fontWeight={700} sx={{ color: card.color }}>
+                        {card.value}
+                      </Typography>
+                    </Box>
+                    <Box>
+                      <Typography variant="body2" fontWeight={600} sx={{ fontSize: "0.8rem" }}>
+                        {card.label}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        {card.subText}
+                      </Typography>
+                    </Box>
+                  </Stack>
+                </CardContent>
+              </Card>
             </Grid>
           ))}
         </Grid>
 
-        {/* Filters Card */}
-        <Card
-          elevation={0}
-          sx={{
-            borderRadius: 3,
-            mb: 4,
-            border: `1px solid ${alpha(PRIMARY, 0.1)}`,
-            overflow: "visible",
-          }}
-        >
-          <CardContent sx={{ p: 3 }}>
-            <Stack spacing={3}>
-              {/* Top Filters Row */}
-              <Stack
-                direction={{ xs: "column", md: "row" }}
-                spacing={2}
-                justifyContent="space-between"
-                alignItems={{ xs: "stretch", md: "center" }}
-              >
-                <Box sx={{ width: { xs: "100%", md: 350 } }}>
-                  <TextField
-                    fullWidth
-                    size="medium"
-                    placeholder="Search by location, name, remarks..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <Search sx={{ color: "text.secondary" }} />
-                        </InputAdornment>
-                      ),
-                      endAdornment: searchQuery && (
-                        <InputAdornment position="end">
-                          <IconButton size="small" onClick={() => setSearchQuery("")}>
-                            <Close />
-                          </IconButton>
-                        </InputAdornment>
-                      ),
-                      sx: {
-                        borderRadius: 3,
-                        bgcolor: alpha(PRIMARY, 0.02),
-                        "&:hover": {
-                          bgcolor: alpha(PRIMARY, 0.04),
-                        },
-                      },
-                    }}
-                  />
-                </Box>
+        {/* Search and Filters */}
+        <Card sx={{ borderRadius: 2, mb: 3 }}>
+          <CardContent sx={{ p: 2 }}>
+            <Stack spacing={2}>
+              <Box sx={{ display: "flex", gap: 1 }}>
+                <TextField
+                  fullWidth
+                  size="small"
+                  placeholder="Search..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <Search sx={{ fontSize: 18, color: "text.secondary" }} />
+                      </InputAdornment>
+                    ),
+                    sx: { borderRadius: 2 },
+                  }}
+                />
 
-                <Stack direction="row" spacing={2} flexWrap="wrap">
-                  <FormControl size="medium" sx={{ minWidth: 150 }}>
-                    <InputLabel>Period</InputLabel>
-                    <Select
-                      value={period}
-                      label="Period"
-                      onChange={(e) => {
-                        setPeriod(e.target.value);
-                        fetchVisitorData(1);
-                      }}
-                      sx={{ borderRadius: 1 }}
+                {isMobile ? (
+                  <IconButton
+                    onClick={() => setFilterDrawerOpen(true)}
+                    sx={{ bgcolor: alpha(PRIMARY, 0.1), color: PRIMARY, borderRadius: 2 }}
+                  >
+                    <Tune />
+                  </IconButton>
+                ) : (
+                  <>
+                    <FormControl size="small" sx={{ minWidth: 140 }}>
+                      <InputLabel>Period</InputLabel>
+                      <Select
+                        value={period}
+                        label="Period"
+                        onChange={(e) => setPeriod(e.target.value)}
+                      >
+                        <MenuItem value="Today">Today</MenuItem>
+                        <MenuItem value="This Week">This Week</MenuItem>
+                        <MenuItem value="This Month">This Month</MenuItem>
+                        <MenuItem value="All">All</MenuItem>
+                      </Select>
+                    </FormControl>
+
+                    <Button
+                      variant="outlined"
+                      startIcon={<Tune />}
+                      onClick={() => setShowFilterPanel(!showFilterPanel)}
+                      size="small"
+                      sx={{ minWidth: 120 }}
                     >
-                      <MenuItem value="Today">Today</MenuItem>
-                      <MenuItem value="This Week">This Week</MenuItem>
-                      <MenuItem value="This Month">This Month</MenuItem>
-                      <MenuItem value="All">All Time</MenuItem>
-                    </Select>
-                  </FormControl>
-
-                  <Button
-                    variant="outlined"
-                    startIcon={<Tune />}
-                    onClick={() => setShowFilterPanel(!showFilterPanel)}
-                    sx={{
-                      borderRadius: 1,
-                      px: 3,
-                      borderWidth: 2,
-                      "&:hover": { borderWidth: 2 },
-                    }}
-                  >
-                    {showFilterPanel ? "Hide Filters" : "More Filters"}
-                  </Button>
-
-                  <Button
-                    variant="outlined"
-                    color="error"
-                    startIcon={<Clear />}
-                    onClick={handleClearFilters}
-                    sx={{ borderRadius: 1, px: 3, borderWidth: 2 }}
-                  >
-                    Clear
-                  </Button>
-                </Stack>
-              </Stack>
-
-              {/* Expanded Filter Panel */}
-              <AnimatePresence>
-                {showFilterPanel && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    exit={{ opacity: 0, height: 0 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    <Box
-                      sx={{
-                        p: 3,
-                        bgcolor: alpha(PRIMARY, 0.02),
-                        borderRadius: 3,
-                        border: `1px solid ${alpha(PRIMARY, 0.1)}`,
-                      }}
-                    >
-                      <Typography variant="subtitle1" fontWeight={600} gutterBottom>
-                        Date Range Filter
-                      </Typography>
-                      <Grid container spacing={3}>
-                        <Grid item xs={12} sm={6}>
-                          <DatePicker
-                            label="From Date"
-                            value={dateFilter.startDate}
-                            onChange={(date) => {
-                              setDateFilter((prev) => ({ ...prev, startDate: date }));
-                              fetchVisitorData(1);
-                            }}
-                            slotProps={{
-                              textField: {
-                                fullWidth: true,
-                                size: "medium",
-                                error: !!dateFilterError,
-                                helperText: dateFilterError || " ",
-                                sx: { "& .MuiOutlinedInput-root": { borderRadius: 3 } },
-                              },
-                            }}
-                          />
-                        </Grid>
-                        <Grid item xs={12} sm={6}>
-                          <DatePicker
-                            label="To Date"
-                            value={dateFilter.endDate}
-                            onChange={(date) => {
-                              setDateFilter((prev) => ({ ...prev, endDate: date }));
-                              fetchVisitorData(1);
-                            }}
-                            minDate={dateFilter.startDate}
-                            slotProps={{
-                              textField: {
-                                fullWidth: true,
-                                size: "medium",
-                                error: !!dateFilterError,
-                                helperText: dateFilterError || " ",
-                                sx: { "& .MuiOutlinedInput-root": { borderRadius: 3 } },
-                              },
-                            }}
-                          />
-                        </Grid>
-                      </Grid>
-                    </Box>
-                  </motion.div>
+                      Filters
+                    </Button>
+                  </>
                 )}
-              </AnimatePresence>
+              </Box>
+
+              {!isMobile && showFilterPanel && (
+                <Box sx={{ p: 2, bgcolor: alpha(PRIMARY, 0.02), borderRadius: 2 }}>
+                  <Typography variant="subtitle2" fontWeight={600} gutterBottom>
+                    Date Range
+                  </Typography>
+                  <Grid container spacing={2}>
+                    <Grid item xs={12} sm={6}>
+                      <DatePicker
+                        label="Start Date"
+                        value={dateFilter.startDate}
+                        onChange={(date) => setDateFilter(prev => ({ ...prev, startDate: date }))}
+                        slotProps={{
+                          textField: {
+                            fullWidth: true,
+                            size: "small",
+                            error: !!dateFilterError,
+                            helperText: dateFilterError,
+                          },
+                        }}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <DatePicker
+                        label="End Date"
+                        value={dateFilter.endDate}
+                        onChange={(date) => setDateFilter(prev => ({ ...prev, endDate: date }))}
+                        minDate={dateFilter.startDate}
+                        slotProps={{
+                          textField: {
+                            fullWidth: true,
+                            size: "small",
+                          },
+                        }}
+                      />
+                    </Grid>
+                    <Grid item xs={12}>
+                      <Button
+                        variant="contained"
+                        onClick={() => {
+                          setPage(0);
+                          fetchVisitorData(1);
+                        }}
+                        size="small"
+                        sx={{ mr: 1 }}
+                      >
+                        Apply
+                      </Button>
+                      <Button
+                        variant="outlined"
+                        onClick={handleClearFilters}
+                        size="small"
+                      >
+                        Clear
+                      </Button>
+                    </Grid>
+                  </Grid>
+                </Box>
+              )}
             </Stack>
           </CardContent>
         </Card>
 
-        {/* Location Tracker - Only for TEAM members */}
-        {userPermissions.canTrackLocation && selectedVisit && (
-          <LocationTracker
-            visit={selectedVisit}
-            onLocationUpdate={(locationData) =>
-              handleLocationUpdate(selectedVisit._id, locationData)
-            }
-            userRole={userRole}
-            onManualLocationClick={() => setManualLocationDialogOpen(true)}
-          />
-        )}
+        {/* Content - Mobile Cards or Desktop Table */}
+        {isMobile ? (
+          <Box>
+            <AnimatePresence>
+              {visitorData.visits.length > 0 ? (
+                visitorData.visits.map((visit) => (
+                  <MobileVisitCard
+                    key={visit._id}
+                    visit={visit}
+                    onView={handleViewClick}
+                    onEdit={handleEditClick}
+                    onDelete={handleDeleteVisit}
+                    onViewImage={handleViewImage}
+                    canEdit={userPermissions.canEdit}
+                    canDelete={userPermissions.canDelete}
+                  />
+                ))
+              ) : (
+                <Box sx={{ textAlign: "center", py: 4 }}>
+                  <Box sx={{ width: 64, height: 64, borderRadius: "50%", bgcolor: alpha(PRIMARY, 0.1), display: "flex", alignItems: "center", justifyContent: "center", color: PRIMARY, mx: "auto", mb: 2 }}>
+                    <LocationOn sx={{ fontSize: 32 }} />
+                  </Box>
+                  <Typography variant="body1" fontWeight={600} gutterBottom>
+                    No Visits Found
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    {searchQuery || dateFilter.startDate || dateFilter.endDate
+                      ? "Try adjusting your filters"
+                      : "No visitor data available"}
+                  </Typography>
+                </Box>
+              )}
+            </AnimatePresence>
 
-        {/* Data Table */}
-        <Card
-          elevation={0}
-          sx={{
-            borderRadius: 3,
-            border: `1px solid ${alpha(PRIMARY, 0.1)}`,
-            overflow: "hidden",
-          }}
-        >
-          <Box sx={{ overflowX: "auto" }}>
+            {/* Mobile Pagination */}
+            {visitorData.visits.length > 0 && (
+              <Box sx={{ mt: 3, display: "flex", justifyContent: "center" }}>
+                <Pagination
+                  count={totalPages}
+                  page={page + 1}
+                  onChange={handlePageChange}
+                  color="primary"
+                  size="small"
+                  siblingCount={0}
+                  boundaryCount={1}
+                />
+              </Box>
+            )}
+          </Box>
+        ) : (
+          /* Desktop Table */
+          <Card sx={{ borderRadius: 2, border: `1px solid ${alpha(PRIMARY, 0.1)}` }}>
             <TableContainer>
-              <Table>
+              <Table size="small">
                 <TableHead>
                   <TableRow sx={{ bgcolor: alpha(PRIMARY, 0.04) }}>
-                    <TableCell sx={{ fontWeight: 700, py: 2 }}>Visitor</TableCell>
-                    <TableCell sx={{ fontWeight: 700, py: 2 }}>Location</TableCell>
-                    <TableCell sx={{ fontWeight: 700, py: 2 }}>
-                      <Button
-                        size="small"
-                        onClick={() => handleSort("kmFromPrevious")}
-                        endIcon={
-                          sortConfig.key === "kmFromPrevious" && (
-                            sortConfig.direction === "asc" ? (
-                              <ArrowUpward fontSize="small" />
-                            ) : (
-                              <ArrowDownward fontSize="small" />
-                            )
-                          )
-                        }
-                        sx={{
-                          fontWeight: 700,
-                          textTransform: "none",
-                          color: "text.primary",
-                        }}
-                      >
-                        Distance
-                      </Button>
-                    </TableCell>
-                    <TableCell sx={{ fontWeight: 700, py: 2 }}>Remarks</TableCell>
-                    <TableCell sx={{ fontWeight: 700, py: 2 }}>
-                      <Button
-                        size="small"
-                        onClick={() => handleSort("visitedAt")}
-                        endIcon={
-                          sortConfig.key === "visitedAt" && (
-                            sortConfig.direction === "asc" ? (
-                              <ArrowUpward fontSize="small" />
-                            ) : (
-                              <ArrowDownward fontSize="small" />
-                            )
-                          )
-                        }
-                        sx={{
-                          fontWeight: 700,
-                          textTransform: "none",
-                          color: "text.primary",
-                        }}
-                      >
-                        Visit Date
-                      </Button>
-                    </TableCell>
-                    <TableCell align="center" sx={{ fontWeight: 700, py: 2 }}>
-                      Actions
-                    </TableCell>
+                    <TableCell sx={{ fontWeight: 700, py: 1.5 }}>Visitor</TableCell>
+                    <TableCell sx={{ fontWeight: 700, py: 1.5 }}>Location</TableCell>
+                    <TableCell sx={{ fontWeight: 700, py: 1.5 }}>Distance</TableCell>
+                    <TableCell sx={{ fontWeight: 700, py: 1.5 }}>Date</TableCell>
+                    <TableCell align="center" sx={{ fontWeight: 700, py: 1.5 }}>Actions</TableCell>
                   </TableRow>
                 </TableHead>
-
                 <TableBody>
                   {loading ? (
-                    Array.from({ length: rowsPerPage }).map((_, index) => (
-                      <TableRow key={index}>
-                        {Array.from({ length: 6 }).map((_, cellIndex) => (
-                          <TableCell key={cellIndex}>
-                            <Skeleton variant="text" height={40} />
-                          </TableCell>
-                        ))}
+                    Array.from({ length: rowsPerPage }).map((_, i) => (
+                      <TableRow key={i}>
+                        <TableCell colSpan={5}><Skeleton height={40} /></TableCell>
                       </TableRow>
                     ))
-                  ) : paginatedVisits.length === 0 ? (
+                  ) : visitorData.visits.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={6} align="center" sx={{ py: 6 }}>
-                        <motion.div
-                          initial={{ opacity: 0, scale: 0.9 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          transition={{ duration: 0.5 }}
-                        >
-                          <Box sx={{ textAlign: "center" }}>
-                            <Box
-                              sx={{
-                                width: 80,
-                                height: 80,
-                                borderRadius: "50%",
-                                bgcolor: alpha(PRIMARY, 0.1),
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                color: PRIMARY,
-                                mx: "auto",
-                                mb: 2,
-                              }}
-                            >
-                              <LocationOn sx={{ fontSize: 40 }} />
-                            </Box>
-                            <Typography variant="h6" fontWeight={600} gutterBottom>
-                              No Visits Found
-                            </Typography>
-                            <Typography variant="body2" color="text.secondary">
-                              {filteredVisits.length === 0
-                                ? "No visitor tracking data available"
-                                : "No visits match the current filters"}
-                            </Typography>
-                            {userPermissions.canTrackLocation && (
-                              <Button
-                                variant="contained"
-                                startIcon={<AddLocationAlt />}
-                                onClick={() => setCreateVisitDialogOpen(true)}
-                                sx={{ mt: 3, borderRadius: 3 }}
-                              >
-                                Create Visit
-                              </Button>
-                            )}
-                          </Box>
-                        </motion.div>
+                      <TableCell colSpan={5} align="center" sx={{ py: 4 }}>
+                        <Typography variant="body2" color="text.secondary">No visits found</Typography>
                       </TableCell>
                     </TableRow>
                   ) : (
-                    paginatedVisits.map((visit, index) => {
-                      return (
-                        <TableRow
-                          key={visit._id}
-                          hover
-                          sx={{
-                            "&:hover": { bgcolor: alpha(PRIMARY, 0.02) },
-                            cursor: "pointer",
-                            transition: "background-color 0.2s",
-                          }}
-                          onClick={() => handleViewClick(visit)}
-                        >
-                          <TableCell>
-                            <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                              <Avatar
-                                sx={{
-                                  bgcolor: alpha(PRIMARY, 0.1),
-                                  color: PRIMARY,
-                                  fontWeight: 600,
-                                  width: 44,
-                                  height: 44,
-                                }}
-                              >
-                                {visit.user?.firstName?.[0] || "V"}
-                              </Avatar>
-                              <Box>
-                                <Typography variant="body1" fontWeight={600}>
-                                  {visit.user?.firstName} {visit.user?.lastName}
-                                </Typography>
-                                <Typography variant="caption" color="text.secondary">
-                                  {visit.user?.role || "Visitor"}
-                                </Typography>
-                              </Box>
-                            </Box>
-                          </TableCell>
-
-                          <TableCell>
-                            <Box>
-                              <Typography variant="body2" fontWeight={500}>
-                                {visit.locationName}
-                              </Typography>
-                              {/* REMOVED: Lat/Long display from list view */}
-                            </Box>
-                          </TableCell>
-
-                          <TableCell>
+                    visitorData.visits.map((visit) => (
+                      <TableRow key={visit._id} hover sx={{ cursor: "pointer" }} onClick={() => handleViewClick(visit)}>
+                        <TableCell>
+                          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                            <Avatar sx={{ width: 32, height: 32, bgcolor: alpha(PRIMARY, 0.1), color: PRIMARY }}>
+                              {visit.user?.firstName?.[0] || "V"}
+                            </Avatar>
                             <Typography variant="body2" fontWeight={600}>
-                              {formatDistance(visit.kmFromPrevious || 0)}
+                              {visit.user?.firstName} {visit.user?.lastName}
                             </Typography>
-                          </TableCell>
-
-                          <TableCell>
-                            <Typography variant="body2" sx={{ maxWidth: 200 }} noWrap>
-                              {visit.remarks || "No remarks"}
-                            </Typography>
-                          </TableCell>
-
-                          <TableCell>
-                            <Box>
-                              <Typography variant="body2" fontWeight={500}>
-                                {safeFormatDateOnly(visit.visitedAt, "dd MMM yyyy")}
-                              </Typography>
-                              <Typography variant="caption" color="text.secondary">
-                                {safeFormatTime(visit.visitedAt)}
-                              </Typography>
-                            </Box>
-                          </TableCell>
-
-                          <TableCell align="center">
-                            <Stack
-                              direction="row"
-                              spacing={1}
-                              justifyContent="center"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              <Tooltip title="View Details" arrow>
-                                <IconButton
-                                  size="small"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleViewClick(visit);
-                                  }}
-                                  sx={{
-                                    bgcolor: alpha(PRIMARY, 0.1),
-                                    color: PRIMARY,
-                                    "&:hover": { bgcolor: alpha(PRIMARY, 0.2) },
-                                  }}
-                                >
-                                  <Visibility fontSize="small" />
-                                </IconButton>
-                              </Tooltip>
-
-                              {userPermissions.canEdit && (
-                                <Tooltip title="Edit Visit" arrow>
-                                  <IconButton
-                                    size="small"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleEditClick(visit);
-                                    }}
-                                    sx={{
-                                      bgcolor: alpha(INFO, 0.1),
-                                      color: INFO,
-                                      "&:hover": { bgcolor: alpha(INFO, 0.2) },
-                                    }}
-                                  >
-                                    <Edit fontSize="small" />
-                                  </IconButton>
-                                </Tooltip>
-                              )}
-
-                              {visit.photoUrl && (
-                                <Tooltip title="View Image" arrow>
-                                  <IconButton
-                                    size="small"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleViewImage(visit.photoUrl, visit.locationName);
-                                    }}
-                                    sx={{
-                                      bgcolor: alpha(SUCCESS, 0.1),
-                                      color: SUCCESS,
-                                      "&:hover": { bgcolor: alpha(SUCCESS, 0.2) },
-                                    }}
-                                  >
-                                    <ImageIcon fontSize="small" />
-                                  </IconButton>
-                                </Tooltip>
-                              )}
-
-                              {userPermissions.canTrackLocation && (
-                                <Tooltip title="Track Location" arrow>
-                                  <IconButton
-                                    size="small"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      setSelectedVisit(visit);
-                                    }}
-                                    sx={{
-                                      bgcolor: alpha(INFO, 0.1),
-                                      color: INFO,
-                                      "&:hover": { bgcolor: alpha(INFO, 0.2) },
-                                    }}
-                                  >
-                                    <MyLocation fontSize="small" />
-                                  </IconButton>
-                                </Tooltip>
-                              )}
-
-                              {userPermissions.canDelete && (
-                                <Tooltip title="Delete Visit" arrow>
-                                  <IconButton
-                                    size="small"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      if (window.confirm("Are you sure you want to delete this visit?")) {
-                                        handleDeleteVisit(visit._id);
-                                      }
-                                    }}
-                                    sx={{
-                                      bgcolor: alpha(ERROR, 0.1),
-                                      color: ERROR,
-                                      "&:hover": { bgcolor: alpha(ERROR, 0.2) },
-                                    }}
-                                  >
-                                    <Delete fontSize="small" />
-                                  </IconButton>
-                                </Tooltip>
-                              )}
-                            </Stack>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })
+                          </Box>
+                        </TableCell>
+                        <TableCell>
+                          <Typography variant="body2">{visit.locationName}</Typography>
+                        </TableCell>
+                        <TableCell>
+                          <Typography variant="body2" fontWeight={600} color={WARNING}>
+                            {formatDistance(visit.kmFromPrevious || 0)}
+                          </Typography>
+                        </TableCell>
+                        <TableCell>
+                          <Typography variant="body2">
+                            {safeFormatDateOnly(visit.visitedAt, "dd MMM yyyy")}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            {safeFormatTime(visit.visitedAt)}
+                          </Typography>
+                        </TableCell>
+                        <TableCell align="center">
+                          <Stack direction="row" spacing={0.5} justifyContent="center">
+                            <IconButton size="small" onClick={(e) => { e.stopPropagation(); handleViewClick(visit); }}>
+                              <Visibility fontSize="small" sx={{ color: PRIMARY }} />
+                            </IconButton>
+                            {userPermissions.canEdit && (
+                              <IconButton size="small" onClick={(e) => { e.stopPropagation(); handleEditClick(visit); }}>
+                                <Edit fontSize="small" sx={{ color: INFO }} />
+                              </IconButton>
+                            )}
+                            {visit.photoUrl && (
+                              <IconButton size="small" onClick={(e) => { e.stopPropagation(); handleViewImage(visit.photoUrl, visit.locationName); }}>
+                                <ImageIcon fontSize="small" sx={{ color: SUCCESS }} />
+                              </IconButton>
+                            )}
+                          </Stack>
+                        </TableCell>
+                      </TableRow>
+                    ))
                   )}
                 </TableBody>
               </Table>
             </TableContainer>
-          </Box>
 
-          {/* Pagination */}
-          {visitorData.visits.length > 0 && (
-            <Box
-              sx={{
-                p: 2.5,
-                borderTop: 1,
-                borderColor: "divider",
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                flexWrap: "wrap",
-                gap: 2,
-                bgcolor: alpha(PRIMARY, 0.02),
-              }}
-            >
-              <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+            {/* Desktop Pagination */}
+            {visitorData.visits.length > 0 && (
+              <Box sx={{ p: 2, borderTop: 1, borderColor: "divider", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <Typography variant="body2" color="text.secondary">
-                  Showing <strong>{(page * rowsPerPage) + 1}</strong> to{" "}
-                  <strong>
-                    {Math.min((page + 1) * rowsPerPage, visitorData.pagination.total)}
-                  </strong>{" "}
-                  of <strong>{visitorData.pagination.total}</strong> visits
+                  Showing {(page * rowsPerPage) + 1} to {Math.min((page + 1) * rowsPerPage, visitorData.pagination.total)} of {visitorData.pagination.total}
                 </Typography>
-                <FormControl size="small" sx={{ minWidth: 120 }}>
-                  <Select
-                    value={rowsPerPage}
-                    onChange={handleRowsPerPageChange}
-                    sx={{ borderRadius: 2 }}
-                  >
-                    {ITEMS_PER_PAGE_OPTIONS.map((option) => (
-                      <MenuItem key={option} value={option}>
-                        {option} per page
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
+                <Pagination
+                  count={totalPages}
+                  page={page + 1}
+                  onChange={handlePageChange}
+                  color="primary"
+                  size="small"
+                />
               </Box>
+            )}
+          </Card>
+        )}
 
-              <Pagination
-                count={totalPages}
-                page={page + 1}
-                onChange={handlePageChange}
-                color="primary"
-                showFirstButton
-                showLastButton
-                siblingCount={1}
-                boundaryCount={1}
-                sx={{
-                  "& .MuiPaginationItem-root": {
-                    borderRadius: 2,
-                  },
-                }}
-              />
-            </Box>
-          )}
-        </Card>
-
-        {/* Loading Overlay */}
-        <AnimatePresence>
-          {loading && visitorData.visits.length > 0 && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.3 }}
-            >
-              <Backdrop
-                open={loading}
-                sx={{
-                  position: "fixed",
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  bgcolor: "rgba(255, 255, 255, 0.9)",
-                  zIndex: 9999,
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <CircularProgress size={60} sx={{ color: PRIMARY, mb: 2 }} />
-                <Typography variant="h6" fontWeight={600} sx={{ color: PRIMARY }}>
-                  Loading Visitor Data...
-                </Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                  Please wait
-                </Typography>
-              </Backdrop>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {/* Mobile FAB */}
+        {isMobile && userPermissions.canTrackLocation && (
+          <Fab
+            color="primary"
+            sx={{
+              position: "fixed",
+              bottom: 80,
+              right: 16,
+              zIndex: 1000,
+              bgcolor: PRIMARY,
+            }}
+            onClick={() => setCreateVisitDialogOpen(true)}
+          >
+            <AddLocationAlt />
+          </Fab>
+        )}
       </Box>
     </LocalizationProvider>
   );

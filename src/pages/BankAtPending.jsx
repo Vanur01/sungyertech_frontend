@@ -185,11 +185,7 @@ const BANK_STATUS_CONFIG = {
 };
 
 // Lead Status Configuration for Bank at Pending Page
-const LEAD_STATUS_OPTIONS = [
-  "Bank at Pending",
-  "Disbursement",
-  "Missed Leads",
-];
+const LEAD_STATUS_OPTIONS = ["Bank at Pending", "Disbursement", "Missed Leads"];
 
 const LEAD_STATUS_CONFIG = {
   "Bank at Pending": {
@@ -357,19 +353,19 @@ const ImageViewerModal = React.memo(({ open, onClose, imageUrl, title }) => {
 
   const handleZoomIn = useCallback(
     () => setZoom((prev) => Math.min(prev + 0.25, 3)),
-    []
+    [],
   );
   const handleZoomOut = useCallback(
     () => setZoom((prev) => Math.max(prev - 0.25, 0.5)),
-    []
+    [],
   );
   const handleRotateRight = useCallback(
     () => setRotation((prev) => (prev + 90) % 360),
-    []
+    [],
   );
   const handleRotateLeft = useCallback(
     () => setRotation((prev) => (prev - 90) % 360),
-    []
+    [],
   );
   const handleReset = useCallback(() => {
     setZoom(1);
@@ -383,7 +379,7 @@ const ImageViewerModal = React.memo(({ open, onClose, imageUrl, title }) => {
 
   const isImage = useMemo(
     () => imageUrl && /\.(jpg|jpeg|png|gif|bmp|webp)$/i.test(imageUrl),
-    [imageUrl]
+    [imageUrl],
   );
 
   const handleDownload = useCallback(() => {
@@ -487,7 +483,11 @@ const ImageViewerModal = React.memo(({ open, onClose, imageUrl, title }) => {
               variant="contained"
               startIcon={<GetApp />}
               onClick={handleDownload}
-              sx={{ mt: 2, bgcolor: PRIMARY, '&:hover': { bgcolor: SECONDARY } }}
+              sx={{
+                mt: 2,
+                bgcolor: PRIMARY,
+                "&:hover": { bgcolor: SECONDARY },
+              }}
             >
               Download Document
             </Button>
@@ -586,14 +586,14 @@ const DocumentCard = React.memo(
             variant="contained"
             startIcon={<GetApp />}
             onClick={handleDownload}
-            sx={{ bgcolor: PRIMARY, '&:hover': { bgcolor: SECONDARY } }}
+            sx={{ bgcolor: PRIMARY, "&:hover": { bgcolor: SECONDARY } }}
           >
             Download
           </Button>
         </Stack>
       </Card>
     );
-  }
+  },
 );
 
 DocumentCard.displayName = "DocumentCard";
@@ -614,12 +614,12 @@ const BankStatusUpdateModal = React.memo(
 
     const bankStatusConfig = useMemo(
       () => getBankStatusColor(lead?.bankAtPendingStatus),
-      [lead?.bankAtPendingStatus]
+      [lead?.bankAtPendingStatus],
     );
 
     const leadStatusConfig = useMemo(
       () => getLeadStatusConfig(lead?.status),
-      [lead?.status]
+      [lead?.status],
     );
 
     useEffect(() => {
@@ -711,8 +711,11 @@ const BankStatusUpdateModal = React.memo(
     }, [onClose]);
 
     const availableBankStatuses = useMemo(
-      () => BANK_STATUS_OPTIONS.filter((status) => status !== lead?.bankAtPendingStatus),
-      [lead?.bankAtPendingStatus]
+      () =>
+        BANK_STATUS_OPTIONS.filter(
+          (status) => status !== lead?.bankAtPendingStatus,
+        ),
+      [lead?.bankAtPendingStatus],
     );
 
     const getLeadStatusOptions = useMemo(() => {
@@ -997,10 +1000,10 @@ const BankStatusUpdateModal = React.memo(
                   {selectedBankStatus === "approved"
                     ? "When approved, lead will move to Disbursement stage."
                     : selectedBankStatus === "rejected"
-                    ? "When rejected, lead will move to Missed Leads or Document Submission stage."
-                    : selectedBankStatus === "pending"
-                    ? "When pending, lead will stay in Bank at Pending stage."
-                    : "When disbursed, lead will stay in Disbursement stage."}
+                      ? "When rejected, lead will move to Missed Leads or Document Submission stage."
+                      : selectedBankStatus === "pending"
+                        ? "When pending, lead will stay in Bank at Pending stage."
+                        : "When disbursed, lead will stay in Disbursement stage."}
                 </Typography>
               </Alert>
             )}
@@ -1032,7 +1035,7 @@ const BankStatusUpdateModal = React.memo(
         </DialogActions>
       </Dialog>
     );
-  }
+  },
 );
 
 BankStatusUpdateModal.displayName = "BankStatusUpdateModal";
@@ -1201,12 +1204,22 @@ const ViewLeadModal = React.memo(
                         Bank Status
                       </Typography>
                       <Chip
-                        label={getBankStatusColor(displayData.bankAtPendingStatus).label}
-                        icon={getBankStatusColor(displayData.bankAtPendingStatus).icon}
+                        label={
+                          getBankStatusColor(displayData.bankAtPendingStatus)
+                            .label
+                        }
+                        icon={
+                          getBankStatusColor(displayData.bankAtPendingStatus)
+                            .icon
+                        }
                         size="small"
                         sx={{
-                          bgcolor: getBankStatusColor(displayData.bankAtPendingStatus).bg,
-                          color: getBankStatusColor(displayData.bankAtPendingStatus).color,
+                          bgcolor: getBankStatusColor(
+                            displayData.bankAtPendingStatus,
+                          ).bg,
+                          color: getBankStatusColor(
+                            displayData.bankAtPendingStatus,
+                          ).color,
                           fontWeight: 600,
                         }}
                       />
@@ -1540,7 +1553,8 @@ const ViewLeadModal = React.memo(
                   {displayData.firstName} {displayData.lastName}
                 </Typography>
                 <Typography variant="caption" sx={{ opacity: 0.9 }}>
-                  Bank Pending Details • {formatCurrency(displayData.loanAmount)}
+                  Bank Pending Details •{" "}
+                  {formatCurrency(displayData.loanAmount)}
                 </Typography>
               </Box>
             </Box>
@@ -1617,7 +1631,12 @@ const ViewLeadModal = React.memo(
             <Button
               onClick={onClose}
               variant="contained"
-              sx={{ borderRadius: 2, mt: 2, bgcolor: PRIMARY, '&:hover': { bgcolor: SECONDARY } }}
+              sx={{
+                borderRadius: 2,
+                mt: 2,
+                bgcolor: PRIMARY,
+                "&:hover": { bgcolor: SECONDARY },
+              }}
             >
               Close
             </Button>
@@ -1625,7 +1644,7 @@ const ViewLeadModal = React.memo(
         </DialogActions>
       </Dialog>
     );
-  }
+  },
 );
 
 ViewLeadModal.displayName = "ViewLeadModal";
@@ -1661,7 +1680,7 @@ export default function BankAtPendingPage() {
   const userRole = getUserRole();
   const userPermissions = useMemo(
     () => getUserPermissions(userRole),
-    [userRole]
+    [userRole],
   );
 
   const isXSmall = useMediaQuery(theme.breakpoints.down("sm"));
@@ -1752,7 +1771,7 @@ export default function BankAtPendingPage() {
       // Try the specific endpoint first
       try {
         const response = await fetchAPI(
-          `/lead/bankingAtPending?${params.toString()}`
+          `/lead/bankingAtPending?${params.toString()}`,
         );
 
         if (response?.success) {
@@ -1761,9 +1780,8 @@ export default function BankAtPendingPage() {
           return;
         }
       } catch (endpointError) {
-        console.log('Specific endpoint failed, trying alternative...');
+        console.log("Specific endpoint failed, trying alternative...");
       }
-
     } catch (err) {
       console.error("Error fetching bank pending data:", err);
       setError(err.message || "Network error. Please try again.");
@@ -1774,53 +1792,56 @@ export default function BankAtPendingPage() {
   }, [period, fetchAPI, userRole, user, showSnackbar]);
 
   // Helper function to process leads data
-  const processLeadsData = useCallback((rawLeads) => {
-    let filteredLeads = rawLeads;
-    
-    // Filter by user role if TEAM
-    if (userRole === "TEAM" && user?._id) {
-      filteredLeads = rawLeads.filter(
-        (lead) =>
-          lead.assignedTo === user._id ||
-          lead.assignedManager === user._id ||
-          lead.assignedUser === user._id ||
-          lead.assignedUser?._id === user._id ||
-          lead.createdBy === user._id
+  const processLeadsData = useCallback(
+    (rawLeads) => {
+      let filteredLeads = rawLeads;
+
+      // Filter by user role if TEAM
+      if (userRole === "TEAM" && user?._id) {
+        filteredLeads = rawLeads.filter(
+          (lead) =>
+            lead.assignedTo === user._id ||
+            lead.assignedManager === user._id ||
+            lead.assignedUser === user._id ||
+            lead.assignedUser?._id === user._id ||
+            lead.createdBy === user._id,
+        );
+      }
+
+      const totalLeads = filteredLeads.length;
+      const pendingLeads = filteredLeads.filter(
+        (lead) => lead.bankAtPendingStatus?.toLowerCase() === "pending",
+      ).length;
+      const approvedLeads = filteredLeads.filter(
+        (lead) => lead.bankAtPendingStatus?.toLowerCase() === "approved",
+      ).length;
+      const rejectedLeads = filteredLeads.filter(
+        (lead) => lead.bankAtPendingStatus?.toLowerCase() === "rejected",
+      ).length;
+      const disbursedLeads = filteredLeads.filter(
+        (lead) => lead.bankAtPendingStatus?.toLowerCase() === "disbursed",
+      ).length;
+      const totalLoanAmount = filteredLeads.reduce(
+        (sum, lead) => sum + (parseFloat(lead.loanAmount) || 0),
+        0,
       );
-    }
+      const avgLoanAmount = totalLeads > 0 ? totalLoanAmount / totalLeads : 0;
 
-    const totalLeads = filteredLeads.length;
-    const pendingLeads = filteredLeads.filter(
-      (lead) => lead.bankAtPendingStatus?.toLowerCase() === "pending"
-    ).length;
-    const approvedLeads = filteredLeads.filter(
-      (lead) => lead.bankAtPendingStatus?.toLowerCase() === "approved"
-    ).length;
-    const rejectedLeads = filteredLeads.filter(
-      (lead) => lead.bankAtPendingStatus?.toLowerCase() === "rejected"
-    ).length;
-    const disbursedLeads = filteredLeads.filter(
-      (lead) => lead.bankAtPendingStatus?.toLowerCase() === "disbursed"
-    ).length;
-    const totalLoanAmount = filteredLeads.reduce(
-      (sum, lead) => sum + (parseFloat(lead.loanAmount) || 0),
-      0
-    );
-    const avgLoanAmount = totalLeads > 0 ? totalLoanAmount / totalLeads : 0;
-
-    setBankPendingData({
-      leads: filteredLeads,
-      summary: {
-        totalLeads,
-        pendingLeads,
-        approvedLeads,
-        rejectedLeads,
-        disbursedLeads,
-        totalLoanAmount,
-        avgLoanAmount,
-      },
-    });
-  }, [userRole, user]);
+      setBankPendingData({
+        leads: filteredLeads,
+        summary: {
+          totalLeads,
+          pendingLeads,
+          approvedLeads,
+          rejectedLeads,
+          disbursedLeads,
+          totalLoanAmount,
+          avgLoanAmount,
+        },
+      });
+    },
+    [userRole, user],
+  );
 
   // Apply Filters
   const applyFilters = useCallback(() => {
@@ -1837,14 +1858,14 @@ export default function BankAtPendingPage() {
             (lead.email?.toLowerCase() || "").includes(query) ||
             (lead.phone || "").includes(query) ||
             (lead.bank?.toLowerCase() || "").includes(query) ||
-            (lead.branchName?.toLowerCase() || "").includes(query)
+            (lead.branchName?.toLowerCase() || "").includes(query),
         );
       }
 
       // Bank Status filter
       if (bankStatusFilter !== "All") {
         filtered = filtered.filter(
-          (lead) => lead.bankAtPendingStatus === bankStatusFilter
+          (lead) => lead.bankAtPendingStatus === bankStatusFilter,
         );
       }
 
@@ -1873,10 +1894,10 @@ export default function BankAtPendingPage() {
             const leadDate = lead.bankAtPendingDate
               ? parseISO(lead.bankAtPendingDate)
               : lead.loanApprovalDate
-              ? parseISO(lead.loanApprovalDate)
-              : lead.createdAt
-              ? parseISO(lead.createdAt)
-              : null;
+                ? parseISO(lead.loanApprovalDate)
+                : lead.createdAt
+                  ? parseISO(lead.createdAt)
+                  : null;
             if (!leadDate || !isValid(leadDate)) return false;
             return isWithinInterval(leadDate, { start, end });
           } catch {
@@ -1964,7 +1985,7 @@ export default function BankAtPendingPage() {
       setSelectedLead(lead);
       setViewModalOpen(true);
     },
-    [showSnackbar]
+    [showSnackbar],
   );
 
   const handleStatusUpdateClick = useCallback(
@@ -1976,14 +1997,14 @@ export default function BankAtPendingPage() {
       if (!userPermissions.canUpdateStatus) {
         showSnackbar(
           "You don't have permission to update bank status",
-          "error"
+          "error",
         );
         return;
       }
       setSelectedLead(lead);
       setStatusUpdateModalOpen(true);
     },
-    [userPermissions, showSnackbar]
+    [userPermissions, showSnackbar],
   );
 
   const handleStatusUpdate = useCallback(
@@ -1996,7 +2017,7 @@ export default function BankAtPendingPage() {
         showSnackbar("Failed to refresh data", "error");
       }
     },
-    [fetchBankPendingData, showSnackbar]
+    [fetchBankPendingData, showSnackbar],
   );
 
   const handleActionMenuOpen = useCallback((event, lead) => {
@@ -2031,7 +2052,7 @@ export default function BankAtPendingPage() {
       handleViewClick,
       handleStatusUpdateClick,
       handleActionMenuClose,
-    ]
+    ],
   );
 
   const handleViewDocument = useCallback(
@@ -2043,7 +2064,7 @@ export default function BankAtPendingPage() {
       setCurrentImageUrl(documentUrl);
       setImageViewerOpen(true);
     },
-    [showSnackbar]
+    [showSnackbar],
   );
 
   const handleCloseSnackbar = useCallback(() => {
@@ -2072,7 +2093,7 @@ export default function BankAtPendingPage() {
 
   const totalPages = useMemo(
     () => Math.ceil(filteredLeads.length / rowsPerPage),
-    [filteredLeads.length, rowsPerPage]
+    [filteredLeads.length, rowsPerPage],
   );
 
   const summaryCards = useMemo(
@@ -2106,7 +2127,7 @@ export default function BankAtPendingPage() {
         subText: "Bank rejected",
       },
     ],
-    [bankPendingData.summary]
+    [bankPendingData.summary],
   );
 
   // Access Check
@@ -2277,18 +2298,17 @@ export default function BankAtPendingPage() {
         {/* Summary Cards */}
         <Grid container spacing={2} sx={{ mb: 4 }}>
           {summaryCards.map((card, index) => (
-            <Grid item xs={6} sm={4} md={2} key={index}>
+            <Grid item xs={6} sm={6} md={3} key={index}>
               <Card
                 sx={{
                   borderRadius: 3,
                   overflow: "visible",
                   position: "relative",
-                  width:"277px",
                   border: `1px solid ${alpha(card.color, 0.1)}`,
                   boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
                 }}
               >
-                <CardContent sx={{ p: 2 }}>
+                <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
                   <Stack spacing={1}>
                     <Box
                       sx={{
@@ -2299,22 +2319,27 @@ export default function BankAtPendingPage() {
                     >
                       <Box
                         sx={{
-                          width: 40,
-                          height: 40,
+                          width: { xs: 40, sm: 48 },
+                          height: { xs: 40, sm: 48 },
                           borderRadius: 2,
-                          bgcolor: alpha(PRIMARY, 0.15),
+                          bgcolor: alpha(card.color, 0.1),
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "center",
-                          color: PRIMARY,
+                          color: card.color,
                         }}
                       >
-                        {card.icon}
+                        {React.cloneElement(card.icon, {
+                          sx: { fontSize: { xs: 20, sm: 24 } },
+                        })}
                       </Box>
                       <Typography
-                        variant="h6"
+                        variant="h4"
                         fontWeight={700}
-                        sx={{ color: card.color }}
+                        sx={{
+                          color: card.color,
+                          fontSize: { xs: "1.5rem", sm: "2rem" },
+                        }}
                       >
                         {card.value}
                       </Typography>
@@ -2399,9 +2424,15 @@ export default function BankAtPendingPage() {
                         const config = getBankStatusColor(status);
                         return (
                           <MenuItem key={status} value={status}>
-                            <Stack direction="row" alignItems="center" spacing={1.5}>
+                            <Stack
+                              direction="row"
+                              alignItems="center"
+                              spacing={1.5}
+                            >
                               {config.icon}
-                              <Typography variant="body2">{config.label}</Typography>
+                              <Typography variant="body2">
+                                {config.label}
+                              </Typography>
                             </Stack>
                           </MenuItem>
                         );
@@ -2415,7 +2446,7 @@ export default function BankAtPendingPage() {
                     onClick={() => setShowFilterPanel(!showFilterPanel)}
                     size="small"
                   >
-                    {showFilterPanel ? 'Hide Filters' : 'More Filters'}
+                    {showFilterPanel ? "Hide Filters" : "More Filters"}
                   </Button>
 
                   <Button
@@ -2426,9 +2457,9 @@ export default function BankAtPendingPage() {
                     size="small"
                     disabled={
                       !searchQuery &&
-                      bankStatusFilter === 'All' &&
-                      leadStatusFilter === 'All' &&
-                      bankFilter === 'All' &&
+                      bankStatusFilter === "All" &&
+                      leadStatusFilter === "All" &&
+                      bankFilter === "All" &&
                       !dateFilter.startDate &&
                       !dateFilter.endDate
                     }
@@ -2443,10 +2474,10 @@ export default function BankAtPendingPage() {
                 <Box
                   sx={{
                     p: 3,
-                    bgcolor: 'grey.50',
+                    bgcolor: "grey.50",
                     borderRadius: 2,
-                    border: '1px solid',
-                    borderColor: 'divider',
+                    border: "1px solid",
+                    borderColor: "divider",
                   }}
                 >
                   <Typography variant="subtitle1" fontWeight={600} gutterBottom>
@@ -2466,9 +2497,15 @@ export default function BankAtPendingPage() {
                             const config = getLeadStatusConfig(status);
                             return (
                               <MenuItem key={status} value={status}>
-                                <Stack direction="row" alignItems="center" spacing={1.5}>
+                                <Stack
+                                  direction="row"
+                                  alignItems="center"
+                                  spacing={1.5}
+                                >
                                   {config.icon}
-                                  <Typography variant="body2">{status}</Typography>
+                                  <Typography variant="body2">
+                                    {status}
+                                  </Typography>
                                 </Stack>
                               </MenuItem>
                             );
@@ -2499,13 +2536,18 @@ export default function BankAtPendingPage() {
                       <DatePicker
                         label="From Date"
                         value={dateFilter.startDate}
-                        onChange={(date) => setDateFilter(prev => ({ ...prev, startDate: date }))}
+                        onChange={(date) =>
+                          setDateFilter((prev) => ({
+                            ...prev,
+                            startDate: date,
+                          }))
+                        }
                         slotProps={{
                           textField: {
                             fullWidth: true,
-                            size: 'small',
+                            size: "small",
                             error: !!dateFilterError,
-                            helperText: dateFilterError || ' ',
+                            helperText: dateFilterError || " ",
                           },
                         }}
                       />
@@ -2515,13 +2557,15 @@ export default function BankAtPendingPage() {
                       <DatePicker
                         label="To Date"
                         value={dateFilter.endDate}
-                        onChange={(date) => setDateFilter(prev => ({ ...prev, endDate: date }))}
+                        onChange={(date) =>
+                          setDateFilter((prev) => ({ ...prev, endDate: date }))
+                        }
                         slotProps={{
                           textField: {
                             fullWidth: true,
-                            size: 'small',
+                            size: "small",
                             error: !!dateFilterError,
-                            helperText: dateFilterError || ' ',
+                            helperText: dateFilterError || " ",
                           },
                         }}
                       />
@@ -2534,8 +2578,8 @@ export default function BankAtPendingPage() {
         </Card>
 
         {/* Data Table */}
-        <Card sx={{ borderRadius: 3, overflow: 'hidden' }}>
-          <Box sx={{ overflowX: 'auto' }}>
+        <Card sx={{ borderRadius: 3, overflow: "hidden" }}>
+          <Box sx={{ overflowX: "auto" }}>
             <TableContainer>
               <Table>
                 <TableHead>
@@ -2549,17 +2593,21 @@ export default function BankAtPendingPage() {
                       <Button
                         fullWidth
                         size="small"
-                        onClick={() => handleSort('bank')}
+                        onClick={() => handleSort("bank")}
                         startIcon={
-                          sortConfig.key === 'bank' ? (
-                            sortConfig.direction === 'asc' ? <ArrowUpward /> : <ArrowDownward />
+                          sortConfig.key === "bank" ? (
+                            sortConfig.direction === "asc" ? (
+                              <ArrowUpward />
+                            ) : (
+                              <ArrowDownward />
+                            )
                           ) : null
                         }
                         sx={{
-                          justifyContent: 'flex-start',
+                          justifyContent: "flex-start",
                           fontWeight: 600,
-                          textTransform: 'none',
-                          color: 'text.primary',
+                          textTransform: "none",
+                          color: "text.primary",
                         }}
                       >
                         Bank
@@ -2569,17 +2617,21 @@ export default function BankAtPendingPage() {
                       <Button
                         fullWidth
                         size="small"
-                        onClick={() => handleSort('loanAmount')}
+                        onClick={() => handleSort("loanAmount")}
                         startIcon={
-                          sortConfig.key === 'loanAmount' ? (
-                            sortConfig.direction === 'asc' ? <ArrowUpward /> : <ArrowDownward />
+                          sortConfig.key === "loanAmount" ? (
+                            sortConfig.direction === "asc" ? (
+                              <ArrowUpward />
+                            ) : (
+                              <ArrowDownward />
+                            )
                           ) : null
                         }
                         sx={{
-                          justifyContent: 'flex-start',
+                          justifyContent: "flex-start",
                           fontWeight: 600,
-                          textTransform: 'none',
-                          color: 'text.primary',
+                          textTransform: "none",
+                          color: "text.primary",
                         }}
                       >
                         Loan Amount
@@ -2599,17 +2651,21 @@ export default function BankAtPendingPage() {
                       <Button
                         fullWidth
                         size="small"
-                        onClick={() => handleSort('bankAtPendingDate')}
+                        onClick={() => handleSort("bankAtPendingDate")}
                         startIcon={
-                          sortConfig.key === 'bankAtPendingDate' ? (
-                            sortConfig.direction === 'asc' ? <ArrowUpward /> : <ArrowDownward />
+                          sortConfig.key === "bankAtPendingDate" ? (
+                            sortConfig.direction === "asc" ? (
+                              <ArrowUpward />
+                            ) : (
+                              <ArrowDownward />
+                            )
                           ) : null
                         }
                         sx={{
-                          justifyContent: 'flex-start',
+                          justifyContent: "flex-start",
                           fontWeight: 600,
-                          textTransform: 'none',
-                          color: 'text.primary',
+                          textTransform: "none",
+                          color: "text.primary",
                         }}
                       >
                         Pending Date
@@ -2637,33 +2693,44 @@ export default function BankAtPendingPage() {
                   ) : paginatedLeads.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={7} align="center" sx={{ py: 6 }}>
-                        <Box sx={{ textAlign: 'center' }}>
+                        <Box sx={{ textAlign: "center" }}>
                           <AccountBalanceWallet
-                            sx={{ fontSize: 64, color: 'text.disabled', mb: 2 }}
+                            sx={{ fontSize: 64, color: "text.disabled", mb: 2 }}
                           />
-                          <Typography variant="h6" color="text.secondary" gutterBottom>
+                          <Typography
+                            variant="h6"
+                            color="text.secondary"
+                            gutterBottom
+                          >
                             No Bank Pending Leads Found
                           </Typography>
                           <Typography variant="body2" color="text.secondary">
                             {filteredLeads.length === 0
-                              ? 'No bank pending leads in the system'
-                              : 'No leads match the current filters'}
+                              ? "No bank pending leads in the system"
+                              : "No leads match the current filters"}
                           </Typography>
-                          {filteredLeads.length === 0 && userPermissions.canManage && (
-                            <Button
-                              variant="contained"
-                              sx={{ mt: 2, bgcolor: PRIMARY, '&:hover': { bgcolor: SECONDARY } }}
-                              onClick={() => navigate('/leads/create')}
-                            >
-                              Create New Lead
-                            </Button>
-                          )}
+                          {filteredLeads.length === 0 &&
+                            userPermissions.canManage && (
+                              <Button
+                                variant="contained"
+                                sx={{
+                                  mt: 2,
+                                  bgcolor: PRIMARY,
+                                  "&:hover": { bgcolor: SECONDARY },
+                                }}
+                                onClick={() => navigate("/leads/create")}
+                              >
+                                Create New Lead
+                              </Button>
+                            )}
                         </Box>
                       </TableCell>
                     </TableRow>
                   ) : (
                     paginatedLeads.map((lead) => {
-                      const bankStatusConfig = getBankStatusColor(lead.bankAtPendingStatus);
+                      const bankStatusConfig = getBankStatusColor(
+                        lead.bankAtPendingStatus,
+                      );
                       const leadStatusConfig = getLeadStatusConfig(lead.status);
 
                       return (
@@ -2671,12 +2738,18 @@ export default function BankAtPendingPage() {
                           key={lead._id}
                           hover
                           sx={{
-                            '&:hover': { bgcolor: alpha(PRIMARY, 0.02) },
-                            cursor: 'pointer',
+                            "&:hover": { bgcolor: alpha(PRIMARY, 0.02) },
+                            cursor: "pointer",
                           }}
                         >
                           <TableCell>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                            <Box
+                              sx={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 2,
+                              }}
+                            >
                               <Avatar
                                 sx={{
                                   bgcolor: alpha(PRIMARY, 0.1),
@@ -2684,14 +2757,17 @@ export default function BankAtPendingPage() {
                                   fontWeight: 600,
                                 }}
                               >
-                                {lead.firstName?.[0] || 'C'}
+                                {lead.firstName?.[0] || "C"}
                               </Avatar>
                               <Box>
                                 <Typography variant="body1" fontWeight={600}>
                                   {lead.firstName} {lead.lastName}
                                 </Typography>
-                                <Typography variant="caption" color="text.secondary">
-                                  {lead.phone || 'No phone'}
+                                <Typography
+                                  variant="caption"
+                                  color="text.secondary"
+                                >
+                                  {lead.phone || "No phone"}
                                 </Typography>
                               </Box>
                             </Box>
@@ -2700,10 +2776,13 @@ export default function BankAtPendingPage() {
                           <TableCell>
                             <Box>
                               <Typography variant="body2" fontWeight={600}>
-                                {lead.bank || 'Not specified'}
+                                {lead.bank || "Not specified"}
                               </Typography>
                               {lead.branchName && (
-                                <Typography variant="caption" color="text.secondary">
+                                <Typography
+                                  variant="caption"
+                                  color="text.secondary"
+                                >
                                   {lead.branchName}
                                 </Typography>
                               )}
@@ -2715,8 +2794,14 @@ export default function BankAtPendingPage() {
                               {formatCurrency(lead.loanAmount)}
                             </Typography>
                             {lead.loanApprovalDate && (
-                              <Typography variant="caption" color="text.secondary">
-                                {formatDate(lead.loanApprovalDate, 'dd MMM yyyy')}
+                              <Typography
+                                variant="caption"
+                                color="text.secondary"
+                              >
+                                {formatDate(
+                                  lead.loanApprovalDate,
+                                  "dd MMM yyyy",
+                                )}
                               </Typography>
                             )}
                           </TableCell>
@@ -2737,7 +2822,7 @@ export default function BankAtPendingPage() {
 
                           <TableCell>
                             <Chip
-                              label={lead.status || 'Unknown'}
+                              label={lead.status || "Unknown"}
                               icon={leadStatusConfig.icon}
                               size="small"
                               sx={{
@@ -2751,16 +2836,26 @@ export default function BankAtPendingPage() {
                           <TableCell>
                             <Box>
                               <Typography variant="body2">
-                                {formatDate(lead.bankAtPendingDate, 'dd MMM yyyy')}
+                                {formatDate(
+                                  lead.bankAtPendingDate,
+                                  "dd MMM yyyy",
+                                )}
                               </Typography>
-                              <Typography variant="caption" color="text.secondary">
-                                {formatDate(lead.bankAtPendingDate, 'hh:mm a')}
+                              <Typography
+                                variant="caption"
+                                color="text.secondary"
+                              >
+                                {formatDate(lead.bankAtPendingDate, "hh:mm a")}
                               </Typography>
                             </Box>
                           </TableCell>
 
                           <TableCell align="center">
-                            <Stack direction="row" spacing={1} justifyContent="center">
+                            <Stack
+                              direction="row"
+                              spacing={1}
+                              justifyContent="center"
+                            >
                               <Tooltip title="View Details">
                                 <IconButton
                                   size="small"
@@ -2805,18 +2900,18 @@ export default function BankAtPendingPage() {
               sx={{
                 p: 2,
                 borderTop: 1,
-                borderColor: 'divider',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                flexWrap: 'wrap',
+                borderColor: "divider",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                flexWrap: "wrap",
                 gap: 2,
               }}
             >
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
                 <Typography variant="body2" color="text.secondary">
-                  Showing {page * rowsPerPage + 1} to{' '}
-                  {Math.min((page + 1) * rowsPerPage, filteredLeads.length)} of{' '}
+                  Showing {page * rowsPerPage + 1} to{" "}
+                  {Math.min((page + 1) * rowsPerPage, filteredLeads.length)} of{" "}
                   {filteredLeads.length} leads
                 </Typography>
                 <FormControl size="small" sx={{ minWidth: 100 }}>
@@ -2846,7 +2941,7 @@ export default function BankAtPendingPage() {
                 siblingCount={1}
                 boundaryCount={1}
                 sx={{
-                  '& .MuiPaginationItem-root': {
+                  "& .MuiPaginationItem-root": {
                     borderRadius: 2,
                   },
                 }}
@@ -2859,15 +2954,15 @@ export default function BankAtPendingPage() {
         {loading && (
           <Box
             sx={{
-              position: 'absolute',
+              position: "absolute",
               top: 0,
               left: 0,
               right: 0,
               bottom: 0,
-              bgcolor: 'rgba(255, 255, 255, 0.7)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
+              bgcolor: "rgba(255, 255, 255, 0.7)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
               zIndex: 10,
             }}
           >

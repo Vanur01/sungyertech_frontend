@@ -112,7 +112,7 @@ import { useNavigate } from 'react-router-dom'
 // ========== CONSTANTS & UTILITIES ==========
 
 // Colors
-const PRIMARY_COLOR = "#3a5ac8"; // Changed from #1976d2 to #3a5ac8
+const PRIMARY_COLOR = "#4569ea"; // Changed from #1976d2 to #3a5ac8
 
 // Lead Status Options
 const LEAD_STATUS_OPTIONS = [
@@ -2729,7 +2729,7 @@ const LeadOverview = () => {
             startIcon={<Add />}
             onClick={addLeads}
             sx={{
-              bgcolor: PRIMARY_COLOR,
+              background: "#4569ea",
               borderRadius: 2,
               px: 3,
               py: 1,
